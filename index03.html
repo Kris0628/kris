@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>充電站(樁)投資加盟分析</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* 自定義字體，確保中文字體顯示正常 */
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: #000; /* 純黑色背景 */
+            color: #fff; /* 白色文字 */
+            overflow-x: hidden; /* 防止水平滾動 */
+        }
+
+        /* 模擬 Apple 官網的滾動動效類別 */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 1s ease-out, transform 1s ease-out;
+        }
+
+        .animate-on-scroll.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Bento Grid 項目基礎樣式 */
+        .bento-item {
+            background-color: rgba(255, 255, 255, 0.05); /* 輕微透明的背景 */
+            border: 1px solid rgba(255, 255, 255, 0.1); /* 淺色邊框 */
+            border-radius: 2rem; /* 大圓角 */
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(5px); /* 輕微模糊效果 */
+        }
+
+        /* 高亮色漸變效果 */
+        .highlight-gradient-emerald {
+            background: linear-gradient(135deg, rgba(52, 211, 153, 0.2) 0%, rgba(52, 211, 153, 0) 100%); /* 翡翠綠漸變 */
+        }
+        .highlight-gradient-cyan {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(6, 182, 212, 0) 100%); /* 青色漸變 */
+        }
+        .highlight-gradient-purple {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(168, 85, 247, 0) 100%); /* 紫色漸變 */
+        }
+
+        /* 確保每個「頁面」佔滿視窗高度和寬度 */
+        .full-page-section {
+            width: 100vw;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem 2rem;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 針對小螢幕的響應式調整 */
+        @media (max-width: 768px) {
+            .full-page-section {
+                padding: 2rem 1rem;
+            }
+            .text-7xl { font-size: 3.5rem; }
+            .text-6xl { font-size: 3rem; }
+            .text-5xl { font-size: 2.5rem; }
+            .text-4xl { font-size: 2rem; }
+            .text-3xl { font-size: 1.75rem; }
+            .text-2xl { font-size: 1.5rem; }
+            .bento-grid {
+                grid-template-columns: 1fr;
+            }
+            .bento-item {
+                padding: 1.5rem;
+            }
+            .text-left-mobile {
+                text-align: left;
+            }
+        }
+
+        /* 互動式內容的樣式 */
+        .collapsible-header {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out, opacity 0.5s ease-out;
+            opacity: 0;
+            width: 100%;
+        }
+
+        .collapsible-content.expanded {
+            max-height: 1000px; /* 足夠大的值以容納內容 */
+            opacity: 1;
+            padding-top: 1rem;
+        }
+
+        .collapsible-header .icon {
+            transition: transform 0.3s ease-out;
+        }
+
+        .collapsible-header.expanded .icon {
+            transform: rotate(90deg); /* 展開時旋轉圖標 */
+        }
+    </style>
+</head>
+<body class="bg-black text-white">
+
+    <!-- 頁面 1: 整體報告標題 -->
+    <section id="page-title" class="full-page-section bg-gradient-to-br from-black to-gray-900">
+        <div class="animate-on-scroll flex flex-col items-center justify-center">
+            <h1 class="text-7xl md:text-8xl lg:text-9xl font-extrabold text-emerald-400 leading-tight mb-4 drop-shadow-lg">
+                充電站(樁)投資加盟分析
+            </h1>
+            <p class="text-xl md:text-2xl lg:text-3xl text-gray-300 font-light tracking-wide">
+                Charging Station (Pile) Investment and Franchise Analysis
+            </p>
+        </div>
+    </section>
+
+    <!-- 頁面 2: 總覽 / Executive Summary -->
+    <section id="page-summary" class="full-page-section bg-black">
+        <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-emerald">
+            <h2 class="text-6xl md:text-7xl font-extrabold text-emerald-400 mb-8">總覽</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 bento-grid">
+                <div class="bento-item col-span-1 highlight-gradient-cyan">
+                    <i class="fas fa-car-battery text-5xl text-cyan-400 mb-4"></i>
+                    <h3 class="text-3xl font-bold mb-2">電動車市場爆炸性成長</h3>
+                    <p class="text-lg text-gray-200">全球與台灣電動車銷量均呈現強勁增長，政策支持與技術進步是主要驅動力。</p>
+                </div>
+                <div class="bento-item col-span-1 highlight-gradient-purple">
+                    <i class="fas fa-charging-station text-5xl text-purple-400 mb-4"></i>
+                    <h3 class="text-3xl font-bold mb-2">充電基礎設施需求迫切</h3>
+                    <p class="text-lg text-gray-200">隨著電動車數量增加，充電樁缺口日益顯著，投資潛力巨大。</p>
+                </div>
+                <div class="bento-item col-span-full highlight-gradient-emerald">
+                    <i class="fas fa-chart-line text-5xl text-emerald-400 mb-4"></i>
+                    <h3 class="text-3xl font-bold mb-2">投資評估要點</h3>
+                    <p class="text-lg text-gray-200">地點、設備、成本、盈利模式、法規及競爭都是關鍵考量，加盟可降低門檻但需慎選品牌。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 頁面 3: 電動車市場成長趨勢 - 全球市場概況 -->
+    <section id="page-global-growth" class="full-page-section bg-black">
+        <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-cyan">
+            <h2 class="text-6xl md:text-7xl font-extrabold text-cyan-400 mb-8">全球市場概況</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 bento-grid">
+                <div class="bento-item col-span-1 highlight-gradient-emerald">
+                    <div class="text-7xl font-extrabold text-emerald-400 mb-2">1,700</div>
+                    <p class="text-xl text-gray-200">2024年全球電動車銷量 (近)</p>
+                </div>
+                <div class="bento-item col-span-1 highlight-gradient-purple">
+                    <div class="text-7xl font-extrabold text-purple-400 mb-2">20%</div>
+                    <p class="text-xl text-gray-200">電動車在全球市佔率</p>
+                </div>
+                <div class="bento-item col-span-1 highlight-gradient-cyan">
+                    <div class="text-7xl font-extrabold text-cyan-400 mb-2">26%</div>
+                    <p class="text-xl text-gray-200">年增長率 (vs. 2023)</p>
+                </div>
+                <div class="bento-item col-span-full highlight-gradient-emerald">
+                    <h3 class="text-4xl font-bold mb-4 text-emerald-400">主要驅動因素</h3>
+                    <ul class="text-lg text-gray-200 list-disc list-inside text-left w-full max-w-md mx-auto">
+                        <li>政府政策推動</li>
+                        <li>嚴格燃油車排放標準</li>
+                        <li>電池技術進步</li>
+                        <li>消費者環保意識提升</li>
+                        <li>更多車廠投入</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 頁面 4: 電動車市場成長趨勢 - 台灣市場現況 -->
+    <section id="page-taiwan-growth" class="full-page-section bg-black">
+        <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-purple">
+            <h2 class="text-6xl md:text-7xl font-extrabold text-purple-400 mb-8">台灣市場現況</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 bento-grid">
+                <div class="bento-item col-span-1 highlight-gradient-cyan">
+                    <div class="text-7xl font-extrabold text-cyan-400 mb-2">38,034</div>
+                    <p class="text-xl text-gray-200">2024年台灣新售電動小客車</p>
+                </div>
+                <div class="bento-item col-span-1 highlight-gradient-emerald">
+                    <div class="text-7xl font-extrabold text-emerald-400 mb-2">53%</div>
+                    <p class="text-xl text-gray-200">年增長率</p>
+                </div>
+                <div class="bento-item col-span-1 highlight-gradient-purple">
+                    <div class="text-7xl font-extrabold text-purple-400 mb-2">8.3%</div>
+                    <p class="text-xl text-gray-200">市場佔有率</p>
+                </div>
+                <div class="bento-item col-span-full highlight-gradient-cyan">
+                    <h3 class="text-4xl font-bold mb-4 text-cyan-400">政策支持與品牌競爭</h3>
+                    <ul class="text-lg text-gray-200 list-disc list-inside text-left w-full max-w-md mx-auto">
+                        <li>國產電動車 n7 上市造成爆發性成長</li>
+                        <li>Tesla 持續主導 + 價格調整策略</li>
+                        <li>政府政策與補助支持</li>
+                        <li>充電基礎設施逐步擴增</li>
+                        <li>節能環保意識提升 + 燃油車成本升高</li>
+                        <li>消費者選擇變多、接受度提高</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 頁面 5: 充電樁（站）投資加盟分析 - 市場需求與投資模式 -->
+    <section id="page-investment-demand" class="full-page-section bg-black">
+        <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-emerald">
+            <h2 class="text-6xl md:text-7xl font-extrabold text-emerald-400 mb-8">投資加盟可行性分析</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 bento-grid">
+                <div class="bento-item col-span-1 highlight-gradient-cyan">
+                    <i class="fas fa-map-marked-alt text-5xl text-cyan-400 mb-4"></i>
+                    <h3 class="text-3xl font-bold mb-2">市場需求與潛力</h3>
+                    <ul class="text-lg text-gray-200 list-disc list-inside text-left w-full max-w-xs mx-auto">
+                        <li>解決里程焦慮</li>
+                        <li>公共充電樁缺口</li>
+                        <li>多樣化場景需求</li>
+                    </ul>
+                </div>
+                <div class="bento-item col-span-1 highlight-gradient-purple">
+                    <i class="fas fa-handshake text-5xl text-purple-400 mb-4"></i>
+                    <h3 class="text-3xl font-bold mb-2">投資模式</h3>
+                    <ul class="text-lg text-gray-200 list-disc list-inside text-left w-full max-w-xs mx-auto">
+                        <li>自行建置與營運</li>
+                        <li>加盟現有品牌</li>
+                        <li>與場地主合作</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 頁面 6: 充電樁（站）投資加盟可行性分析 - 投資考量因素 -->
+    <section id="page-investment-factors" class="full-page-section bg-black">
+        <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-cyan">
+            <h2 class="text-6xl md:text-7xl font-extrabold text-cyan-400 mb-8">投資考量因素</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 bento-grid">
+                <div class="bento-item col-span-1 highlight-gradient-emerald">
+                    <i class="fas fa-map-marker-alt text-4xl text-emerald-400 mb-2"></i>
+                    <h4 class="text-2xl font-bold">地點選擇</h4>
+                    <p class="text-md text-gray-200">車流量、電力容量、停車便利性、周邊設施。</p>
+                </div>
+                <div class="bento-item col-span-1 highlight-gradient-purple">
+                    <i class="fas fa-tools text-4xl text-purple-400 mb-2"></i>
+                    <h4 class="text-2xl font-bold">設備選擇</h4>
+                    <p class="text-md text-gray-200">慢充/快充、充電規格、可靠性與維護。</p>
+                </div>
+                <div class="bento-item col-span-1 highlight-gradient-cyan">
+                    <i class="fas fa-money-bill-wave text-4xl text-cyan-400 mb-2"></i>
+                    <h4 class="text-2xl font-bold">營運成本</h4>
+                    <p class="text-md text-gray-200">電費、維護費、租金、軟體平台費、保險。</p>
+                </div>
+                <div class="bento-item col-span-1 highlight-gradient-emerald">
+                    <i class="fas fa-dollar-sign text-4xl text-emerald-400 mb-2"></i>
+                    <h4 class="text-2xl font-bold">盈利模式</h4>
+                    <p class="text-md text-gray-200">充電服務費、停車費、廣告收入、會員制。</p>
+                </div>
+                <div class="bento-item col-span-1 highlight-gradient-purple">
+                    <i class="fas fa-balance-scale text-4xl text-purple-400 mb-2"></i>
+                    <h4 class="text-2xl font-bold">政府補助與法規</h4>
+                    <p class="text-md text-gray-200">建置補助、停車場法、電業法、消防安全。</p>
+                </div>
+                <div class="bento-item col-span-1 highlight-gradient-cyan">
+                    <i class="fas fa-users text-4xl text-cyan-400 mb-2"></i>
+                    <h4 class="text-2xl font-bold">競爭態勢與技術發展</h4>
+                    <p class="text-md text-gray-200">周邊競爭、差異化、充電技術演進、智慧電網。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 頁面 7: 未來展望與挑戰 -->
+    <section id="page-future-challenges" class="full-page-section bg-black">
+        <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-purple">
+            <h2 class="text-6xl md:text-7xl font-extrabold text-purple-400 mb-8">未來展望與挑戰</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 bento-grid">
+                <div class="bento-item col-span-1 highlight-gradient-emerald">
+                    <i class="fas fa-lightbulb text-5xl text-emerald-400 mb-4"></i>
+                    <h3 class="text-3xl font-bold mb-2">展望</h3>
+                    <ul class="text-lg text-gray-200 list-disc list-inside text-left w-full max-w-xs mx-auto">
+                        <li>市場持續擴大</li>
+                        <li>技術整合 (V2G)</li>
+                        <li>服務多元化</li>
+                    </ul>
+                </div>
+                <div class="bento-item col-span-1 highlight-gradient-cyan">
+                    <i class="fas fa-exclamation-triangle text-5xl text-cyan-400 mb-4"></i>
+                    <h3 class="text-3xl font-bold mb-2">挑戰</h3>
+                    <ul class="text-lg text-gray-200 list-disc list-inside text-left w-full max-w-xs mx-auto">
+                        <li>電網負荷</li>
+                        <li>土地取得與成本</li>
+                        <li>充電標準與操作性</li>
+                        <li>投資回報週期長</li>
+                        <li>電池技術發展影響</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 頁面 8: 結論 -->
+    <section id="page-conclusion" class="full-page-section bg-black">
+        <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-emerald">
+            <h2 class="text-6xl md:text-7xl font-extrabold text-emerald-400 mb-8">結論</h2>
+            <div class="text-xl text-gray-200 leading-relaxed space-y-4">
+                <p>充電樁市場受電動車成長帶動，在台灣仍具發展潛力。</p>
+                <p>投資前應評估地點、成本、法規與競爭，加盟可降低門檻但須慎選品牌。</p>
+                <p>對有準備的投資者而言，是具前景的長期機會。</p>
+                <p>持續關注政策與產業動向，並諮詢專業意見。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 頁面 9: 充電投資評估五大重點 (互動式詳細版) -->
+    <section id="page-actions" class="full-page-section bg-black min-h-screen">
+        <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-cyan">
+            <h2 class="text-6xl md:text-7xl font-extrabold text-cyan-400 mb-8">充電投資評估五大重點</h2>
+
+            <!-- 1. 地點評估 -->
+            <div class="bento-item highlight-gradient-emerald mb-8 text-left-mobile w-full">
+                <div class="collapsible-header">
+                    <div class="flex items-center">
+                        <i class="fas fa-search-location text-5xl text-emerald-400 mr-4"></i>
+                        <h3 class="text-3xl font-bold text-emerald-300">1. 地點評估</h3>
+                    </div>
+                    <i class="fas fa-chevron-right text-3xl text-gray-400 icon"></i>
+                </div>
+                <div class="collapsible-content">
+                    <div class="space-y-4 text-lg text-gray-200 w-full px-4">
+                        <p class="font-semibold text-emerald-300">篩選潛力區域：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1">
+                            <li>依據電動車熱區與常用路線找尋場址。</li>
+                        </ul>
+                        <p class="font-semibold text-emerald-300">現場與電力評估：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1">
+                            <li>勘查車流、停車位，確認電力供應與快充可行性。</li>
+                        </ul>
+                        <p class="font-semibold text-emerald-300">競爭與周邊環境：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1">
+                            <li>了解周邊競爭情況，並評估餐飲、休息等加值服務。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. 加盟品牌研究 -->
+            <div class="bento-item highlight-gradient-purple mb-8 text-left-mobile w-full">
+                <div class="collapsible-header">
+                    <div class="flex items-center">
+                        <i class="fas fa-handshake-alt text-5xl text-purple-400 mr-4"></i>
+                        <h3 class="text-3xl font-bold text-purple-300">2. 加盟品牌研究</h3>
+                    </div>
+                    <i class="fas fa-chevron-right text-3xl text-gray-400 icon"></i>
+                </div>
+                <div class="collapsible-content">
+                    <div class="space-y-4 text-lg text-gray-200 w-full px-4">
+                        <p class="font-semibold text-purple-300">品牌資訊收集：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1">
+                            <li>鎖定主流品牌（如 EVOASIS、U-POWER 等），索取資料。</li>
+                        </ul>
+                        <p class="font-semibold text-purple-300">方案比較：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1">
+                            <li>評估加盟金、分潤、支援服務與合約條款。</li>
+                        </ul>
+                        <p class="font-semibold text-purple-300">品牌評價：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1">
+                            <li>比較市占率、App 操作體驗、車主評價。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. 財務模型建構 -->
+            <div class="bento-item highlight-gradient-cyan mb-8 text-left-mobile w-full">
+                <div class="collapsible-header">
+                    <div class="flex items-center">
+                        <i class="fas fa-calculator text-5xl text-cyan-400 mr-4"></i>
+                        <h3 class="text-3xl font-bold text-cyan-300">3. 財務模型建構</h3>
+                    </div>
+                    <i class="fas fa-chevron-right text-3xl text-gray-400 icon"></i>
+                </div>
+                <div class="collapsible-content">
+                    <div class="space-y-4 text-lg text-gray-200 w-full px-4">
+                        <p class="font-semibold text-cyan-300">成本預算：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1">
+                            <li>列出初期設備與營運成本。</li>
+                        </ul>
+                        <p class="font-semibold text-cyan-300">收入來源：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1">
+                            <li>包括充電費、廣告、停車與會員制。</li>
+                        </ul>
+                        <p class="font-semibold text-cyan-300">財務指標：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1">
+                            <li>計算損益平衡點、回收期、IRR、NPV，進行敏感度分析。</li>
+                        </ul>
+                        <p class="font-semibold text-cyan-300">顧問協助：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1">
+                            <li>請會計師確認模型與稅務合規性。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. 法規與補助查詢 -->
+            <div class="bento-item highlight-gradient-emerald mb-8 text-left-mobile w-full">
+                <div class="collapsible-header">
+                    <div class="flex items-center">
+                        <i class="fas fa-gavel text-5xl text-emerald-400 mr-4"></i>
+                        <h3 class="text-3xl font-bold text-emerald-300">4. 法規與補助查詢</h3>
+                    </div>
+                    <i class="fas fa-chevron-right text-3xl text-gray-400 icon"></i>
+                </div>
+                <div class="collapsible-content">
+                    <div class="space-y-4 text-lg text-gray-200 w-full px-4">
+                        <p class="font-semibold text-emerald-300">中央政策：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1">
+                            <li>查詢能源署與經濟部補助及規範（如《電業法》、《停車場法》）。</li>
+                        </ul>
+                        <p class="font-semibold text-emerald-300">地方政府：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1">
+                            <li>確認建築法規、消防、土地使用等。</li>
+                        </ul>
+                        <p class="font-semibold text-emerald-300">消防規範：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1">
+                            <li>諮詢消防局與消防技師，規劃應變方案。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. 專業顧問協助 -->
+            <div class="bento-item highlight-gradient-purple mb-8 text-left-mobile w-full">
+                <div class="collapsible-header">
+                    <div class="flex items-center">
+                        <i class="fas fa-users-cog text-5xl text-purple-400 mr-4"></i>
+                        <h3 class="text-3xl font-bold text-purple-300">5. 專業顧問協助</h3>
+                    </div>
+                    <i class="fas fa-chevron-right text-3xl text-gray-400 icon"></i>
+                </div>
+                <div class="collapsible-content">
+                    <div class="space-y-4 text-lg text-gray-200 w-full px-4">
+                        <p class="font-semibold text-purple-300">能源顧問：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1">
+                            <li>提供產業趨勢與技術建議。</li>
+                        </ul>
+                        <p class="font-semibold text-purple-300">法律顧問：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1">
+                            <li>審閱合約、處理法遵事務。</li>
+                        </ul>
+                        <p class="font-semibold text-purple-300">財務顧問：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1">
+                            <li>建立財務模型與稅務規劃。</li>
+                        </ul>
+                        <p class="font-semibold text-purple-300">電機/工程顧問：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1">
+                            <li>設計與審核電力系統與工程安全。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // JavaScript 實現滾動動效
+        document.addEventListener('DOMContentLoaded', () => {
+            const sections = document.querySelectorAll('.animate-on-scroll');
+
+            const observerOptions = {
+                root: null, // 觀察整個視窗
+                rootMargin: '0px',
+                threshold: 0.1 // 當元素 10% 可見時觸發
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        // 針對「充電投資評估五大重點」頁面，讓其子項目也逐漸顯現
+                        const subItems = entry.target.querySelectorAll('.bento-item');
+                        subItems.forEach((item, index) => {
+                            setTimeout(() => {
+                                item.classList.add('is-visible');
+                            }, index * 200); // 每個子項目延遲 200ms 出現
+                        });
+                        observer.unobserve(entry.target); // 一旦可見就停止觀察
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+
+            // 互動式折疊/展開功能 (Accordion)
+            const collapsibleHeaders = document.querySelectorAll('.collapsible-header');
+
+            collapsibleHeaders.forEach(header => {
+                header.addEventListener('click', () => {
+                    const content = header.nextElementSibling; // 取得下一個兄弟元素，即內容區塊
+                    const icon = header.querySelector('.icon'); // 取得圖標
+
+                    // 切換展開/收合狀態的類別
+                    header.classList.toggle('expanded');
+                    content.classList.toggle('expanded');
+
+                    // 調整內容區塊的高度，實現平滑過渡
+                    if (content.classList.contains('expanded')) {
+                        content.style.maxHeight = content.scrollHeight + "px"; // 設定為內容的實際高度
+                    } else {
+                        content.style.maxHeight = "0";
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
