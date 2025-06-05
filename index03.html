@@ -9,15 +9,15 @@
     <!-- Font Awesome CDN for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* 自定義字體，確保中文字體顯示正常 */
+        /* Custom font for traditional Chinese and Inter for English, ensuring proper display */
         body {
             font-family: 'Inter', 'Noto Sans TC', sans-serif;
-            background-color: #000; /* 純黑色背景 */
-            color: #fff; /* 白色文字 */
-            overflow-x: hidden; /* 防止水平滾動 */
+            background-color: #000; /* Pure black background */
+            color: #fff; /* White text */
+            overflow-x: hidden; /* Prevent horizontal scrolling */
         }
 
-        /* 模擬 Apple 官網的滾動動效類別 */
+        /* Classes for Apple-like scroll animation effect */
         .animate-on-scroll {
             opacity: 0;
             transform: translateY(50px);
@@ -29,11 +29,11 @@
             transform: translateY(0);
         }
 
-        /* Bento Grid 項目基礎樣式 */
+        /* Base styles for Bento Grid items */
         .bento-item {
-            background-color: rgba(255, 255, 255, 0.05); /* 輕微透明的背景 */
-            border: 1px solid rgba(255, 255, 255, 0.1); /* 淺色邊框 */
-            border-radius: 2rem; /* 大圓角 */
+            background-color: rgba(255, 255, 255, 0.05); /* Slightly transparent background */
+            border: 1px solid rgba(255, 255, 255, 0.1); /* Light border */
+            border-radius: 2rem; /* Large border radius */
             padding: 2rem;
             display: flex;
             flex-direction: column;
@@ -42,21 +42,21 @@
             text-align: center;
             position: relative;
             overflow: hidden;
-            backdrop-filter: blur(5px); /* 輕微模糊效果 */
+            backdrop-filter: blur(5px); /* Slight blur effect */
         }
 
-        /* 高亮色漸變效果 */
+        /* Highlight gradient effects */
         .highlight-gradient-emerald {
-            background: linear-gradient(135deg, rgba(52, 211, 153, 0.2) 0%, rgba(52, 211, 153, 0) 100%); /* 翡翠綠漸變 */
+            background: linear-gradient(135deg, rgba(52, 211, 153, 0.2) 0%, rgba(52, 211, 153, 0) 100%); /* Emerald green gradient */
         }
         .highlight-gradient-cyan {
-            background: linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(6, 182, 212, 0) 100%); /* 青色漸變 */
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(6, 182, 212, 0) 100%); /* Cyan gradient */
         }
         .highlight-gradient-purple {
-            background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(168, 85, 247, 0) 100%); /* 紫色漸變 */
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(168, 85, 247, 0) 100%); /* Purple gradient */
         }
 
-        /* 確保每個「頁面」佔滿視窗高度和寬度 */
+        /* Ensure each "page" section takes full viewport height and width */
         .full-page-section {
             width: 100vw;
             min-height: 100vh;
@@ -70,7 +70,7 @@
             overflow: hidden;
         }
 
-        /* 針對小螢幕的響應式調整 */
+        /* Responsive adjustments for smaller screens */
         @media (max-width: 768px) {
             .full-page-section {
                 padding: 2rem 1rem;
@@ -92,7 +92,7 @@
             }
         }
 
-        /* 互動式內容的樣式 */
+        /* Styles for interactive collapsible content */
         .collapsible-header {
             cursor: pointer;
             display: flex;
@@ -112,7 +112,7 @@
         }
 
         .collapsible-content.expanded {
-            max-height: 1000px; /* 足夠大的值以容納內容 */
+            max-height: 1000px; /* Sufficiently large value to contain content */
             opacity: 1;
             padding-top: 1rem;
         }
@@ -122,13 +122,13 @@
         }
 
         .collapsible-header.expanded .icon {
-            transform: rotate(90deg); /* 展開時旋轉圖標 */
+            transform: rotate(90deg); /* Rotate icon when expanded */
         }
     </style>
 </head>
 <body class="bg-black text-white">
 
-    <!-- 頁面 1: 整體報告標題 -->
+    <!-- Page 1: Overall Report Title -->
     <section id="page-title" class="full-page-section bg-gradient-to-br from-black to-gray-900">
         <div class="animate-on-scroll flex flex-col items-center justify-center">
             <h1 class="text-7xl md:text-8xl lg:text-9xl font-extrabold text-emerald-400 leading-tight mb-4 drop-shadow-lg">
@@ -140,7 +140,7 @@
         </div>
     </section>
 
-    <!-- 頁面 2: 總覽 / Executive Summary -->
+    <!-- Page 2: Executive Summary -->
     <section id="page-summary" class="full-page-section bg-black">
         <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-emerald">
             <h2 class="text-6xl md:text-7xl font-extrabold text-emerald-400 mb-8">總覽</h2>
@@ -164,13 +164,14 @@
         </div>
     </section>
 
-    <!-- 頁面 3: 電動車市場成長趨勢 - 全球市場概況 -->
+    <!-- Page 3: EV Market Growth Trends - Global Market Overview -->
     <section id="page-global-growth" class="full-page-section bg-black">
         <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-cyan">
             <h2 class="text-6xl md:text-7xl font-extrabold text-cyan-400 mb-8">全球市場概況</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 bento-grid">
                 <div class="bento-item col-span-1 highlight-gradient-emerald">
-                    <div class="text-7xl font-extrabold text-emerald-400 mb-2">1,700萬輛</div>
+                    <!-- Adjusted font size for "萬輛" to be smaller -->
+                    <div class="text-7xl font-extrabold text-emerald-400 mb-2">1,700<span class="text-2xl md:text-3xl">萬輛</span></div>
                     <p class="text-xl text-gray-200">2024年全球電動車銷量 (近)</p>
                 </div>
                 <div class="bento-item col-span-1 highlight-gradient-purple">
@@ -182,8 +183,9 @@
                     <p class="text-xl text-gray-200">年增長率 (vs. 2023)</p>
                 </div>
                 <div class="bento-item col-span-full highlight-gradient-emerald">
-                    <h3 class="text-4xl font-bold mb-4 text-emerald-400">主要驅動因素</h3>
-                    <ul class="text-lg text-gray-200 list-disc list-inside text-left w-full max-w-md mx-auto">
+                    <h3 class="text-4xl font-bold mb-4 text-emerald-400">主要因素</h3>
+                    <!-- Removed text-left from ul for centering -->
+                    <ul class="text-lg text-gray-200 list-disc list-inside w-full max-w-md mx-auto">
                         <li>政府政策推動</li>
                         <li>嚴格燃油車排放標準</li>
                         <li>電池技術進步</li>
@@ -195,29 +197,29 @@
         </div>
     </section>
 
-    <!-- 頁面 4: 電動車市場成長趨勢 - 台灣市場現況 -->
+    <!-- Page 4: EV Market Growth Trends - Taiwan Market Status -->
     <section id="page-taiwan-growth" class="full-page-section bg-black">
         <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-purple">
             <h2 class="text-6xl md:text-7xl font-extrabold text-purple-400 mb-8">台灣市場現況</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 bento-grid">
                 <div class="bento-item col-span-1 highlight-gradient-cyan">
-                    <div class="text-7xl font-extrabold text-cyan-400 mb-2">98,000輛</div>
+                    <!-- Adjusted font size for "輛" to be smaller -->
+                    <div class="text-7xl font-extrabold text-cyan-400 mb-2">9.8<span class="text-2xl md:text-3xl">萬輛</span></div>
                     <p class="text-xl text-gray-200">2024年台灣電動車掛牌數</p>
                 </div>
-                    <div class="bento-item col-span-1 highlight-gradient-purple">
+                <div class="bento-item col-span-1 highlight-gradient-purple">
                     <div class="text-7xl font-extrabold text-purple-400 mb-2">8.3%</div>
                     <p class="text-xl text-gray-200">市場佔有率</p>
                 </div>
                 <div class="bento-item col-span-1 highlight-gradient-emerald">
-                    <div class="text-7xl font-extrabold text-emerald-400 mb-2">53%</div>
-                    <p class="text-xl text-gray-200">年增長率</p>
+                    <div class="text-7xl font-extrabold text-emerald-400 mb-2">63.9%</div>
+                    <p class="text-xl text-gray-200">年增長率 (vs. 2023)</p>
                 </div>
-
-
                 
                 <div class="bento-item col-span-full highlight-gradient-cyan">
-                    <h3 class="text-4xl font-bold mb-4 text-cyan-400">政策支持與品牌競爭</h3>
-                    <ul class="text-lg text-gray-200 list-disc list-inside text-left w-full max-w-md mx-auto">
+                    <h3 class="text-4xl font-bold mb-4 text-cyan-400">主要因素</h3>
+                    <!-- Removed text-left from ul for centering -->
+                    <ul class="text-lg text-gray-200 list-disc list-inside w-full max-w-md mx-auto">
                         <li>國產電動車 n7 上市造成爆發性成長</li>
                         <li>Tesla 持續主導 + 價格調整策略</li>
                         <li>政府政策與補助支持</li>
@@ -230,7 +232,7 @@
         </div>
     </section>
 
-    <!-- 頁面 5: 充電樁（站）投資加盟分析 - 市場需求與投資模式 -->
+    <!-- Page 5: Charging Pile (Station) Investment & Franchise Analysis - Market Demand and Investment Models -->
     <section id="page-investment-demand" class="full-page-section bg-black">
         <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-emerald">
             <h2 class="text-6xl md:text-7xl font-extrabold text-emerald-400 mb-8">投資加盟可行性分析</h2>
@@ -257,7 +259,7 @@
         </div>
     </section>
 
-    <!-- 頁面 6: 充電樁（站）投資加盟可行性分析 - 投資考量因素 -->
+    <!-- Page 6: Charging Pile (Station) Investment & Franchise Analysis - Investment Considerations -->
     <section id="page-investment-factors" class="full-page-section bg-black">
         <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-cyan">
             <h2 class="text-6xl md:text-7xl font-extrabold text-cyan-400 mb-8">投資考量因素</h2>
@@ -296,7 +298,7 @@
         </div>
     </section>
 
-    <!-- 頁面 7: 未來展望與挑戰 -->
+    <!-- Page 7: Future Outlook and Challenges -->
     <section id="page-future-challenges" class="full-page-section bg-black">
         <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-purple">
             <h2 class="text-6xl md:text-7xl font-extrabold text-purple-400 mb-8">未來展望與挑戰</h2>
@@ -314,36 +316,35 @@
                     <i class="fas fa-exclamation-triangle text-5xl text-cyan-400 mb-4"></i>
                     <h3 class="text-3xl font-bold mb-2">挑戰</h3>
                     <ul class="text-lg text-gray-200 list-disc list-inside text-left w-full max-w-xs mx-auto">
-                        <li>電網負荷</li>
-                        <li>土地取得與成本</li>
-                        <li>充電標準與操作性</li>
-                        <li>投資回報週期長</li>
-                        <li>電池技術發展影響</li>
+                        <li>電網負荷(是否有饋線?)</li>
+                        <li>土地來源與取得成本</li>
+                        <li>充電投資回報週期長</li>
+                        <li>電動車量體成長率</li>
                     </ul>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- 頁面 8: 結論 -->
+    <!-- Page 8: Conclusion -->
     <section id="page-conclusion" class="full-page-section bg-black">
         <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-emerald">
             <h2 class="text-6xl md:text-7xl font-extrabold text-emerald-400 mb-8">結論</h2>
             <div class="text-xl text-gray-200 leading-relaxed space-y-4">
                 <p>充電樁市場受電動車成長帶動，在台灣仍具發展潛力。</p>
-                <p>投資前應評估地點、成本、法規與競爭，加盟可降低門檻但須慎選品牌。</p>
-                <p>對有準備的投資者而言，是具前景的長期機會。</p>
+                <p>投資前應評估地點、成本、法規與同業競爭對手，加盟可降低門檻但須慎選品牌。</p>
+                <p>投資具有前景的長期機會。</p>
                 <p>持續關注政策與產業動向，並諮詢專業意見。</p>
             </div>
         </div>
     </section>
 
-    <!-- 頁面 9: 充電投資評估五大重點 (互動式詳細版) -->
+    <!-- Page 9: Five Key Charging Investment Evaluation Points (Interactive Detailed Version) -->
     <section id="page-actions" class="full-page-section bg-black min-h-screen">
         <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-cyan">
             <h2 class="text-6xl md:text-7xl font-extrabold text-cyan-400 mb-8">充電投資評估五大重點</h2>
 
-            <!-- 1. 地點評估 -->
+            <!-- 1. Location Evaluation -->
             <div class="bento-item highlight-gradient-emerald mb-8 text-left-mobile w-full">
                 <div class="collapsible-header">
                     <div class="flex items-center">
@@ -370,7 +371,7 @@
                 </div>
             </div>
 
-            <!-- 2. 加盟品牌研究 -->
+            <!-- 2. Franchise Brand Research -->
             <div class="bento-item highlight-gradient-purple mb-8 text-left-mobile w-full">
                 <div class="collapsible-header">
                     <div class="flex items-center">
@@ -397,7 +398,7 @@
                 </div>
             </div>
 
-            <!-- 3. 財務模型建構 -->
+            <!-- 3. Financial Model Construction -->
             <div class="bento-item highlight-gradient-cyan mb-8 text-left-mobile w-full">
                 <div class="collapsible-header">
                     <div class="flex items-center">
@@ -420,11 +421,11 @@
                         <ul class="list-disc list-inside ml-4 space-y-1">
                             <li>計算損益平衡點、回收期、IRR、NPV，進行敏感度分析。</li>
                         </ul>
-                </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- 4. 法規與補助查詢 -->
+            <!-- 4. Regulations and Subsidies Inquiry -->
             <div class="bento-item highlight-gradient-emerald mb-8 text-left-mobile w-full">
                 <div class="collapsible-header">
                     <div class="flex items-center">
@@ -451,7 +452,7 @@
                 </div>
             </div>
 
-            <!-- 5. 專業顧問協助 -->
+            <!-- 5. Professional Consultant Assistance -->
             <div class="bento-item highlight-gradient-purple mb-8 text-left-mobile w-full">
                 <div class="collapsible-header">
                     <div class="flex items-center">
@@ -485,28 +486,36 @@
     </section>
 
     <script>
-        // JavaScript 實現滾動動效
+        // JavaScript for scroll animation effect
         document.addEventListener('DOMContentLoaded', () => {
             const sections = document.querySelectorAll('.animate-on-scroll');
 
             const observerOptions = {
-                root: null, // 觀察整個視窗
+                root: null, // Observe the entire viewport
                 rootMargin: '0px',
-                threshold: 0.1 // 當元素 10% 可見時觸發
+                threshold: 0.1 // Trigger when 10% of the element is visible
             };
 
             const observer = new IntersectionObserver((entries, observer) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('is-visible');
-                        // 針對「充電投資評估五大重點」頁面，讓其子項目也逐漸顯現
+                        // For the "Five Key Points" page, make its sub-items appear gradually
                         const subItems = entry.target.querySelectorAll('.bento-item');
                         subItems.forEach((item, index) => {
                             setTimeout(() => {
                                 item.classList.add('is-visible');
-                            }, index * 200); // 每個子項目延遲 200ms 出現
+                            }, index * 200); // Each sub-item appears with a 200ms delay
                         });
-                        observer.unobserve(entry.target); // 一旦可見就停止觀察
+                        // Do not unobserve here if you want items to re-animate on scroll up/down
+                        // observer.unobserve(entry.target); // Stop observing once visible
+                    } else {
+                        // Optional: remove 'is-visible' if you want them to animate again when scrolling back
+                        // entry.target.classList.remove('is-visible');
+                        // const subItems = entry.target.querySelectorAll('.bento-item');
+                        // subItems.forEach((item) => {
+                        //     item.classList.remove('is-visible');
+                        // });
                     }
                 });
             }, observerOptions);
@@ -515,21 +524,21 @@
                 observer.observe(section);
             });
 
-            // 互動式折疊/展開功能 (Accordion)
+            // Interactive collapsible/expandable function (Accordion)
             const collapsibleHeaders = document.querySelectorAll('.collapsible-header');
 
             collapsibleHeaders.forEach(header => {
                 header.addEventListener('click', () => {
-                    const content = header.nextElementSibling; // 取得下一個兄弟元素，即內容區塊
-                    const icon = header.querySelector('.icon'); // 取得圖標
+                    const content = header.nextElementSibling; // Get the next sibling element, which is the content block
+                    const icon = header.querySelector('.icon'); // Get the icon
 
-                    // 切換展開/收合狀態的類別
+                    // Toggle expanded/collapsed class
                     header.classList.toggle('expanded');
                     content.classList.toggle('expanded');
 
-                    // 調整內容區塊的高度，實現平滑過渡
+                    // Adjust content block height for smooth transition
                     if (content.classList.contains('expanded')) {
-                        content.style.maxHeight = content.scrollHeight + "px"; // 設定為內容的實際高度
+                        content.style.maxHeight = content.scrollHeight + "px"; // Set to actual content height
                     } else {
                         content.style.maxHeight = "0";
                     }
