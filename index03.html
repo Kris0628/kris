@@ -124,6 +124,38 @@
         .collapsible-header.expanded .icon {
             transform: rotate(90deg); /* Rotate icon when expanded */
         }
+
+        /* Styles for the new dropdown and image area */
+        .charger-select {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: #fff;
+            font-size: 1.125rem;
+            margin-bottom: 2rem;
+            appearance: none; /* Remove default dropdown arrow */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='white'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.5em;
+            cursor: pointer;
+        }
+        .charger-select option {
+            background-color: #1a202c; /* Dark background for options */
+            color: #fff;
+        }
+        .charger-image {
+            max-width: 90%; /* Responsive image size */
+            height: auto;
+            border-radius: 1rem;
+            border: 2px solid rgba(52, 211, 153, 0.5);
+            box-shadow: 0 0 20px rgba(52, 211, 153, 0.3);
+            transition: transform 0.3s ease-out;
+        }
+        .charger-image:hover {
+            transform: scale(1.02);
+        }
     </style>
 </head>
 <body class="bg-black text-white">
@@ -339,7 +371,27 @@
         </div>
     </section>
 
-    <!-- Page 9: Five Key Charging Investment Evaluation Points (Interactive Detailed Version) -->
+    <!-- New Page 9: Charging Pile Equipment Diagrams -->
+    <section id="page-charger-diagrams" class="full-page-section bg-black">
+        <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-cyan">
+            <h2 class="text-6xl md:text-7xl font-extrabold text-cyan-400 mb-8">充電樁設備圖說</h2>
+            <div class="flex flex-col items-center w-full max-w-xl mx-auto">
+                <label for="charger-type" class="text-2xl font-bold mb-4 text-gray-200">選擇充電樁功率:</label>
+                <select id="charger-type" class="charger-select w-full md:w-3/4">
+                    <option value="7kW">7kW</option>
+                    <option value="30kW">30kW</option>
+                    <option value="120kW">120kW</option>
+                    <option value="180kW">180kW</option>
+                    <option value="360kW">360kW</option>
+                </select>
+                <div class="mt-8 w-full flex justify-center">
+                    <img id="charger-image" src="https://i.meee.com.tw/lImWom7.jpg" alt="7kW 充電樁設備圖" class="charger-image">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Original Page 9, now Page 10: Five Key Charging Investment Evaluation Points (Interactive Detailed Version) -->
     <section id="page-actions" class="full-page-section bg-black min-h-screen">
         <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-cyan">
             <h2 class="text-6xl md:text-7xl font-extrabold text-cyan-400 mb-8">充電投資評估五大重點</h2>
@@ -543,6 +595,30 @@
                         content.style.maxHeight = "0";
                     }
                 });
+            });
+
+            // JavaScript for charging pile equipment diagrams
+            const chargerTypeSelect = document.getElementById('charger-type');
+            const chargerImage = document.getElementById('charger-image');
+
+            // Define the image URLs based on charger type
+            const chargerImages = {
+                '7kW': 'https://i.meee.com.tw/lImWom7.jpg',
+                '30kW': 'https://i.meee.com.tw/lj9DcGE.jpg',
+                '120kW': 'https://i.meee.com.tw/rzyjIOr.jpg',
+                '180kW': 'https://i.meee.com.tw/PszN4JT.jpg',
+                '360kW': 'https://i.meee.com.tw/5mffjMZ.jpg'
+            };
+
+            // Set initial image
+            chargerImage.src = chargerImages['7kW'];
+            chargerImage.alt = '7kW 充電樁設備圖';
+
+            // Event listener for dropdown change
+            chargerTypeSelect.addEventListener('change', (event) => {
+                const selectedValue = event.target.value;
+                chargerImage.src = chargerImages[selectedValue];
+                chargerImage.alt = `${selectedValue} 充電樁設備圖`;
             });
         });
     </script>
