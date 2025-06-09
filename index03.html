@@ -212,8 +212,10 @@
             <h2 class="text-6xl md:text-7xl font-extrabold text-cyan-400 mb-8">全球市場概況</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 bento-grid">
                 <div class="bento-item col-span-1 highlight-gradient-emerald">
-                    <!-- Adjusted font size for "萬輛" to be smaller -->
-                    <div class="text-7xl font-extrabold text-emerald-400 mb-2">1,700<span class="text-2xl md:text-3xl">萬</span></div>
+                    <!-- Added animated-number class and data attributes for animation -->
+                    <div class="text-7xl font-extrabold text-emerald-400 mb-2 animated-number" data-target-value="1700" data-unit="萬">
+                        <span class="current-value">0</span><span class="text-2xl md:text-3xl">萬</span>
+                    </div>
                     <p class="text-xl text-gray-200">2024年全球電動車銷量/輛</p>
                 </div>
                 <div class="bento-item col-span-1 highlight-gradient-purple">
@@ -226,7 +228,6 @@
                 </div>
                 <div class="bento-item col-span-full highlight-gradient-emerald">
                     <h3 class="text-4xl font-bold mb-4 text-emerald-400">主要因素</h3>
-                    <!-- Removed text-left from ul for centering -->
                     <ul class="text-lg text-gray-200 list-disc list-inside w-full max-w-md mx-auto">
                         <li>政府政策推動</li>
                         <li>嚴格燃油車排放標準</li>
@@ -245,8 +246,10 @@
             <h2 class="text-6xl md:text-7xl font-extrabold text-purple-400 mb-8">台灣市場現況</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 bento-grid">
                 <div class="bento-item col-span-1 highlight-gradient-cyan">
-                    <!-- Adjusted font size for "輛" to be smaller -->
-                    <div class="text-7xl font-extrabold text-cyan-400 mb-2">9.8<span class="text-2xl md:text-3xl">萬</span></div>
+                    <!-- Added animated-number class and data attributes for animation -->
+                    <div class="text-7xl font-extrabold text-cyan-400 mb-2 animated-number" data-target-value="9.8" data-unit="萬">
+                        <span class="current-value">0</span><span class="text-2xl md:text-3xl">萬</span>
+                    </div>
                     <p class="text-xl text-gray-200">2024年台灣電動車掛牌數/輛</p>
                 </div>
                 <div class="bento-item col-span-1 highlight-gradient-purple">
@@ -260,7 +263,6 @@
                 
                 <div class="bento-item col-span-full highlight-gradient-cyan">
                     <h3 class="text-4xl font-bold mb-4 text-cyan-400">主要因素</h3>
-                    <!-- Removed text-left from ul for centering -->
                     <ul class="text-lg text-gray-200 list-disc list-inside w-full max-w-md mx-auto">
                         <li>國產電動車 n7 上市造成爆發性成長</li>
                         <li>Tesla 持續主導 + 價格調整策略</li>
@@ -381,27 +383,7 @@
         </div>
     </section>
 
-    <!-- New Page 9: Charging Pile Equipment Diagrams -->
-    <section id="page-charger-diagrams" class="full-page-section bg-black">
-        <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-cyan">
-            <h2 class="text-6xl md:text-7xl font-extrabold text-cyan-400 mb-8">充電樁設備簡介</h2>
-            <div class="flex flex-col items-center w-full max-w-4xl mx-auto">
-                <label for="charger-type" class="text-2xl font-bold mb-4 text-gray-200">選擇充電樁功率:</label>
-                <select id="charger-type" class="charger-select w-full md:w-3/4">
-                    <option value="7kW">7kW</option>
-                    <option value="30kW">30kW</option>
-                    <option value="120kW">120kW</option>
-                    <option value="180kW">180kW</option>
-                    <option value="360kW">360kW</option>
-                </select>
-                <div class="mt-8 w-full flex justify-center">
-                    <img id="charger-image" src="https://i.meee.com.tw/lImWom7.jpg" alt="7kW 充電樁設備圖" class="charger-image">
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Original Page 9, now Page 10: Five Key Charging Investment Evaluation Points (Interactive Detailed Version) -->
+    <!-- Page 9: Five Key Charging Investment Evaluation Points (Interactive Detailed Version) - Original Page 9 -->
     <section id="page-actions" class="full-page-section bg-black min-h-screen">
         <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-cyan">
             <h2 class="text-6xl md:text-7xl font-extrabold text-cyan-400 mb-8">充電投資評估五大重點</h2>
@@ -437,7 +419,7 @@
             <div class="bento-item highlight-gradient-purple mb-8 text-left-mobile w-full">
                 <div class="collapsible-header">
                     <div class="flex items-center">
-                        <!-- Corrected Font Awesome icon from fa-handshake-alt to fa-handshake -->
+                        <!-- Corrected Font Awesome icon to fa-handshake -->
                         <i class="fas fa-handshake text-5xl text-purple-400 mr-4"></i>
                         <h3 class="text-3xl font-bold text-purple-300">2. 加盟品牌</h3>
                     </div>
@@ -548,6 +530,85 @@
         </div>
     </section>
 
+    <!-- Page 10: Charging Pile Equipment Diagrams (Moved here) -->
+    <section id="page-charger-diagrams" class="full-page-section bg-black">
+        <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-cyan">
+            <h2 class="text-6xl md:text-7xl font-extrabold text-cyan-400 mb-8">充電樁設備簡介</h2>
+            <div class="flex flex-col items-center w-full max-w-4xl mx-auto">
+                <label for="charger-type" class="text-2xl font-bold mb-4 text-gray-200">選擇充電樁功率:</label>
+                <select id="charger-type" class="charger-select w-full md:w-3/4">
+                    <option value="7kW">7kW</option>
+                    <option value="30kW">30kW</option>
+                    <option value="120kW">120kW</option>
+                    <option value="180kW">180kW</option>
+                    <option value="360kW">360kW</option>
+                </select>
+                <div class="mt-8 w-full flex justify-center">
+                    <img id="charger-image" src="https://i.meee.com.tw/lImWom7.jpg" alt="7kW 充電樁設備圖" class="charger-image">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Page 11: Franchise Model Diagram (Moved here and width adjusted) -->
+    <section id="page-franchise-model" class="full-page-section bg-black">
+        <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-purple">
+            <h2 class="text-6xl md:text-7xl font-extrabold text-purple-400 mb-8">加盟模式圖解</h2>
+            <!-- Adjusted max-w-4xl to max-w-6xl for consistency with charger diagrams -->
+            <div class="flex flex-col md:flex-row items-center justify-between w-full max-w-6xl mx-auto space-y-8 md:space-y-0 md:space-x-4">
+
+                <!-- Node 1: 加盟主 -->
+                <div class="flex flex-col items-center justify-center p-4 bg-blue-800 rounded-full shadow-lg z-10 aspect-square w-32 h-32 md:w-40 md:h-40 flex-shrink-0">
+                    <i class="fas fa-user-tie text-4xl md:text-5xl text-white mb-2"></i>
+                    <p class="text-xl md:text-2xl font-bold text-white text-center">加盟主</p>
+                </div>
+
+                <!-- Interaction block 1 (加盟主 <-> 星舟快充) -->
+                <div class="flex flex-col items-center justify-center text-center space-y-2 flex-grow">
+                    <div class="flex items-center text-yellow-500">
+                        <span class="text-sm text-gray-300 px-1">建站資金</span> <!-- Changed text-base to text-sm, px-2 to px-1 -->
+                        <i class="fas fa-arrow-right ml-0.5"></i> <!-- Adjusted ml -->
+                    </div>
+                    <div class="flex items-center text-yellow-500">
+                        <i class="fas fa-arrow-left mr-0.5"></i> <!-- Adjusted mr -->
+                        <span class="text-sm text-gray-300 px-1">站點充電營收</span> <!-- Changed text-base to text-sm, px-2 to px-1 -->
+                    </div>
+                     <div class="flex items-center text-yellow-500">
+                        <span class="text-sm text-gray-300 px-1">站點維運代管費</span> <!-- Changed text-base to text-sm, px-2 to px-1 -->
+                        <i class="fas fa-arrow-right ml-0.5"></i> <!-- Adjusted ml -->
+                    </div>
+                </div>
+
+                <!-- Node 2: 星舟快充 (Central Node) -->
+                <div class="flex flex-col items-center justify-center p-4 bg-gray-800 rounded-full shadow-lg z-10 border-2 border-emerald-400 aspect-square w-36 h-36 md:w-48 md:h-48 flex-shrink-0">
+                    <!-- Removed the image tag here -->
+                    <p class="text-2xl md:text-3xl font-bold text-emerald-400 text-center">星舟快充</p>
+                    <p class="text-sm md:text-base text-gray-400 text-center">STAR CHARGER</p>
+                    <p class="text-xs md:text-sm text-gray-500 text-center mt-2">建置 / 維運 / 營運 / 客服</p>
+                </div>
+
+                <!-- Interaction block 2 (星舟快充 <-> 充電站/電動車) -->
+                <div class="flex flex-col items-center justify-center text-center space-y-2 flex-grow">
+                    <div class="flex items-center text-green-500">
+                        <span class="text-sm text-gray-300 px-1">建站服務</span> <!-- Changed text-base to text-sm, px-2 to px-1 -->
+                        <i class="fas fa-arrow-right ml-0.5"></i> <!-- Adjusted ml -->
+                    </div>
+                    <div class="flex items-center text-yellow-500">
+                        <i class="fas fa-arrow-left mr-0.5"></i> <!-- Adjusted mr -->
+                        <span class="text-sm text-gray-300 px-1">充電費 (代管代收)</span> <!-- Changed text-base to text-sm, px-2 to px-1 -->
+                    </div>
+                </div>
+
+                <!-- Node 3: 充電站 / 電動車 -->
+                <div class="flex flex-col items-center justify-center p-4 bg-blue-800 rounded-full shadow-lg z-10 aspect-square w-32 h-32 md:w-40 md:h-40 flex-shrink-0">
+                    <i class="fas fa-charging-station text-4xl md:text-5xl text-white mb-2"></i>
+                    <p class="text-xl md:text-2xl font-bold text-white text-center">充電站</p>
+                    <i class="fas fa-car-side text-2xl md:text-3xl text-white mt-1"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <script>
         // JavaScript for scroll animation effect
         document.addEventListener('DOMContentLoaded', () => {
@@ -606,6 +667,72 @@
                         content.style.maxHeight = "0";
                     }
                 });
+            });
+
+            // JavaScript for number animation (e.g., 1,700萬 and 9.8萬)
+            function animateNumber(element, targetValue, unit, duration) {
+                let startTimestamp = null;
+                const startValue = parseFloat(element.querySelector('.current-value').textContent || '0'); // Ensure start from 0 if content is empty
+                const difference = targetValue - startValue;
+                const currentValueSpan = element.querySelector('.current-value');
+                const isInteger = Number.isInteger(targetValue); // Check if target is an integer
+
+                function step(timestamp) {
+                    if (!startTimestamp) startTimestamp = timestamp;
+                    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                    const easedProgress = 0.5 - Math.cos(progress * Math.PI) / 2; // Ease in/out effect for smoother animation
+
+                    let currentValue = startValue + (easedProgress * difference);
+
+                    if (isInteger) {
+                        currentValueSpan.textContent = Math.round(currentValue).toLocaleString('en-US'); // Round and format with thousands commas
+                    } else {
+                        // For decimals, determine decimal places from the target value string
+                        const decimalPlaces = (targetValue.toString().split('.')[1] || '').length;
+                        currentValueSpan.textContent = currentValue.toFixed(decimalPlaces);
+                    }
+                    
+                    if (progress < 1) {
+                        window.requestAnimationFrame(step);
+                    } else {
+                        // Ensure the final value is exactly the target value with correct formatting
+                        if (isInteger) {
+                            currentValueSpan.textContent = targetValue.toLocaleString('en-US');
+                        } else {
+                            currentValueSpan.textContent = targetValue.toFixed((targetValue.toString().split('.')[1] || '').length);
+                        }
+                    }
+                }
+                window.requestAnimationFrame(step);
+            }
+
+            // Observe elements with the 'animated-number' class
+            const animatedNumberElements = document.querySelectorAll('.animated-number');
+
+            const numberObserverOptions = {
+                root: null, // Observe the entire viewport
+                rootMargin: '0px',
+                threshold: 0.5 // Trigger when 50% of the element is visible
+            };
+
+            const numberObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const element = entry.target;
+                        const targetValue = parseFloat(element.dataset.targetValue);
+                        const unit = element.dataset.unit;
+                        const duration = 2000; // 2 seconds animation duration
+
+                        // Trigger the number animation
+                        animateNumber(element, targetValue, unit, duration);
+                        // If you want the animation to run only once, uncomment the line below:
+                        // numberObserver.unobserve(element);
+                    }
+                });
+            }, numberObserverOptions);
+
+            animatedNumberElements.forEach(element => {
+                numberObserver.observe(element);
             });
 
             // JavaScript for charging pile equipment diagrams
