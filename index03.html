@@ -43,6 +43,7 @@
             position: relative;
             overflow: hidden;
             backdrop-filter: blur(5px); /* Slight blur effect */
+            -webkit-backdrop-filter: blur(5px); /* Safari support */
         }
 
         /* Highlight gradient effects */
@@ -87,6 +88,7 @@
             .bento-item {
                 padding: 1.5rem;
             }
+            /* Ensure text-left for mobile collapsible items */
             .text-left-mobile {
                 text-align: left;
             }
@@ -146,7 +148,6 @@
             color: #fff;
         }
         .charger-image {
-            /* Increased max-width to allow larger image display */
             max-width: 100%; /* Responsive image size, takes full width of its container */
             height: auto;
             border-radius: 1rem;
@@ -156,6 +157,14 @@
         }
         .charger-image:hover {
             transform: scale(1.02);
+        }
+
+        /* Adjust list item alignment within collapsible content */
+        .collapsible-content ul {
+            text-align: left; /* Ensure list items are left-aligned */
+            margin-left: auto; /* Center the list within its container on larger screens */
+            margin-right: auto;
+            max-width: 90%; /* Adjust width for better readability */
         }
     </style>
 </head>
@@ -376,7 +385,7 @@
     <section id="page-charger-diagrams" class="full-page-section bg-black">
         <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-cyan">
             <h2 class="text-6xl md:text-7xl font-extrabold text-cyan-400 mb-8">充電樁設備簡介</h2>
-            <div class="flex flex-col items-center w-full max-w-4xl mx-auto"> <!-- Changed max-w-xl to max-w-4xl -->
+            <div class="flex flex-col items-center w-full max-w-4xl mx-auto">
                 <label for="charger-type" class="text-2xl font-bold mb-4 text-gray-200">選擇充電樁功率:</label>
                 <select id="charger-type" class="charger-select w-full md:w-3/4">
                     <option value="7kW">7kW</option>
@@ -410,7 +419,7 @@
                     <div class="space-y-4 text-lg text-gray-200 w-full px-4">
                         <p class="font-semibold text-emerald-300">篩選潛力區域：</p>
                         <ul class="list-disc list-inside ml-4 space-y-1">
-                            <li>依據電動車熱區與常用路線找尋場址。</li>
+                            <li>依據電動車熱區與常用路線及其數據評估所選場址。</li>
                         </ul>
                         <p class="font-semibold text-emerald-300">現場與電力評估：</p>
                         <ul class="list-disc list-inside ml-4 space-y-1">
@@ -437,7 +446,7 @@
                     <div class="space-y-4 text-lg text-gray-200 w-full px-4">
                         <p class="font-semibold text-purple-300">品牌：</p>
                         <ul class="list-disc list-inside ml-4 space-y-1">
-                            <li>確認充電樁主流品牌(例:星舟快充、華城、U-power、源點)。</li>
+                            <li>星舟快充擁有完善的建置及軟體後台能力。</li>
                         </ul>
                         <p class="font-semibold text-purple-300">方案：</p>
                         <ul class="list-disc list-inside ml-4 space-y-1">
@@ -624,4 +633,6 @@
         });
     </script>
 </body>
+</html>
+
 </html>
