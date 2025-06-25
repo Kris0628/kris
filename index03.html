@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>充電站加盟分析</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome CDN for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         /* Custom font for traditional Chinese and Inter for English, ensuring proper display */
@@ -166,11 +164,79 @@
             margin-right: auto;
             max-width: 90%; /* 調整寬度以提高可讀性 */
         }
+
+        /* Specific styles for the new flow chart */
+        .flow-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 0.5rem; /* Reduced padding */
+            border-radius: 9999px; /* Fully rounded */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            flex-shrink: 0;
+            font-size: 0.875rem; /* text-sm */
+            line-height: 1.25rem;
+            min-width: 8rem; /* Smallest fixed width */
+            max-width: 10rem; /* Max width to prevent overstretching */
+            height: 8rem; /* Fixed height for consistency */
+            md:min-width: 10rem;
+            md:height: 10rem;
+        }
+
+        .flow-node i {
+            font-size: 2.25rem; /* text-4xl */
+            margin-bottom: 0.5rem;
+        }
+
+        .flow-text {
+            font-size: 0.75rem; /* text-xs */
+            line-height: 1rem;
+            font-weight: 300; /* font-light */
+            color: #d1d5db; /* gray-300 */
+        }
+        .flow-text-bold {
+            font-size: 0.875rem; /* text-sm */
+            line-height: 1.25rem;
+            font-weight: 700; /* font-bold */
+            color: #fff; /* white */
+        }
+
+        /* Arrows styling */
+        .flow-arrow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1; /* Allows arrows to take available space */
+            text-align: center;
+            margin: 0 0.5rem; /* Adjust horizontal margin */
+        }
+
+        .flow-arrow i {
+            font-size: 1.5rem; /* text-2xl */
+            margin: 0.25rem 0; /* Vertical margin for arrows */
+        }
+        .flow-arrow span {
+            font-size: 0.75rem; /* text-xs */
+            line-height: 1rem;
+            color: #cbd5e1; /* slate-300 */
+            text-wrap: wrap; /* Allow text to wrap */
+            max-width: 6rem; /* Limit width for text in arrows */
+            padding: 0 0.25rem; /* Small horizontal padding */
+        }
+
+        /* Specific colors for flow nodes */
+        .node-investor { background-color: #6d28d9; /* purple-700 */ }
+        /* Removed .node-franchisee as it's no longer a distinct node */
+        .node-star-charger { background-color: #1f2937; /* gray-800 */ border: 2px solid #34d399; /* emerald-400 */ }
+        .node-charging-station { background-color: #06b6d4; /* cyan-600 */ }
+        .node-ev-owner { background-color: #2563eb; /* blue-600 */ }
     </style>
 </head>
 <body class="bg-black text-white">
 
-    <!-- Page 1: Overall Report Title -->
     <section id="page-title" class="full-page-section bg-gradient-to-br from-black to-gray-900">
         <div class="animate-on-scroll flex flex-col items-center justify-center">
             <h1 class="text-7xl md:text-8xl lg:text-9xl font-extrabold text-emerald-400 leading-tight mb-4 drop-shadow-lg">
@@ -182,7 +248,6 @@
         </div>
     </section>
 
-    <!-- Page 2: Executive Summary -->
     <section id="page-summary" class="full-page-section bg-black">
         <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-emerald">
             <h2 class="text-6xl md:text-7xl font-extrabold text-emerald-400 mb-8">總覽</h2>
@@ -206,13 +271,11 @@
         </div>
     </section>
 
-    <!-- Page 3: EV Market Growth Trends - Global Market Overview -->
     <section id="page-global-growth" class="full-page-section bg-black">
         <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-cyan">
             <h2 class="text-6xl md:text-7xl font-extrabold text-cyan-400 mb-8">全球市場概況</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 bento-grid">
                 <div class="bento-item col-span-1 highlight-gradient-emerald">
-                    <!-- Added animated-number class and data attributes for animation -->
                     <div class="text-7xl font-extrabold text-emerald-400 mb-2 animated-number" data-target-value="1700" data-unit="萬">
                         <span class="current-value">0</span><span class="text-2xl md:text-3xl">萬</span>
                     </div>
@@ -228,7 +291,7 @@
                 </div>
                 <div class="bento-item col-span-full highlight-gradient-emerald">
                     <h3 class="text-4xl font-bold mb-4 text-emerald-400">主要因素</h3>
-                    <ul class="text-lg text-gray-200 list-disc list-inside w-full max-w-md mx-auto">
+                    <ul class="list-disc list-inside w-full max-w-md mx-auto text-left">
                         <li>政府政策推動</li>
                         <li>嚴格燃油車排放標準</li>
                         <li>電池技術進步</li>
@@ -240,13 +303,11 @@
         </div>
     </section>
 
-    <!-- Page 4: EV Market Growth Trends - Taiwan Market Status -->
     <section id="page-taiwan-growth" class="full-page-section bg-black">
         <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-purple">
             <h2 class="text-6xl md:text-7xl font-extrabold text-purple-400 mb-8">台灣市場現況</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 bento-grid">
                 <div class="bento-item col-span-1 highlight-gradient-cyan">
-                    <!-- Added animated-number class and data attributes for animation -->
                     <div class="text-7xl font-extrabold text-cyan-400 mb-2 animated-number" data-target-value="9.8" data-unit="萬">
                         <span class="current-value">0</span><span class="text-2xl md:text-3xl">萬</span>
                     </div>
@@ -263,7 +324,7 @@
                 
                 <div class="bento-item col-span-full highlight-gradient-cyan">
                     <h3 class="text-4xl font-bold mb-4 text-cyan-400">主要因素</h3>
-                    <ul class="text-lg text-gray-200 list-disc list-inside w-full max-w-md mx-auto">
+                    <ul class="list-disc list-inside w-full max-w-md mx-auto text-left">
                         <li>國產電動車 n7 上市造成爆發性成長</li>
                         <li>Tesla 持續主導 + 價格調整策略</li>
                         <li>政府政策與補助支持</li>
@@ -276,7 +337,6 @@
         </div>
     </section>
 
-    <!-- Page 5: Charging Pile (Station) Investment & Franchise Analysis - Market Demand and Investment Models -->
     <section id="page-investment-demand" class="full-page-section bg-black">
         <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-emerald">
             <h2 class="text-6xl md:text-7xl font-extrabold text-emerald-400 mb-8">投資加盟可行性分析</h2>
@@ -284,26 +344,17 @@
                 <div class="bento-item col-span-1 highlight-gradient-cyan">
                     <i class="fas fa-map-marked-alt text-5xl text-cyan-400 mb-4"></i>
                     <h3 class="text-3xl font-bold mb-2">市場需求與潛力</h3>
-                    <ul class="text-lg text-gray-200 list-disc list-inside text-left w-full max-w-xs mx-auto">
-                        <li>解決里程焦慮</li>
-                        <li>公共充電樁缺口</li>
-                        <li>多樣化場景需求</li>
-                    </ul>
+                    <p class="text-lg text-gray-200">解決里程焦慮、公共充電樁缺口、多樣化場景需求。</p>
                 </div>
                 <div class="bento-item col-span-1 highlight-gradient-purple">
                     <i class="fas fa-handshake text-5xl text-purple-400 mb-4"></i>
                     <h3 class="text-3xl font-bold mb-2">投資模式</h3>
-                    <ul class="text-lg text-gray-200 list-disc list-inside text-left w-full max-w-xs mx-auto">
-                        <li>自行建置與營運</li>
-                        <li>加盟現有品牌</li>
-                        <li>與場地主合作</li>
-                    </ul>
+                    <p class="text-lg text-gray-200">自行建置與營運、加盟現有品牌、與場地主合作。</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Page 6: Charging Pile (Station) Investment & Franchise Analysis - Investment Considerations -->
     <section id="page-investment-factors" class="full-page-section bg-black">
         <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-cyan">
             <h2 class="text-6xl md:text-7xl font-extrabold text-cyan-400 mb-8">投資考量因素</h2>
@@ -342,7 +393,6 @@
         </div>
     </section>
 
-    <!-- Page 7: Future Outlook and Challenges -->
     <section id="page-future-challenges" class="full-page-section bg-black">
         <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-purple">
             <h2 class="text-6xl md:text-7xl font-extrabold text-purple-400 mb-8">未來展望與挑戰</h2>
@@ -350,27 +400,17 @@
                 <div class="bento-item col-span-1 highlight-gradient-emerald">
                     <i class="fas fa-lightbulb text-5xl text-emerald-400 mb-4"></i>
                     <h3 class="text-3xl font-bold mb-2">展望</h3>
-                    <ul class="text-lg text-gray-200 list-disc list-inside text-left w-full max-w-xs mx-auto">
-                        <li>市場持續擴大</li>
-                        <li>技術整合 (V2G)</li>
-                        <li>服務多元化</li>
-                    </ul>
+                    <p class="text-lg text-gray-200">市場持續擴大、技術整合 (V2G)、服務多元化。</p>
                 </div>
                 <div class="bento-item col-span-1 highlight-gradient-cyan">
                     <i class="fas fa-exclamation-triangle text-5xl text-cyan-400 mb-4"></i>
                     <h3 class="text-3xl font-bold mb-2">挑戰</h3>
-                    <ul class="text-lg text-gray-200 list-disc list-inside text-left w-full max-w-xs mx-auto">
-                        <li>電網負荷(是否有饋線?)</li>
-                        <li>土地來源與取得成本</li>
-                        <li>充電投資回報週期長</li>
-                        <li>電動車量體成長率</li>
-                    </ul>
+                    <p class="text-lg text-gray-200">電網負荷(是否有饋線?)、土地來源與取得成本、充電投資回報週期長、電動車量體成長率。</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Page 8: Conclusion -->
     <section id="page-conclusion" class="full-page-section bg-black">
         <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-emerald">
             <h2 class="text-6xl md:text-7xl font-extrabold text-emerald-400 mb-8">結論</h2>
@@ -383,12 +423,10 @@
         </div>
     </section>
 
-    <!-- Page 9: Five Key Charging Investment Evaluation Points (Interactive Detailed Version) - Original Page 9 -->
     <section id="page-actions" class="full-page-section bg-black min-h-screen">
         <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-cyan">
             <h2 class="text-6xl md:text-7xl font-extrabold text-cyan-400 mb-8">充電投資評估五大重點</h2>
 
-            <!-- 1. Location Evaluation -->
             <div class="bento-item highlight-gradient-emerald mb-8 text-left-mobile w-full">
                 <div class="collapsible-header">
                     <div class="flex items-center">
@@ -415,11 +453,9 @@
                 </div>
             </div>
 
-            <!-- 2. Franchise Brand Research -->
             <div class="bento-item highlight-gradient-purple mb-8 text-left-mobile w-full">
                 <div class="collapsible-header">
                     <div class="flex items-center">
-                        <!-- Corrected Font Awesome icon to fa-handshake -->
                         <i class="fas fa-handshake text-5xl text-purple-400 mr-4"></i>
                         <h3 class="text-3xl font-bold text-purple-300">2. 加盟品牌</h3>
                     </div>
@@ -443,7 +479,6 @@
                 </div>
             </div>
 
-            <!-- 3. Financial Model Construction -->
             <div class="bento-item highlight-gradient-cyan mb-8 text-left-mobile w-full">
                 <div class="collapsible-header">
                     <div class="flex items-center">
@@ -470,7 +505,6 @@
                 </div>
             </div>
 
-            <!-- 4. Regulations and Subsidies Inquiry -->
             <div class="bento-item highlight-gradient-emerald mb-8 text-left-mobile w-full">
                 <div class="collapsible-header">
                     <div class="flex items-center">
@@ -497,7 +531,6 @@
                 </div>
             </div>
 
-            <!-- 5. Professional Consultant Assistance -->
             <div class="bento-item highlight-gradient-purple mb-8 text-left-mobile w-full">
                 <div class="collapsible-header">
                     <div class="flex items-center">
@@ -530,7 +563,6 @@
         </div>
     </section>
 
-    <!-- Page 10: Charging Pile Equipment Diagrams (Moved here) -->
     <section id="page-charger-diagrams" class="full-page-section bg-black">
         <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-cyan">
             <h2 class="text-6xl md:text-7xl font-extrabold text-cyan-400 mb-8">充電樁設備簡介</h2>
@@ -550,62 +582,123 @@
         </div>
     </section>
 
-    <!-- Page 11: Franchise Model Diagram (Moved here and width adjusted) -->
-    <section id="page-franchise-model" class="full-page-section bg-black">
+    <section id="page-franchise-flow" class="full-page-section bg-black">
         <div class="animate-on-scroll max-w-6xl mx-auto p-8 rounded-3xl highlight-gradient-purple">
-            <h2 class="text-6xl md:text-7xl font-extrabold text-purple-400 mb-8">加盟模式圖解</h2>
-            <!-- Adjusted max-w-4xl to max-w-6xl for consistency with charger diagrams -->
-            <div class="flex flex-col md:flex-row items-center justify-between w-full max-w-6xl mx-auto space-y-8 md:space-y-0 md:space-x-4">
+            <h2 class="text-6xl md:text-7xl font-extrabold text-purple-400 mb-8">加盟方案流程</h2>
 
-                <!-- Node 1: 加盟主 -->
-                <div class="flex flex-col items-center justify-center p-4 bg-blue-800 rounded-full shadow-lg z-10 aspect-square w-32 h-32 md:w-40 md:h-40 flex-shrink-0">
-                    <i class="fas fa-user-tie text-4xl md:text-5xl text-white mb-2"></i>
-                    <p class="text-xl md:text-2xl font-bold text-white text-center">加盟主</p>
+            <div class="flex flex-col md:flex-row items-center justify-center w-full max-w-full mx-auto space-y-4 md:space-y-0 md:space-x-2">
+
+                <div class="flow-node node-investor">
+                    <i class="fas fa-building text-purple-200"></i>
+                    <p class="flow-text-bold text-purple-200">投資方</p>
+                    <p class="flow-text text-purple-200">(地主/企業/社區)</p>
                 </div>
 
-                <!-- Interaction block 1 (加盟主 <-> 星舟快充) -->
-                <div class="flex flex-col items-center justify-center text-center space-y-2 flex-grow">
-                    <div class="flex items-center text-yellow-500">
-                        <span class="text-sm text-gray-300 px-1">建站資金</span> <!-- Changed text-base to text-sm, px-2 to px-1 -->
-                        <i class="fas fa-arrow-right ml-0.5"></i> <!-- Adjusted ml -->
-                    </div>
-                    <div class="flex items-center text-yellow-500">
-                        <i class="fas fa-arrow-left mr-0.5"></i> <!-- Adjusted mr -->
-                        <span class="text-sm text-gray-300 px-1">站點充電營收</span> <!-- Changed text-base to text-sm, px-2 to px-1 -->
-                    </div>
-                     <div class="flex items-center text-yellow-500">
-                        <span class="text-sm text-gray-300 px-1">站點維運代管費</span> <!-- Changed text-base to text-sm, px-2 to px-1 -->
-                        <i class="fas fa-arrow-right ml-0.5"></i> <!-- Adjusted ml -->
-                    </div>
+                <div class="flow-arrow text-yellow-500">
+                    <span class="text-yellow-300">資金與場地</span>
+                    <i class="fas fa-arrow-right"></i>
+                    <i class="fas fa-arrow-left"></i>
+                    <span class="text-yellow-300">營收與服務回饋</span>
                 </div>
 
-                <!-- Node 2: 星舟快充 (Central Node) -->
-                <div class="flex flex-col items-center justify-center p-4 bg-gray-800 rounded-full shadow-lg z-10 border-2 border-emerald-400 aspect-square w-36 h-36 md:w-48 md:h-48 flex-shrink-0">
-                    <!-- Removed the image tag here -->
-                    <p class="text-2xl md:text-3xl font-bold text-emerald-400 text-center">星舟快充</p>
-                    <p class="text-sm md:text-base text-gray-400 text-center">STAR CHARGER</p>
-                    <p class="text-xs md:text-sm text-gray-500 text-center mt-2">建置 / 維運 / 營運 / 客服</p>
+                <div class="flow-node node-star-charger">
+                    <p class="flow-text-bold text-emerald-400">星舟快充</p>
+                    <p class="flow-text text-gray-400">STAR CHARGER</p>
+                    <p class="flow-text text-gray-500 mt-1">（含認證廠商與平台）</p> </div>
+
+                <div class="flow-arrow text-blue-400">
+                    <span class="text-blue-300">規劃、建置與維護</span>
+                    <i class="fas fa-arrow-right"></i>
                 </div>
 
-                <!-- Interaction block 2 (星舟快充 <-> 充電站/電動車) -->
-                <div class="flex flex-col items-center justify-center text-center space-y-2 flex-grow">
-                    <div class="flex items-center text-green-500">
-                        <span class="text-sm text-gray-300 px-1">建站服務</span> <!-- Changed text-base to text-sm, px-2 to px-1 -->
-                        <i class="fas fa-arrow-right ml-0.5"></i> <!-- Adjusted ml -->
-                    </div>
-                    <div class="flex items-center text-yellow-500">
-                        <i class="fas fa-arrow-left mr-0.5"></i> <!-- Adjusted mr -->
-                        <span class="text-sm text-gray-300 px-1">充電費 (代管代收)</span> <!-- Changed text-base to text-sm, px-2 to px-1 -->
-                    </div>
+                <div class="flow-node node-charging-station">
+                    <i class="fas fa-charging-station text-cyan-200"></i>
+                    <p class="flow-text-bold text-cyan-200">充電站</p>
                 </div>
 
-                <!-- Node 3: 充電站 / 電動車 -->
-                <div class="flex flex-col items-center justify-center p-4 bg-blue-800 rounded-full shadow-lg z-10 aspect-square w-32 h-32 md:w-40 md:h-40 flex-shrink-0">
-                    <i class="fas fa-charging-station text-4xl md:text-5xl text-white mb-2"></i>
-                    <p class="text-xl md:text-2xl font-bold text-white text-center">充電站</p>
-                    <i class="fas fa-car-side text-2xl md:text-3xl text-white mt-1"></i>
+                <div class="flow-arrow text-green-400">
+                    <span class="text-green-300">提供充電服務</span>
+                    <i class="fas fa-arrow-right"></i>
+                    <i class="fas fa-arrow-left"></i>
+                    <span class="text-green-300">支付充電費用</span>
+                </div>
+
+                <div class="flow-node node-ev-owner">
+                    <i class="fas fa-car-side text-blue-200"></i>
+                    <p class="flow-text-bold text-blue-200">充電車主</p>
                 </div>
             </div>
+
+            <div class="mt-12 text-center text-gray-400 text-sm space-y-2">
+                <p>此流程圖概括了星舟快充生態系的運作模式，以及加盟方案的主要互動關係：</p>
+                <ul class="list-disc list-inside mx-auto max-w-3xl text-left">
+                    <li><strong class="text-purple-400">投資方 (地主/企業/社區)</strong> 提供**資金與場地**給<strong class="text-emerald-400">星舟快充 (含認證廠商與平台)</strong>，並從星舟快充處獲得**營收與服務回饋**。</li>
+                    <li><strong class="text-emerald-400">星舟快充 (含認證廠商與平台)</strong> 負責<strong class="text-cyan-400">充電站</strong>的**規劃、建置與維護**。</li>
+                    <li><strong class="text-cyan-400">充電站</strong>向<strong class="text-blue-400">充電車主</strong>**提供充電服務**。</li>
+                    <li><strong class="text-blue-400">充電車主**支付**充電費用**給<strong class="text-cyan-400">充電站**。</li>
+                    <li>整個系統形成一個資金與服務的良性循環，推動永續營運與充電網絡擴張。</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Page 12: Charging Station Revenue Estimation Calculator -->
+    <section id="page-calculator" class="full-page-section bg-black">
+        <div class="animate-on-scroll bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">充電站營收預估試算</h2>
+
+            <div class="mb-4">
+                <label for="powerConsumption" class="block text-gray-700 text-sm font-medium mb-2">充電功率（kW）：</label>
+                <select id="powerConsumption" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800">
+                    <option value="7">7 kW</option>
+                    <option value="30" selected>30 kW</option>
+                    <option value="120">120 kW</option>
+                    <option value="180">180 kW</option>
+                    <option value="360">360 kW</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label for="slots" class="block text-gray-700 text-sm font-medium mb-2">車格數 / 格：</label>
+                <input type="number" id="slots" value="2" min="1" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800" />
+            </div>
+
+            <div class="mb-4">
+                <label for="years" class="block text-gray-700 text-sm font-medium mb-2">營運年期（年）：</label>
+                <input type="number" id="years" value="10" min="1" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800" />
+            </div>
+
+            <div class="mb-4">
+                <label for="dailyVehicleCountPerSlot" class="block text-gray-700 text-sm font-medium mb-2">每日車次 / 格：</label>
+                <input type="number" id="dailyVehicleCountPerSlot" value="5" min="1" step="1" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800" />
+            </div>
+
+            <div class="mb-4">
+                <label for="averageKWHPerVehicleCharge" class="block text-gray-700 text-sm font-medium mb-2">每車平均充電度數（度/次）：</label>
+                <input type="number" id="averageKWHPerVehicleCharge" value="30" min="1" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800" />
+            </div>
+
+            <div class="mb-4">
+                <label for="chargingRate" class="block text-gray-700 text-sm font-medium mb-2">每度電費率（NTD/度）：</label>
+                <input type="number" id="chargingRate" value="9" min="0.1" step="0.1" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800" />
+            </div>
+
+            <div class="mb-4">
+                <label for="electricityCost" class="block text-gray-700 text-sm font-medium mb-2">台電電成本（NTD/度）：</label>
+                <input type="number" id="electricityCost" value="4.0" min="0" step="0.1" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-200 focus:outline-none text-gray-800" disabled />
+            </div>
+
+            <div class="mb-6">
+                <label for="investmentCostPerKW" class="block text-gray-700 text-sm font-medium mb-2">每KW投資成本（NTD/kW）：</label>
+                <input type="number" id="investmentCostPerKW" value="12000" min="0" step="100" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-200 focus:outline-none text-gray-800" disabled />
+            </div>
+
+            <button onclick="calculate()" class="w-full bg-blue-600 text-white p-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300 ease-in-out shadow-md">
+                計算預估營收
+            </button>
+
+            <div id="result" class="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200 text-gray-800 text-lg leading-relaxed hidden">
+                </div>
         </div>
     </section>
 
@@ -758,6 +851,208 @@
                 chargerImage.src = chargerImages[selectedValue];
                 chargerImage.alt = `${selectedValue} 充電樁設備圖`;
             });
+
+
+            /**
+             * 執行充電站營收預估計算。
+             * 根據輸入的車格數、營運年期、每日車次/格、每車平均充電度數、充電功率、每度電費率和台電電成本，
+             * 計算每日、每年及總營運期間的預估淨營收。
+             */
+            window.calculate = function() { // Made global to be accessible from button onclick
+                // 獲取使用者輸入的值
+                const slots = parseInt(document.getElementById('slots').value);
+                const years = parseInt(document.getElementById('years').value);
+                const dailyVehicleCountPerSlot = parseInt(document.getElementById('dailyVehicleCountPerSlot').value); // 每日車次/格
+                const averageKWHPerVehicleCharge = parseInt(document.getElementById('averageKWHPerVehicleCharge').value); // 每車平均充電度數 (每次充電)
+                const averagePowerConsumptionKW = parseFloat(document.getElementById('powerConsumption').value); // 從下拉式選單獲取充電功率的值
+                const chargingRatePerKWH = parseFloat(document.getElementById('chargingRate').value);
+                // 從固定值獲取台電電成本
+                const electricityCostPerKWH = 4.0; // 台電電成本固定為4.0
+                const investmentCostPerKW = parseFloat(document.getElementById('investmentCostPerKW').value); // 每KW投資成本
+
+                const resultDiv = document.getElementById('result');
+
+                // 驗證輸入是否為有效數字且大於0 (成本可以為0)
+                if (isNaN(slots) || slots <= 0 ||
+                    isNaN(years) || years <= 0 ||
+                    isNaN(dailyVehicleCountPerSlot) || dailyVehicleCountPerSlot <= 0 ||
+                    isNaN(averageKWHPerVehicleCharge) || averageKWHPerVehicleCharge <= 0 || // 確保為正整數
+                    isNaN(chargingRatePerKWH) || chargingRatePerKWH <= 0)
+                {
+                    resultDiv.innerHTML = '<p class="text-red-600 font-semibold">請輸入有效的數值 (車格數、年期、每日車次/格、每車平均充電度數、費率必須為正數)。</p>';
+                    resultDiv.classList.remove('hidden');
+                    return;
+                }
+
+                // 驗證車格數限制：30kW 以上的功率，車格數必須是偶數且至少為 2
+                if (averagePowerConsumptionKW > 30) {
+                    if (slots < 2 || slots % 2 !== 0) {
+                        resultDiv.innerHTML = '<p class="text-red-600 font-semibold">錯誤：當充電功率為 30kW 以上時，車格數必須是偶數且至少為 2 格。</p>';
+                        resultDiv.classList.remove('hidden');
+                        return;
+                    }
+                }
+
+
+                // 定義預估計算所需的常數
+                const operationDaysPerYear = 365;
+
+                // 步驟 1: 計算每度電的淨利潤
+                const netProfitPerKWH = chargingRatePerKWH - electricityCostPerKWH;
+
+                // 如果淨利潤為負，顯示警告
+                if (netProfitPerKWH < 0) {
+                    resultDiv.innerHTML = '<p class="text-red-600 font-semibold">警告：您的每度電費率低於台電電成本，將導致虧損！</p>';
+                    resultDiv.classList.remove('hidden');
+                    return;
+                }
+
+                // 步驟 2: 計算每個車格每日的總充電度數
+                const totalDailyKWHPerSlot = dailyVehicleCountPerSlot * averageKWHPerVehicleCharge;
+
+                // 步驟 3: 計算每個車格每日的淨營收
+                const dailyNetRevenuePerSlot = totalDailyKWHPerSlot * netProfitPerKWH;
+
+                // 步驟 4: 計算總每日淨營收 (所有車格)
+                const totalDailyNetRevenue = dailyNetRevenuePerSlot * slots;
+
+                // 步驟 5: 計算總每年淨營收 (所有車格)
+                const totalAnnualNetRevenue = totalDailyNetRevenue * operationDaysPerYear;
+
+                // 步驟 6: 計算總營運期間的預估淨營收
+                const totalProjectedNetRevenue = totalAnnualNetRevenue * years;
+
+                // 步驟 7: 計算總投資成本
+                let totalInvestmentCost;
+                if (averagePowerConsumptionKW > 30) {
+                    // For power > 30KW, calculate based on (slots / 2) because each pile serves 2 slots
+                    totalInvestmentCost = averagePowerConsumptionKW * investmentCostPerKW * (slots / 2);
+                } else {
+                    // For 7KW and 30KW, calculate based on slots directly because each slot has one pile
+                    totalInvestmentCost = averagePowerConsumptionKW * investmentCostPerKW * slots;
+                }
+
+
+                // 格式化數字為新台幣金額 (加入千分位逗號)
+                const formatter = new Intl.NumberFormat('zh-TW', {
+                    style: 'currency',
+                    currency: 'TWD',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                });
+
+                // 將計算結果顯示在頁面上
+                resultDiv.innerHTML = `
+                    <p><strong class="text-blue-700">每日預估淨營收：</strong> ${formatter.format(totalDailyNetRevenue)}</p>
+                    <p><strong class="text-blue-700">每年預估淨營收：</strong> ${formatter.format(totalAnnualNetRevenue)}</p>
+                    <p><strong class="text-blue-700">總營運${years}年預估淨營收：</strong> ${formatter.format(totalProjectedNetRevenue)}</p>
+                    <p><strong class="text-blue-700">預估總投資成本：</strong> ${formatter.format(totalInvestmentCost)}</p>
+                    <p class="mt-4 text-sm text-gray-600">
+                        ※ 備註：此為預估值，實際淨營收會受使用率、維護成本、其他營運成本、折舊等因素影響。
+                        本計算假設每車格每日充電車次為 ${dailyVehicleCountPerSlot} 次，每次平均充電 ${averageKWHPerVehicleCharge} 度，
+                        充電功率為 ${averagePowerConsumptionKW} kW，每度電費率 ${chargingRatePerKWH} NTD，台電電成本 ${electricityCostPerKWH} NTD。
+                        充電功率為 7kW 或 30kW 時，以 1 格 1 樁計算投資成本；充電功率大於 30kW 時，則以每樁服務 2 格計算投資成本。
+                        每KW投資成本為 ${investmentCostPerKW} NTD。
+                    </p>
+                `;
+                resultDiv.classList.remove('hidden');
+            }
+
+            // JavaScript for the calculator's form logic
+            const powerConsumptionSelect = document.getElementById('powerConsumption');
+            const chargingRateInput = document.getElementById('chargingRate');
+            const dailyVehicleCountPerSlotInput = document.getElementById('dailyVehicleCountPerSlot');
+            const slotsInput = document.getElementById('slots'); // 獲取車格數輸入框
+
+            /**
+             * 根據充電功率的選擇更新每度電費率的輸入狀態和值。
+             * 如果充電功率是7kW，則設定費率為8元並禁用輸入；
+             * 否則，啟用輸入。
+             */
+            function updateChargingRateBasedOnPower() {
+                const selectedPower = parseFloat(powerConsumptionSelect.value);
+                if (selectedPower === 7) {
+                    chargingRateInput.value = 8;
+                    chargingRateInput.disabled = true;
+                    chargingRateInput.classList.add('bg-gray-200'); // 增加禁用時的視覺效果
+                    chargingRateInput.classList.remove('focus:ring-blue-500');
+                } else {
+                    chargingRateInput.disabled = false;
+                    chargingRateInput.classList.remove('bg-gray-200');
+                    chargingRateInput.classList.add('focus:ring-blue-500');
+                }
+            }
+
+            /**
+             * 根據充電功率的選擇更新每日車次/格的輸入狀態和值。
+             * 如果充電功率是7kW，則設定為1並禁用輸入；
+             * 否則，啟用輸入並設定為預設值5。
+             */
+            function updateDailyVehicleCountBasedOnPower() {
+                const selectedPower = parseFloat(powerConsumptionSelect.value);
+                if (selectedPower === 7) { // 只有當充電功率是7kW時固定為1車
+                    dailyVehicleCountPerSlotInput.value = 1;
+                    dailyVehicleCountPerSlotInput.disabled = true;
+                    dailyVehicleCountPerSlotInput.classList.add('bg-gray-200');
+                    dailyVehicleCountPerSlotInput.classList.remove('focus:ring-blue-500');
+                } else {
+                    if (dailyVehicleCountPerSlotInput.disabled) { // 如果之前被禁用，則恢復預設值
+                        dailyVehicleCountPerSlotInput.value = 5;
+                    }
+                    dailyVehicleCountPerSlotInput.disabled = false;
+                    dailyVehicleCountPerSlotInput.classList.remove('bg-gray-200');
+                    dailyVehicleCountPerSlotInput.classList.add('focus:ring-blue-500');
+                }
+            }
+
+            /**
+             * 根據充電功率的選擇更新車格數的最小值和預設值，並強制為偶數（若功率大於30kW）。
+             * 30kW 以上的功率一定是以2格為基礎，不會有單格數，且必須是偶數。
+             * 30kW 跟 7kW 可以單格數。
+             */
+            function updateSlotsMinAndValue() {
+                const selectedPower = parseFloat(powerConsumptionSelect.value);
+                let currentSlots = parseInt(slotsInput.value);
+
+                if (selectedPower > 30) { // 120kW, 180kW, 360kW
+                    slotsInput.min = 2; // 至少2格
+                    slotsInput.step = 2; // 只能以2為步進
+
+                    // 如果當前值小於2或為奇數，則重設為2
+                    if (currentSlots < 2 || currentSlots % 2 !== 0) {
+                        slotsInput.value = 2;
+                    }
+                } else { // 7kW, 30kW
+                    slotsInput.min = 1; // 可以是1格
+                    slotsInput.step = 1; // 可以以1為步進
+                }
+            }
+
+
+            // 監聽充電功率選擇框的變化事件
+            powerConsumptionSelect.addEventListener('change', () => {
+                updateChargingRateBasedOnPower();
+                updateDailyVehicleCountBasedOnPower();
+                updateSlotsMinAndValue(); // 每次功率變化時也更新車格數的限制
+            });
+
+            // 監聽車格數輸入框的變化，即時檢查是否為偶數
+            slotsInput.addEventListener('input', () => {
+                const selectedPower = parseFloat(powerConsumptionSelect.value);
+                let currentSlots = parseInt(slotsInput.value);
+
+                if (selectedPower > 30) {
+                    // 如果輸入了奇數，自動調整為下一個偶數或上一個偶數
+                    if (currentSlots % 2 !== 0) {
+                        slotsInput.value = currentSlots + 1; // 簡單地加1，使之成為偶數
+                    }
+                }
+            });
+
+            // 初始化時執行一次，確保預設狀態正確
+            updateChargingRateBasedOnPower();
+            updateDailyVehicleCountBasedOnPower();
+            updateSlotsMinAndValue(); // 初始化時也更新車格數的限制
         });
     </script>
 </body>
