@@ -233,6 +233,27 @@
         .node-star-charger { background-color: #1f2937; /* gray-800 */ border: 2px solid #34d399; /* emerald-400 */ }
         .node-charging-station { background-color: #06b6d4; /* cyan-600 */ }
         .node-ev-owner { background-color: #2563eb; /* blue-600 */ }
+
+        /* Calculator specific styles */
+        #page-revenue-calculator .bg-white {
+            background-color: #fff;
+            color: #000; /* Ensure text within calculator is dark on white background */
+        }
+        #page-revenue-calculator label {
+            color: #374151; /* gray-700 */
+        }
+        #page-revenue-calculator .text-red-600 {
+            color: #dc2626;
+        }
+        #page-revenue-calculator .text-green-600 {
+            color: #16a34a;
+        }
+        #page-revenue-calculator .text-blue-700 {
+            color: #1d4ed8;
+        }
+        #admin-details-section {
+            display: none; /* Initially hidden */
+        }
     </style>
 </head>
 <body class="bg-black text-white">
@@ -642,14 +663,15 @@
         </div>
     </section>
 
-    <!-- Page 12: Charging Station Revenue Estimation Calculator -->
-    <section id="page-calculator" class="full-page-section bg-black">
+    <!-- Page: Charging Station Revenue Estimation Calculator -->
+    <section id="page-revenue-calculator" class="full-page-section bg-black">
         <div class="animate-on-scroll bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
             <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">充電站營收預估試算</h2>
 
+            <!-- 充電功率 (保留在頂部) -->
             <div class="mb-4">
-                <label for="powerConsumption" class="block text-gray-700 text-sm font-medium mb-2">充電功率（kW）：</label>
-                <select id="powerConsumption" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800">
+                <label for="calc-powerConsumption" class="block text-gray-700 text-sm font-medium mb-2">充電功率（kW）：</label>
+                <select id="calc-powerConsumption" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800">
                     <option value="7">7 kW</option>
                     <option value="30" selected>30 kW</option>
                     <option value="120">120 kW</option>
@@ -659,51 +681,393 @@
             </div>
 
             <div class="mb-4">
-                <label for="slots" class="block text-gray-700 text-sm font-medium mb-2">車格數 / 格：</label>
-                <input type="number" id="slots" value="2" min="1" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800" />
+                <label for="calc-slots" class="block text-gray-700 text-sm font-medium mb-2">車格數 / 格：</label>
+                <input type="number" id="calc-slots" value="2" min="1" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800" />
             </div>
 
             <div class="mb-4">
-                <label for="years" class="block text-gray-700 text-sm font-medium mb-2">營運年期（年）：</label>
-                <input type="number" id="years" value="10" min="1" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800" />
+                <label for="calc-years" class="block text-gray-700 text-sm font-medium mb-2">營運年期（年）：</label>
+                <input type="number" id="calc-years" value="10" min="1" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800" />
             </div>
 
-            <div class="mb-4">
-                <label for="dailyVehicleCountPerSlot" class="block text-gray-700 text-sm font-medium mb-2">每日車次 / 格：</label>
-                <input type="number" id="dailyVehicleCountPerSlot" value="5" min="1" step="1" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800" />
-            </div>
-
-            <div class="mb-4">
-                <label for="averageKWHPerVehicleCharge" class="block text-gray-700 text-sm font-medium mb-2">每車平均充電度數（度/次）：</label>
-                <input type="number" id="averageKWHPerVehicleCharge" value="30" min="1" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800" />
-            </div>
-
-            <div class="mb-4">
-                <label for="chargingRate" class="block text-gray-700 text-sm font-medium mb-2">每度電費率（NTD/度）：</label>
-                <input type="number" id="chargingRate" value="9" min="0.1" step="0.1" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800" />
-            </div>
-
-            <div class="mb-4">
-                <label for="electricityCost" class="block text-gray-700 text-sm font-medium mb-2">台電電成本（NTD/度）：</label>
-                <input type="number" id="electricityCost" value="4.0" min="0" step="0.1" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-200 focus:outline-none text-gray-800" disabled />
-            </div>
-
-            <div class="mb-6">
-                <label for="investmentCostPerKW" class="block text-gray-700 text-sm font-medium mb-2">每KW投資成本（NTD/kW）：</label>
-                <input type="number" id="investmentCostPerKW" value="12000" min="0" step="100" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-200 focus:outline-none text-gray-800" disabled />
-            </div>
-
-            <button onclick="calculate()" class="w-full bg-blue-600 text-white p-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300 ease-in-out shadow-md">
+            <button onclick="calculateRevenue()" class="w-full bg-blue-600 text-white p-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300 ease-in-out shadow-md">
                 計算預估營收
             </button>
 
-            <div id="result" class="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200 text-gray-800 text-lg leading-relaxed hidden">
+            <div id="calc-result" class="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200 text-gray-800 text-lg leading-relaxed hidden">
+                <!-- 結果將顯示在這裡 -->
+            </div>
+
+            <hr class="my-6 border-gray-300" />
+
+            <h4 class="text-xl font-bold text-gray-800 mb-4 text-center">🔐 管理員登入</h4>
+            <div class="mb-4">
+                <label for="adminPass" class="block text-gray-700 text-sm font-medium mb-2">輸入管理密碼：</label>
+                <input type="password" id="adminPass" placeholder="輸入密碼" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800" />
+            </div>
+            <button onclick="loginAdmin()" class="w-full bg-green-600 text-white p-3 rounded-lg font-semibold hover:bg-green-700 transition duration-300 ease-in-out shadow-md">
+                登入
+            </button>
+            <p id="login-status" class="mt-3 text-sm text-center"></p>
+
+            <div id="admin-details-section" class="mt-8 p-6 bg-yellow-50 rounded-lg border border-yellow-200 text-gray-800 text-sm leading-relaxed">
+                <h4 class="text-lg font-bold text-gray-700 mb-3">管理員模式 - 詳細計算公式與參數設定</h4>
+
+                <!-- 移入管理員模式的輸入欄位 -->
+                <div class="mb-4">
+                    <label for="calc-dailyVehicleCountPerSlot" class="block text-gray-700 text-sm font-medium mb-2">每日車次 / 格：</label>
+                    <input type="number" id="calc-dailyVehicleCountPerSlot" value="5" min="1" step="1" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800" />
                 </div>
+
+                <div class="mb-4">
+                    <label for="calc-averageKWHPerVehicleCharge" class="block text-gray-700 text-sm font-medium mb-2">每車平均充電度數（度/次）：</label>
+                    <input type="number" id="calc-averageKWHPerVehicleCharge" value="30" min="1" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800" />
+                </div>
+
+                <div class="mb-4">
+                    <label for="calc-chargingRate" class="block text-gray-700 text-sm font-medium mb-2">每度電費率（NTD/度）：</label>
+                    <input type="number" id="calc-chargingRate" value="9" min="0.1" step="0.1" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800" />
+                </div>
+
+                <div class="mb-4">
+                    <label for="calc-electricityCost" class="block text-gray-700 text-sm font-medium mb-2">台電成本（NTD/度）：</label>
+                    <input type="number" id="calc-electricityCost" value="4.0" min="0" step="0.1" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800" />
+                </div>
+
+                <!-- 新增投資成本輸入欄位 -->
+                <div class="mb-6">
+                    <label for="calc-investmentCostPerKW" class="block text-gray-700 text-sm font-medium mb-2">每 KW 投資成本（NTD/kW）：</label>
+                    <input type="number" id="calc-investmentCostPerKW" value="12000" min="0" step="1" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800" />
+                </div>
+
+                <h5 class="text-md font-bold text-gray-700 mb-2 mt-4">計算細項：</h5>
+                <p><strong>台電成本：</strong> <span id="admin-electricity-cost"></span> NTD/度</p>
+                <p><strong>每度電淨利潤：</strong> <span id="admin-net-profit"></span> NTD/度 (計算：費率 - 電成本)</p>
+                <p><strong>每日總充電度數 / 格：</strong> <span id="admin-daily-kwh-per-slot"></span> 度/格 (計算：每日車次/格 × 每車平均充電度數)</p>
+                <p><strong>每個車格每日淨營收：：</strong> <span id="admin-daily-net-revenue-per-slot"></span> NTD/格 (計算：每日總充電度數/格 × 每度電淨利潤)</p>
+                <p><strong>總每日淨營收：：</strong> <span id="admin-total-daily-net-revenue"></span> NTD (計算：每個車格每日淨營收 × 車格數)</p>
+                <p><strong>總每年淨營收：：</strong> <span id="admin-total-annual-net-revenue"></span> NTD (計算：總每日淨營收 × 365天)</p>
+                <p><strong>總營運年期淨營收：：</strong> <span id="admin-total-projected-revenue"></span> NTD (計算：總每年淨營收 × 營運年期)</p>
+                <p class="mt-4"><strong>總投資成本金額：：</strong> <span id="admin-total-investment-cost"></span> NTD</p>
+                <p class="text-xs text-gray-600">
+                    (計算：<span id="admin-investment-formula"></span>)
+                </p>
+            </div>
         </div>
     </section>
 
     <script>
-        // JavaScript for scroll animation effect
+        let isAdmin = false; // 管理員登入狀態
+
+        /**
+         * 載入管理員參數預設值或儲存的值。
+         * 從 localStorage 讀取值，如果沒有則使用 HTML 中設定的預設值。
+         */
+        function loadAdminParameters() {
+            // Define default values if not in localStorage or initial HTML
+            const defaultValues = {
+                dailyVehicleCount: 5,
+                averageKWH: 30,
+                chargingRate: 9,
+                electricityCost: 4.0,
+                investmentCostPerKW: 12000
+            };
+
+            // 使用與 HTML ID 匹配的鍵名
+            document.getElementById('calc-dailyVehicleCountPerSlot').value = localStorage.getItem('calc-dailyVehicleCountPerSlot') || defaultValues.dailyVehicleCount;
+            document.getElementById('calc-averageKWHPerVehicleCharge').value = localStorage.getItem('calc-averageKWHPerVehicleCharge') || defaultValues.averageKWH;
+            document.getElementById('calc-chargingRate').value = localStorage.getItem('calc-chargingRate') || defaultValues.chargingRate;
+            document.getElementById('calc-electricityCost').value = localStorage.getItem('calc-electricityCost') || defaultValues.electricityCost;
+            document.getElementById('calc-investmentCostPerKW').value = localStorage.getItem('calc-investmentCostPerKW') || defaultValues.investmentCostPerKW;
+        }
+
+        /**
+         * 儲存管理員參數值到 localStorage。
+         */
+        function saveAdminParameters() {
+            // 使用與 HTML ID 匹配的鍵名
+            localStorage.setItem('calc-dailyVehicleCountPerSlot', document.getElementById('calc-dailyVehicleCountPerSlot').value);
+            localStorage.setItem('calc-averageKWHPerVehicleCharge', document.getElementById('calc-averageKWHPerVehicleCharge').value);
+            localStorage.setItem('calc-chargingRate', document.getElementById('calc-chargingRate').value);
+            localStorage.setItem('calc-electricityCost', document.getElementById('calc-electricityCost').value);
+            localStorage.setItem('calc-investmentCostPerKW', document.getElementById('calc-investmentCostPerKW').value);
+        }
+
+        /**
+         * 根據管理員狀態設定輸入欄位的啟用/禁用狀態和視覺效果。
+         */
+        function setAdminInputStates() {
+            const adminInputs = [
+                document.getElementById('calc-dailyVehicleCountPerSlot'),
+                document.getElementById('calc-averageKWHPerVehicleCharge'),
+                document.getElementById('calc-chargingRate'),
+                document.getElementById('calc-electricityCost'),
+                document.getElementById('calc-investmentCostPerKW')
+            ];
+
+            adminInputs.forEach(input => {
+                input.disabled = !isAdmin;
+                if (isAdmin) {
+                    input.classList.remove('bg-gray-200');
+                    input.classList.add('focus:ring-blue-500');
+                } else {
+                    input.classList.add('bg-gray-200');
+                    input.classList.remove('focus:ring-blue-500');
+                }
+            });
+
+            // Specific logic for chargingRate and dailyVehicleCountPerSlot
+            updateChargingRateBasedOnPower();
+            updateDailyVehicleCountBasedOnPower();
+        }
+
+        /**
+         * 執行充電站營收預估計算。
+         * 根據輸入的車格數、營運年期、每日車次/格、每車平均充電度數、充電功率、每度電費率和台電成本，
+         * 計算每日、每年及總營運期間的預估淨營收。並加入投資成本的計算。
+         */
+        window.calculateRevenue = function() {
+            // 獲取使用者輸入的值 (來自公共區塊和管理員區塊)
+            const slots = parseInt(document.getElementById('calc-slots').value);
+            const years = parseInt(document.getElementById('calc-years').value);
+            const dailyVehicleCountPerSlot = parseInt(document.getElementById('calc-dailyVehicleCountPerSlot').value);
+            const averageKWHPerVehicleCharge = parseInt(document.getElementById('calc-averageKWHPerVehicleCharge').value);
+            const chargingRatePerKWH = parseFloat(document.getElementById('calc-chargingRate').value);
+            const electricityCostPerKWH = parseFloat(document.getElementById('calc-electricityCost').value);
+            const investmentCostPerKW = parseFloat(document.getElementById('calc-investmentCostPerKW').value);
+
+            const averagePowerConsumptionKW = parseFloat(document.getElementById('calc-powerConsumption').value);
+
+            const resultDiv = document.getElementById('calc-result');
+            const adminDetailsSection = document.getElementById('admin-details-section');
+
+            // 驗證輸入是否為有效數字且大於0 (成本可以為0)
+            if (isNaN(slots) || slots <= 0 ||
+                isNaN(years) || years <= 0 ||
+                isNaN(dailyVehicleCountPerSlot) || dailyVehicleCountPerSlot <= 0 ||
+                isNaN(averageKWHPerVehicleCharge) || averageKWHPerVehicleCharge <= 0 ||
+                isNaN(chargingRatePerKWH) || chargingRatePerKWH <= 0 ||
+                isNaN(electricityCostPerKWH) || electricityCostPerKWH < 0 ||
+                isNaN(investmentCostPerKW) || investmentCostPerKW < 0)
+            {
+                resultDiv.innerHTML = '<p class="text-red-600 font-semibold">請輸入有效的數值 (所有欄位除了台電成本和投資成本，其餘必須為正數)。</p>';
+                resultDiv.classList.remove('hidden');
+                if (isAdmin) adminDetailsSection.style.display = 'block'; // 保持顯示管理員詳情以便修改錯誤
+                return;
+            }
+
+            // 驗證車格數限制：30kW 以上的功率，車格數必須是偶數且至少為 2
+            if (averagePowerConsumptionKW > 30) {
+                if (slots < 2 || slots % 2 !== 0) {
+                    resultDiv.innerHTML = '<p class="text-red-600 font-semibold">錯誤：當充電功率為 30kW 以上時，車格數必須是偶數且至少為 2 格。</p>';
+                    resultDiv.classList.remove('hidden');
+                    if (isAdmin) adminDetailsSection.style.display = 'block'; // 保持顯示管理員詳情以便修改錯誤
+                    return;
+                }
+            }
+
+            // 定義預估計算所需的常數
+            const operationDaysPerYear = 365;
+
+            // 步驟 1: 計算每度電的淨利潤
+            const netProfitPerKWH = chargingRatePerKWH - electricityCostPerKWH;
+
+            // 如果淨利潤為負，顯示警告
+            if (netProfitPerKWH < 0) {
+                resultDiv.innerHTML = '<p class="text-red-600 font-semibold">警告：您的每度電費率低於台電成本，將導致虧損！</p>';
+                resultDiv.classList.remove('hidden');
+                if (isAdmin) adminDetailsSection.style.display = 'block'; // 保持顯示管理員詳情以便修改錯誤
+                return;
+            }
+
+            // 步驟 2: 計算每個車格每日的總充電度數
+            const totalDailyKWHPerSlot = dailyVehicleCountPerSlot * averageKWHPerVehicleCharge;
+
+            // 步驟 3: 計算每個車格每日的淨營收
+            const dailyNetRevenuePerSlot = totalDailyKWHPerSlot * netProfitPerKWH;
+
+            // 步驟 4: 計算總每日淨營收 (所有車格)
+            const totalDailyNetRevenue = dailyNetRevenuePerSlot * slots;
+
+            // 步驟 5: 計算總每年淨營收 (所有車格)
+            const totalAnnualNetRevenue = totalDailyNetRevenue * operationDaysPerYear;
+
+            // 步驟 6: 計算總營運期間的預估淨營收
+            const totalProjectedRevenue = totalAnnualNetRevenue * years;
+
+            // 步驟 7: 計算投資成本金額
+            let totalInvestmentCost = 0;
+            let investmentFormulaText = "";
+
+            if (averagePowerConsumptionKW <= 30) { // 7kW 或 30kW
+                totalInvestmentCost = averagePowerConsumptionKW * slots * investmentCostPerKW;
+                investmentFormulaText = `${averagePowerConsumptionKW} kW × ${slots} 格 × ${investmentCostPerKW} NTD/kW`;
+            } else { // 120kW, 180kW, 360kW
+                totalInvestmentCost = averagePowerConsumptionKW * (slots / 2) * investmentCostPerKW;
+                investmentFormulaText = `${averagePowerConsumptionKW} kW × (${slots} 格 / 2) × ${investmentCostPerKW} NTD/kW`;
+            }
+
+            // 儲存最新的管理員參數值 (只有在所有驗證通過後才儲存)
+            saveAdminParameters();
+
+            // 格式化數字為新台幣金額 (加入千分位逗號)
+            const formatter = new Intl.NumberFormat('zh-TW', {
+                style: 'currency',
+                currency: 'TWD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            });
+
+            // 將計算結果顯示在頁面上
+            resultDiv.innerHTML = `
+                <p><strong class="text-blue-700">每日預估淨營收：</strong> ${formatter.format(totalDailyNetRevenue)}</p>
+                <p><strong class="text-blue-700">每年預估淨營收：</strong> ${formatter.format(totalAnnualNetRevenue)}</p>
+                <p><strong class="text-blue-700">總營運${years}年預估淨營收：</strong> ${formatter.format(totalProjectedRevenue)}</p>
+                <p class="mt-4"><strong class="text-blue-700">總投資成本金額：</strong> ${formatter.format(totalInvestmentCost)}</p>
+                <p class="mt-4 text-sm text-gray-600">
+                    ※ 備註：此為預估值，實際淨營收會受使用率、維護成本、其他營運成本、折舊等因素影響。
+                    本計算假設每車格每日充電車次為 ${dailyVehicleCountPerSlot} 次，每次平均充電 ${averageKWHPerVehicleCharge} 度，
+                    充電功率為 ${averagePowerConsumptionKW} kW，每度電費率 ${chargingRatePerKWH} NTD，台電成本 ${electricityCostPerKWH} NTD。
+                    充電功率為 7kW 或 30kW 時，以 1 格 1 樁計算投資成本；充電功率大於 30kW 時，則以每樁服務 2 格計算投資成本。
+                    每KW投資成本為 ${investmentCostPerKW} NTD。
+                </p>
+            `;
+            resultDiv.classList.remove('hidden');
+
+            // 如果是管理員模式，顯示詳細計算公式
+            if (isAdmin) {
+                document.getElementById('admin-electricity-cost').textContent = electricityCostPerKWH.toFixed(1);
+                document.getElementById('admin-net-profit').textContent = netProfitPerKWH.toFixed(2);
+                document.getElementById('admin-daily-kwh-per-slot').textContent = totalDailyKWHPerSlot.toFixed(0);
+                document.getElementById('admin-daily-net-revenue-per-slot').textContent = dailyNetRevenuePerSlot.toFixed(2);
+                document.getElementById('admin-total-daily-net-revenue').textContent = totalDailyNetRevenue.toFixed(2);
+                document.getElementById('admin-total-annual-net-revenue').textContent = totalAnnualNetRevenue.toFixed(2);
+                document.getElementById('admin-total-projected-revenue').textContent = totalProjectedRevenue.toFixed(2);
+                document.getElementById('admin-total-investment-cost').textContent = totalInvestmentCost.toFixed(2); // 顯示投資成本
+                document.getElementById('admin-investment-formula').textContent = investmentFormulaText; // 顯示投資成本公式
+                adminDetailsSection.style.display = 'block'; // 顯示管理員詳情
+            } else {
+                adminDetailsSection.style.display = 'none'; // 非管理員隱藏
+            }
+        }
+
+        /**
+         * 處理管理員登入。
+         * 如果密碼正確，則啟用管理員模式並顯示詳細計算區塊。
+         */
+        window.loginAdmin = function() { // Made global
+            const pass = document.getElementById("adminPass").value;
+            const loginStatus = document.getElementById("login-status");
+            const adminDetailsSection = document.getElementById('admin-details-section');
+
+            if (pass === "1688") { // 管理密碼
+                isAdmin = true;
+                loginStatus.textContent = "✅ 已成功登入管理員模式";
+                loginStatus.classList.remove('text-red-600');
+                loginStatus.classList.add('text-green-600');
+                // 登入後立即更新計算結果，以顯示管理員詳細信息
+                calculateRevenue(); // 使用更新後的 calculateRevenue 函數
+                setAdminInputStates(); // 更新輸入欄位狀態
+                adminDetailsSection.style.display = 'block'; // 確保管理員區塊在登入時可見
+            } else {
+                isAdmin = false;
+                loginStatus.textContent = "❌ 密碼錯誤";
+                loginStatus.classList.remove('text-green-600');
+                loginStatus.classList.add('text-red-600');
+                adminDetailsSection.style.display = 'none'; // 密碼錯誤時隱藏管理員詳情
+                setAdminInputStates(); // 更新輸入欄位狀態
+            }
+        }
+
+        /**
+         * 根據充電功率的選擇更新每度電費率的輸入狀態和值。
+         * 如果充電功率是7kW，則設定費率為8元並禁用輸入；
+         * 否則，啟用輸入。
+         */
+        function updateChargingRateBasedOnPower() {
+            const powerConsumptionSelect = document.getElementById('calc-powerConsumption');
+            const chargingRateInput = document.getElementById('calc-chargingRate');
+            
+            const selectedPower = parseFloat(powerConsumptionSelect.value);
+            if (selectedPower === 7) {
+                chargingRateInput.value = 8;
+                chargingRateInput.disabled = true; // Always disabled for 7kW, even for admin
+                chargingRateInput.classList.add('bg-gray-200'); // 增加禁用時的視覺效果
+                chargingRateInput.classList.remove('focus:ring-blue-500');
+            } else {
+                chargingRateInput.disabled = !isAdmin; // Disabled if not admin
+                if (isAdmin) {
+                    chargingRateInput.classList.remove('bg-gray-200');
+                    chargingRateInput.classList.add('focus:ring-blue-500');
+                } else {
+                    chargingRateInput.classList.add('bg-gray-200');
+                    chargingRateInput.classList.remove('focus:ring-blue-500');
+                }
+            }
+            // Do NOT call calculateRevenue here to avoid double-triggers from other updates,
+            // calculateRevenue will be called by the main DOMContentLoaded or other input changes.
+        }
+
+        /**
+         * 根據充電功率的選擇更新每日車次/格的輸入狀態和值。
+         * 如果充電功率是7kW，則設定為1並禁用輸入；
+         * 否則，啟用輸入並設定為預設值5。
+         */
+        function updateDailyVehicleCountBasedOnPower() {
+            const powerConsumptionSelect = document.getElementById('calc-powerConsumption');
+            const dailyVehicleCountPerSlotInput = document.getElementById('calc-dailyVehicleCountPerSlot');
+
+            const selectedPower = parseFloat(powerConsumptionSelect.value);
+            if (selectedPower === 7) { // 只有當充電功率是7kW時固定為1車
+                dailyVehicleCountPerSlotInput.value = 1;
+                dailyVehicleCountPerSlotInput.disabled = true; // Always disabled for 7kW, even for admin
+                dailyVehicleCountPerSlotInput.classList.add('bg-gray-200');
+                dailyVehicleCountPerSlotInput.classList.remove('focus:ring-blue-500');
+            } else {
+                dailyVehicleCountPerSlotInput.disabled = !isAdmin; // Disabled if not admin
+                if (dailyVehicleCountPerSlotInput.disabled && dailyVehicleCountPerSlotInput.value == 1) { // If it was fixed to 1 due to 7KW, reset it
+                   dailyVehicleCountPerSlotInput.value = 5; // Restore initial default value
+                }
+                if (isAdmin) {
+                    dailyVehicleCountPerSlotInput.classList.remove('bg-gray-200');
+                    dailyVehicleCountPerSlotInput.classList.add('focus:ring-blue-500');
+                } else {
+                    dailyVehicleCountPerSlotInput.classList.add('bg-gray-200');
+                    dailyVehicleCountPerSlotInput.classList.remove('focus:ring-blue-500');
+                }
+            }
+            // Do NOT call calculateRevenue here
+        }
+
+        /**
+         * 根據充電功率的選擇更新車格數的最小值和預設值，並強制為偶數（若功率大於30kW）。
+         * 30kW 以上的功率一定是以2格為基礎，不會有單格數，且必須是偶數。
+         * 30kW 跟 7kW 可以單格數。
+         */
+        function updateSlotsMinAndValue() {
+            const powerConsumptionSelect = document.getElementById('calc-powerConsumption');
+            const slotsInput = document.getElementById('calc-slots');
+            
+            const selectedPower = parseFloat(powerConsumptionSelect.value);
+            let currentSlots = parseInt(slotsInput.value);
+
+            if (selectedPower > 30) { // 120kW, 180kW, 360kW
+                slotsInput.min = 2; // 至少2格
+                slotsInput.step = 2; // 只能以2為步進
+
+                // 如果當前值小於2或為奇數，則重設為2
+                if (currentSlots < 2 || currentSlots % 2 !== 0) {
+                    slotsInput.value = 2;
+                }
+            } else { // 7kW, 30kW
+                slotsInput.min = 1; // 可以是1格
+                slotsInput.step = 1; // 可以以1為步進
+            }
+            // Do NOT call calculateRevenue here
+        }
+
+
+        // JavaScript for scroll animation effect (Unchanged from previous versions)
         document.addEventListener('DOMContentLoaded', () => {
             const sections = document.querySelectorAll('.animate-on-scroll');
 
@@ -717,22 +1081,12 @@
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('is-visible');
-                        // For the "Five Key Points" page, make its sub-items appear gradually
                         const subItems = entry.target.querySelectorAll('.bento-item');
                         subItems.forEach((item, index) => {
                             setTimeout(() => {
                                 item.classList.add('is-visible');
-                            }, index * 200); // Each sub-item appears with a 200ms delay
+                            }, index * 200);
                         });
-                        // Do not unobserve here if you want items to re-animate on scroll up/down
-                        // observer.unobserve(entry.target); // Stop observing once visible
-                    } else {
-                        // Optional: remove 'is-visible' if you want them to animate again when scrolling back
-                        // entry.target.classList.remove('is-visible');
-                        // const subItems = entry.target.querySelectorAll('.bento-item');
-                        // subItems.forEach((item) => {
-                        //     item.classList.remove('is-visible');
-                        // });
                     }
                 });
             }, observerOptions);
@@ -741,46 +1095,43 @@
                 observer.observe(section);
             });
 
-            // Interactive collapsible/expandable function (Accordion)
+            // Interactive collapsible/expandable function (Accordion) (Unchanged from previous versions)
             const collapsibleHeaders = document.querySelectorAll('.collapsible-header');
 
             collapsibleHeaders.forEach(header => {
                 header.addEventListener('click', () => {
-                    const content = header.nextElementSibling; // Get the next sibling element, which is the content block
-                    const icon = header.querySelector('.icon'); // Get the icon
+                    const content = header.nextElementSibling;
+                    const icon = header.querySelector('.icon');
 
-                    // Toggle expanded/collapsed class
                     header.classList.toggle('expanded');
                     content.classList.toggle('expanded');
 
-                    // Adjust content block height for smooth transition
                     if (content.classList.contains('expanded')) {
-                        content.style.maxHeight = content.scrollHeight + "px"; // Set to actual content height
+                        content.style.maxHeight = content.scrollHeight + "px";
                     } else {
                         content.style.maxHeight = "0";
                     }
                 });
             });
 
-            // JavaScript for number animation (e.g., 1,700萬 and 9.8萬)
+            // JavaScript for number animation (e.g., 1,700萬 and 9.8萬) (Unchanged from previous versions)
             function animateNumber(element, targetValue, unit, duration) {
                 let startTimestamp = null;
-                const startValue = parseFloat(element.querySelector('.current-value').textContent || '0'); // Ensure start from 0 if content is empty
+                const startValue = parseFloat(element.querySelector('.current-value').textContent || '0');
                 const difference = targetValue - startValue;
                 const currentValueSpan = element.querySelector('.current-value');
-                const isInteger = Number.isInteger(targetValue); // Check if target is an integer
+                const isInteger = Number.isInteger(targetValue);
 
                 function step(timestamp) {
                     if (!startTimestamp) startTimestamp = timestamp;
                     const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                    const easedProgress = 0.5 - Math.cos(progress * Math.PI) / 2; // Ease in/out effect for smoother animation
+                    const easedProgress = 0.5 - Math.cos(progress * Math.PI) / 2;
 
                     let currentValue = startValue + (easedProgress * difference);
 
                     if (isInteger) {
-                        currentValueSpan.textContent = Math.round(currentValue).toLocaleString('en-US'); // Round and format with thousands commas
+                        currentValueSpan.textContent = Math.round(currentValue).toLocaleString('en-US');
                     } else {
-                        // For decimals, determine decimal places from the target value string
                         const decimalPlaces = (targetValue.toString().split('.')[1] || '').length;
                         currentValueSpan.textContent = currentValue.toFixed(decimalPlaces);
                     }
@@ -788,7 +1139,6 @@
                     if (progress < 1) {
                         window.requestAnimationFrame(step);
                     } else {
-                        // Ensure the final value is exactly the target value with correct formatting
                         if (isInteger) {
                             currentValueSpan.textContent = targetValue.toLocaleString('en-US');
                         } else {
@@ -803,9 +1153,9 @@
             const animatedNumberElements = document.querySelectorAll('.animated-number');
 
             const numberObserverOptions = {
-                root: null, // Observe the entire viewport
+                root: null,
                 rootMargin: '0px',
-                threshold: 0.5 // Trigger when 50% of the element is visible
+                threshold: 0.5
             };
 
             const numberObserver = new IntersectionObserver((entries) => {
@@ -814,12 +1164,9 @@
                         const element = entry.target;
                         const targetValue = parseFloat(element.dataset.targetValue);
                         const unit = element.dataset.unit;
-                        const duration = 2000; // 2 seconds animation duration
+                        const duration = 2000;
 
-                        // Trigger the number animation
                         animateNumber(element, targetValue, unit, duration);
-                        // If you want the animation to run only once, uncomment the line below:
-                        // numberObserver.unobserve(element);
                     }
                 });
             }, numberObserverOptions);
@@ -828,11 +1175,10 @@
                 numberObserver.observe(element);
             });
 
-            // JavaScript for charging pile equipment diagrams
+            // JavaScript for charging pile equipment diagrams (Unchanged from previous versions)
             const chargerTypeSelect = document.getElementById('charger-type');
             const chargerImage = document.getElementById('charger-image');
 
-            // Define the image URLs based on charger type
             const chargerImages = {
                 '7kW': 'https://i.meee.com.tw/lImWom7.jpg',
                 '30kW': 'https://i.meee.com.tw/lj9DcGE.jpg',
@@ -841,11 +1187,9 @@
                 '360kW': 'https://i.meee.com.tw/5mffjMZ.jpg'
             };
 
-            // Set initial image
             chargerImage.src = chargerImages['7kW'];
             chargerImage.alt = '7kW 充電樁設備圖';
 
-            // Event listener for dropdown change
             chargerTypeSelect.addEventListener('change', (event) => {
                 const selectedValue = event.target.value;
                 chargerImage.src = chargerImages[selectedValue];
@@ -853,206 +1197,78 @@
             });
 
 
-            /**
-             * 執行充電站營收預估計算。
-             * 根據輸入的車格數、營運年期、每日車次/格、每車平均充電度數、充電功率、每度電費率和台電電成本，
-             * 計算每日、每年及總營運期間的預估淨營收。
-             */
-            window.calculate = function() { // Made global to be accessible from button onclick
-                // 獲取使用者輸入的值
-                const slots = parseInt(document.getElementById('slots').value);
-                const years = parseInt(document.getElementById('years').value);
-                const dailyVehicleCountPerSlot = parseInt(document.getElementById('dailyVehicleCountPerSlot').value); // 每日車次/格
-                const averageKWHPerVehicleCharge = parseInt(document.getElementById('averageKWHPerVehicleCharge').value); // 每車平均充電度數 (每次充電)
-                const averagePowerConsumptionKW = parseFloat(document.getElementById('powerConsumption').value); // 從下拉式選單獲取充電功率的值
-                const chargingRatePerKWH = parseFloat(document.getElementById('chargingRate').value);
-                // 從固定值獲取台電電成本
-                const electricityCostPerKWH = 4.0; // 台電電成本固定為4.0
-                const investmentCostPerKW = parseFloat(document.getElementById('investmentCostPerKW').value); // 每KW投資成本
+            // Calculator specific event listeners and initial setup
+            const calcPowerConsumptionSelect = document.getElementById('calc-powerConsumption');
+            const calcSlotsInput = document.getElementById('calc-slots');
+            const calcYearsInput = document.getElementById('calc-years');
+            const calcDailyVehicleCountPerSlotInput = document.getElementById('calc-dailyVehicleCountPerSlot');
+            const calcAverageKWHPerVehicleChargeInput = document.getElementById('calc-averageKWHPerVehicleCharge');
+            const calcChargingRateInput = document.getElementById('calc-chargingRate');
+            const calcElectricityCostInput = document.getElementById('calc-electricityCost');
+            const calcInvestmentCostPerKWInput = document.getElementById('calc-investmentCostPerKW');
+            const adminPassInput = document.getElementById('adminPass');
 
-                const resultDiv = document.getElementById('result');
+            // Attach event listeners to all calculator inputs to trigger recalculation
+            const calculatorInputs = [
+                calcPowerConsumptionSelect,
+                calcSlotsInput,
+                calcYearsInput,
+                calcDailyVehicleCountPerSlotInput,
+                calcAverageKWHPerVehicleChargeInput,
+                calcChargingRateInput,
+                calcElectricityCostInput,
+                calcInvestmentCostPerKWInput
+            ];
 
-                // 驗證輸入是否為有效數字且大於0 (成本可以為0)
-                if (isNaN(slots) || slots <= 0 ||
-                    isNaN(years) || years <= 0 ||
-                    isNaN(dailyVehicleCountPerSlot) || dailyVehicleCountPerSlot <= 0 ||
-                    isNaN(averageKWHPerVehicleCharge) || averageKWHPerVehicleCharge <= 0 || // 確保為正整數
-                    isNaN(chargingRatePerKWH) || chargingRatePerKWH <= 0)
-                {
-                    resultDiv.innerHTML = '<p class="text-red-600 font-semibold">請輸入有效的數值 (車格數、年期、每日車次/格、每車平均充電度數、費率必須為正數)。</p>';
-                    resultDiv.classList.remove('hidden');
-                    return;
-                }
-
-                // 驗證車格數限制：30kW 以上的功率，車格數必須是偶數且至少為 2
-                if (averagePowerConsumptionKW > 30) {
-                    if (slots < 2 || slots % 2 !== 0) {
-                        resultDiv.innerHTML = '<p class="text-red-600 font-semibold">錯誤：當充電功率為 30kW 以上時，車格數必須是偶數且至少為 2 格。</p>';
-                        resultDiv.classList.remove('hidden');
-                        return;
+            calculatorInputs.forEach(input => {
+                input.addEventListener('change', calculateRevenue);
+                input.addEventListener('blur', calculateRevenue);
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        calculateRevenue();
+                        e.preventDefault();
                     }
-                }
-
-
-                // 定義預估計算所需的常數
-                const operationDaysPerYear = 365;
-
-                // 步驟 1: 計算每度電的淨利潤
-                const netProfitPerKWH = chargingRatePerKWH - electricityCostPerKWH;
-
-                // 如果淨利潤為負，顯示警告
-                if (netProfitPerKWH < 0) {
-                    resultDiv.innerHTML = '<p class="text-red-600 font-semibold">警告：您的每度電費率低於台電電成本，將導致虧損！</p>';
-                    resultDiv.classList.remove('hidden');
-                    return;
-                }
-
-                // 步驟 2: 計算每個車格每日的總充電度數
-                const totalDailyKWHPerSlot = dailyVehicleCountPerSlot * averageKWHPerVehicleCharge;
-
-                // 步驟 3: 計算每個車格每日的淨營收
-                const dailyNetRevenuePerSlot = totalDailyKWHPerSlot * netProfitPerKWH;
-
-                // 步驟 4: 計算總每日淨營收 (所有車格)
-                const totalDailyNetRevenue = dailyNetRevenuePerSlot * slots;
-
-                // 步驟 5: 計算總每年淨營收 (所有車格)
-                const totalAnnualNetRevenue = totalDailyNetRevenue * operationDaysPerYear;
-
-                // 步驟 6: 計算總營運期間的預估淨營收
-                const totalProjectedNetRevenue = totalAnnualNetRevenue * years;
-
-                // 步驟 7: 計算總投資成本
-                let totalInvestmentCost;
-                if (averagePowerConsumptionKW > 30) {
-                    // For power > 30KW, calculate based on (slots / 2) because each pile serves 2 slots
-                    totalInvestmentCost = averagePowerConsumptionKW * investmentCostPerKW * (slots / 2);
-                } else {
-                    // For 7KW and 30KW, calculate based on slots directly because each slot has one pile
-                    totalInvestmentCost = averagePowerConsumptionKW * investmentCostPerKW * slots;
-                }
-
-
-                // 格式化數字為新台幣金額 (加入千分位逗號)
-                const formatter = new Intl.NumberFormat('zh-TW', {
-                    style: 'currency',
-                    currency: 'TWD',
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0
                 });
+            });
 
-                // 將計算結果顯示在頁面上
-                resultDiv.innerHTML = `
-                    <p><strong class="text-blue-700">每日預估淨營收：</strong> ${formatter.format(totalDailyNetRevenue)}</p>
-                    <p><strong class="text-blue-700">每年預估淨營收：</strong> ${formatter.format(totalAnnualNetRevenue)}</p>
-                    <p><strong class="text-blue-700">總營運${years}年預估淨營收：</strong> ${formatter.format(totalProjectedNetRevenue)}</p>
-                    <p><strong class="text-blue-700">預估總投資成本：</strong> ${formatter.format(totalInvestmentCost)}</p>
-                    <p class="mt-4 text-sm text-gray-600">
-                        ※ 備註：此為預估值，實際淨營收會受使用率、維護成本、其他營運成本、折舊等因素影響。
-                        本計算假設每車格每日充電車次為 ${dailyVehicleCountPerSlot} 次，每次平均充電 ${averageKWHPerVehicleCharge} 度，
-                        充電功率為 ${averagePowerConsumptionKW} kW，每度電費率 ${chargingRatePerKWH} NTD，台電電成本 ${electricityCostPerKWH} NTD。
-                        充電功率為 7kW 或 30kW 時，以 1 格 1 樁計算投資成本；充電功率大於 30kW 時，則以每樁服務 2 格計算投資成本。
-                        每KW投資成本為 ${investmentCostPerKW} NTD。
-                    </p>
-                `;
-                resultDiv.classList.remove('hidden');
-            }
-
-            // JavaScript for the calculator's form logic
-            const powerConsumptionSelect = document.getElementById('powerConsumption');
-            const chargingRateInput = document.getElementById('chargingRate');
-            const dailyVehicleCountPerSlotInput = document.getElementById('dailyVehicleCountPerSlot');
-            const slotsInput = document.getElementById('slots'); // 獲取車格數輸入框
-
-            /**
-             * 根據充電功率的選擇更新每度電費率的輸入狀態和值。
-             * 如果充電功率是7kW，則設定費率為8元並禁用輸入；
-             * 否則，啟用輸入。
-             */
-            function updateChargingRateBasedOnPower() {
-                const selectedPower = parseFloat(powerConsumptionSelect.value);
-                if (selectedPower === 7) {
-                    chargingRateInput.value = 8;
-                    chargingRateInput.disabled = true;
-                    chargingRateInput.classList.add('bg-gray-200'); // 增加禁用時的視覺效果
-                    chargingRateInput.classList.remove('focus:ring-blue-500');
-                } else {
-                    chargingRateInput.disabled = false;
-                    chargingRateInput.classList.remove('bg-gray-200');
-                    chargingRateInput.classList.add('focus:ring-blue-500');
-                }
-            }
-
-            /**
-             * 根據充電功率的選擇更新每日車次/格的輸入狀態和值。
-             * 如果充電功率是7kW，則設定為1並禁用輸入；
-             * 否則，啟用輸入並設定為預設值5。
-             */
-            function updateDailyVehicleCountBasedOnPower() {
-                const selectedPower = parseFloat(powerConsumptionSelect.value);
-                if (selectedPower === 7) { // 只有當充電功率是7kW時固定為1車
-                    dailyVehicleCountPerSlotInput.value = 1;
-                    dailyVehicleCountPerSlotInput.disabled = true;
-                    dailyVehicleCountPerSlotInput.classList.add('bg-gray-200');
-                    dailyVehicleCountPerSlotInput.classList.remove('focus:ring-blue-500');
-                } else {
-                    if (dailyVehicleCountPerSlotInput.disabled) { // 如果之前被禁用，則恢復預設值
-                        dailyVehicleCountPerSlotInput.value = 5;
-                    }
-                    dailyVehicleCountPerSlotInput.disabled = false;
-                    dailyVehicleCountPerSlotInput.classList.remove('bg-gray-200');
-                    dailyVehicleCountPerSlotInput.classList.add('focus:ring-blue-500');
-                }
-            }
-
-            /**
-             * 根據充電功率的選擇更新車格數的最小值和預設值，並強制為偶數（若功率大於30kW）。
-             * 30kW 以上的功率一定是以2格為基礎，不會有單格數，且必須是偶數。
-             * 30kW 跟 7kW 可以單格數。
-             */
-            function updateSlotsMinAndValue() {
-                const selectedPower = parseFloat(powerConsumptionSelect.value);
-                let currentSlots = parseInt(slotsInput.value);
-
-                if (selectedPower > 30) { // 120kW, 180kW, 360kW
-                    slotsInput.min = 2; // 至少2格
-                    slotsInput.step = 2; // 只能以2為步進
-
-                    // 如果當前值小於2或為奇數，則重設為2
-                    if (currentSlots < 2 || currentSlots % 2 !== 0) {
-                        slotsInput.value = 2;
-                    }
-                } else { // 7kW, 30kW
-                    slotsInput.min = 1; // 可以是1格
-                    slotsInput.step = 1; // 可以以1為步進
-                }
-            }
-
-
-            // 監聽充電功率選擇框的變化事件
-            powerConsumptionSelect.addEventListener('change', () => {
+            // Specific listeners for inputs that have dynamic disabled states based on powerConsumption
+            calcPowerConsumptionSelect.addEventListener('change', () => {
                 updateChargingRateBasedOnPower();
                 updateDailyVehicleCountBasedOnPower();
-                updateSlotsMinAndValue(); // 每次功率變化時也更新車格數的限制
+                updateSlotsMinAndValue();
+                calculateRevenue(); // Trigger calculation after dependent fields are updated
             });
 
-            // 監聽車格數輸入框的變化，即時檢查是否為偶數
-            slotsInput.addEventListener('input', () => {
-                const selectedPower = parseFloat(powerConsumptionSelect.value);
-                let currentSlots = parseInt(slotsInput.value);
+            // Listen to slots input for real-time even number correction if power > 30kW
+            calcSlotsInput.addEventListener('input', () => {
+                const selectedPower = parseFloat(calcPowerConsumptionSelect.value);
+                let currentSlots = parseInt(calcSlotsInput.value);
 
                 if (selectedPower > 30) {
-                    // 如果輸入了奇數，自動調整為下一個偶數或上一個偶數
                     if (currentSlots % 2 !== 0) {
-                        slotsInput.value = currentSlots + 1; // 簡單地加1，使之成為偶數
+                        calcSlotsInput.value = Math.max(calcSlotsInput.min, currentSlots - 1);
+                        if (currentSlots === 1) calcSlotsInput.value = 2;
                     }
+                }
+                calculateRevenue(); // Trigger calculation after input correction
+            });
+
+
+            // Listener for admin password input
+            adminPassInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    loginAdmin();
+                    e.preventDefault();
                 }
             });
 
-            // 初始化時執行一次，確保預設狀態正確
-            updateChargingRateBasedOnPower();
-            updateDailyVehicleCountBasedOnPower();
-            updateSlotsMinAndValue(); // 初始化時也更新車格數的限制
+            // Initial setup for input states and calculation
+            loadAdminParameters(); // Load saved parameters first
+            updateChargingRateBasedOnPower(); // Set initial state for charging rate based on loaded power
+            updateDailyVehicleCountBasedOnPower(); // Set initial state for daily vehicle count based on loaded power
+            updateSlotsMinAndValue(); // Set initial state for slots based on loaded power
+            setAdminInputStates(); // Set initial disabled states for admin inputs
+            calculateRevenue(); // Perform initial calculation
         });
     </script>
 </body>
