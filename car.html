@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>停車場經營業者分析</title>
+    <title>停車場經營業者分析報告</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Chart.js CDN for charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Chart.js Datalabels Plugin CDN -->
@@ -15,122 +17,251 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f0f2f5; /* Light gray background */
+            scroll-behavior: smooth; /* Smooth scrolling for navigation */
         }
         /* Ensure canvas is responsive */
         canvas {
             max-width: 100%;
             height: auto; /* Allow height to adjust based on aspect ratio or container */
         }
-        /* Custom style for ranking blocks to ensure consistent height and layout */
-        .ranking-block {
+        /* Base style for elements that will animate on scroll */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(40px); /* Start slightly below */
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .animate-on-scroll.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        /* Specific styles for Bento Grid blocks */
+        .bento-block {
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            height: 240px; /* Adjusted height for more content visibility */
-            overflow: hidden; /* Hide overflow if content exceeds height */
+            background-color: #ffffff; /* Default white background */
+            border-radius: 1rem; /* Rounded corners */
+            padding: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Subtle shadow */
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            min-height: 250px; /* Ensure a minimum height for all blocks */
         }
-        .ranking-block p {
-            margin-bottom: 0.1rem; /* Further reduce margin between paragraphs */
+        .bento-block:hover {
+            transform: translateY(-5px); /* Lift effect on hover */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
-        .ranking-block p:last-of-type {
-            margin-bottom: 0; /* No margin for the last paragraph */
+        /* Styles for large numbers */
+        .large-number {
+            font-size: 2.5rem; /* Adjusted font size for ranking numbers */
+            font-weight: 800; /* Extra bold */
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+        /* Gradient for techy feel */
+        .gradient-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 1rem;
+            pointer-events: none; /* Allow clicks to pass through */
+        }
+        /* Specific gradient colors for different blocks */
+        .gradient-blue {
+            background: linear-gradient(to bottom right, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.3));
+        }
+        .gradient-green {
+            background: linear-gradient(to bottom right, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.3));
+        }
+        .gradient-yellow {
+            background: linear-gradient(to bottom right, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.3));
+        }
+        .gradient-red {
+            background: linear-gradient(to bottom right, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.3));
+        }
+        .gradient-purple {
+            background: linear-gradient(to bottom right, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.3));
+        }
+        .gradient-indigo {
+            background: linear-gradient(to bottom right, rgba(99, 102, 241, 0.1), rgba(99, 102, 241, 0.3));
+        }
+        .gradient-pink {
+            background: linear-gradient(to bottom right, rgba(236, 72, 153, 0.1), rgba(236, 72, 153, 0.3));
+        }
+        .gradient-teal {
+            background: linear-gradient(to bottom right, rgba(20, 184, 166, 0.1), rgba(20, 184, 166, 0.3));
+        }
+        .gradient-orange {
+            background: linear-gradient(to bottom right, rgba(249, 115, 22, 0.1), rgba(249, 115, 22, 0.3));
+        }
+
+        /* Full page sections for presentation feel */
+        .full-page-section {
+            min-height: 100vh; /* Ensures each section takes at least the full viewport height */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem 2rem; /* Add padding for content */
+            box-sizing: border-box; /* Include padding in height calculation */
         }
     </style>
 </head>
-<body class="p-4 sm:p-8 md:p-12 lg:p-16">
-    <div class="max-w-4xl mx-auto bg-white p-6 sm:p-8 md:p-10 rounded-lg shadow-xl">
-        <!-- Header Section -->
-        <header class="mb-8 text-center">
-            <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4 rounded-md">停車場經營業者分析</h1>
-            <p class="text-gray-600 text-lg sm:text-xl">深入了解台灣停車場市場的領導者</p>
-        </header>
+<body class="overflow-x-hidden">
+    <!-- Page 1: 報告標題 (Report Title) -->
+    <section id="page-title" class="full-page-section bg-gradient-to-br from-blue-600 to-purple-700 text-white text-center relative">
+        <div class="absolute inset-0 bg-pattern-dots opacity-10"></div> <!-- Subtle background pattern -->
+        <div class="animate-on-scroll">
+            <h1 class="text-5xl sm:text-6xl lg:text-7xl font-extrabold mb-4 drop-shadow-lg">停車場經營業者分析報告</h1>
+            <p class="text-xl sm:text-2xl lg:text-3xl font-light opacity-90">深入了解台灣停車場市場的領導者與未來趨勢</p>
+            <div class="mt-8 text-4xl space-x-6">
+                <i class="fas fa-car-alt"></i>
+                <i class="fas fa-parking"></i>
+                <i class="fas fa-chart-line"></i>
+            </div>
+        </div>
+    </section>
 
-        <!-- Top Ranking Section - Now with blocks (Moved up) -->
-        <section class="mb-10">
-            <!-- Reverted the flex container for the heading and description -->
-            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 border-b-2 border-blue-500 pb-2 rounded-md">停車場經營業者排名</h2>
-            <p class="text-gray-600 text-xs text-right leading-tight mb-4">
-                *此排名整合經營停車場數與市場佔比。部分數據為估計，僅供參考。
+    <!-- Page 2: 總覽 (Executive Summary) -->
+    <section id="page-summary" class="full-page-section bg-white text-gray-800 relative">
+        <div class="animate-on-scroll max-w-3xl text-center">
+            <h2 class="text-4xl sm:text-5xl font-extrabold mb-6 text-blue-700">總覽</h2>
+            <p class="text-lg sm:text-xl leading-relaxed mb-6">
+                本報告深入剖析台灣停車場經營市場，聚焦於主要業者現況、市場佔比與未來發展。我們發現市場呈現高度競爭態勢，智慧停車解決方案與共享經濟模式正逐漸改變產業格局。本報告旨在提供讀者對台灣停車產業的全面理解，並指出潛在的成長機會與挑戰。
             </p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="text-5xl text-purple-500">
+                <i class="fas fa-lightbulb"></i>
+            </div>
+        </div>
+    </section>
+
+    <!-- Page 3: 停車場經營業者 (Parking Operator Ranking - Bento Grid) -->
+    <section id="page-ranking" class="full-page-section bg-gray-100 text-gray-800 relative">
+        <div class="animate-on-scroll w-full max-w-4xl">
+            <div class="flex justify-between items-end flex-wrap mb-6">
+                <h2 class="text-3xl sm:text-4xl font-bold text-gray-800 border-b-2 border-blue-500 pb-2 rounded-md flex-grow-0">停車場經營業者</h2>
+                <p class="text-gray-600 text-xs text-right leading-tight mt-2 sm:mt-0">
+                    *此排名整合經營停車場數與市場佔比。<br>部分數據為估計，僅供參考。
+                </p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <!-- Operator Block 1 -->
-                <div class="bg-blue-100 p-4 rounded-lg shadow-md ranking-block hover:shadow-lg transition-shadow duration-200">
-                    <h3 class="text-lg sm:text-xl font-semibold text-blue-800 mb-2">1. 阜爾運通 (城市車旅)</h3>
-                    <p class="text-gray-700 text-sm"><span class="font-bold">經營停車場數：</span><span class="font-bold text-blue-700">1,100 場</span></p>
-                    <p class="text-gray-700 text-sm"><span class="font-bold">車格數：</span><span class="font-bold text-blue-700">130,000 格</span></p>
-                    <p class="text-gray-700 text-sm"><span class="font-bold">市場佔比：</span><span class="font-bold text-blue-700">7.2%</span></p>
-                    <p class="text-gray-600 text-sm mt-1"><span class="font-bold">公司簡介：</span>台灣最大的停車場管理業者，以「城市車旅」品牌聞名，提供多元停車服務，並積極發展智慧停車解決方案。</p>
+                <div class="bento-block bg-blue-50 relative animate-on-scroll">
+                    <div class="gradient-overlay gradient-blue"></div>
+                    <div class="relative z-10">
+                        <span class="large-number text-blue-700">1.</span>
+                        <h3 class="text-xl sm:text-2xl font-semibold text-blue-800 mb-2">阜爾運通 (城市車旅)</h3>
+                        <p class="text-gray-700 text-base"><span class="font-bold">經營停車場數：</span><span class="font-bold text-blue-700">1,100 場</span></p>
+                        <p class="text-gray-700 text-base"><span class="font-bold">車格數：</span><span class="font-bold text-blue-700">130,000 格</span></p>
+                        <p class="text-gray-700 text-base"><span class="font-bold">市場佔比：</span><span class="font-bold text-blue-700">7.2%</span></p>
+                        <p class="text-gray-600 text-sm mt-2"><span class="font-bold">公司簡介：</span>台灣最大的停車場管理業者，以「城市車旅」品牌聞名，提供多元停車服務，並積極發展智慧停車解決方案。</p>
+                    </div>
                 </div>
                 <!-- Operator Block 2 -->
-                <div class="bg-green-100 p-4 rounded-lg shadow-md ranking-block hover:shadow-lg transition-shadow duration-200">
-                    <h3 class="text-lg sm:text-xl font-semibold text-green-800 mb-2">2. 嘟嘟房 (中興電工)</h3>
-                    <p class="text-gray-700 text-sm"><span class="font-bold">經營停車場數：</span><span class="font-bold text-green-700">600 場</span></p>
-                    <p class="text-gray-700 text-sm"><span class="font-bold">車格數：</span><span class="font-bold text-green-700">60,000 格</span></p>
-                    <p class="text-gray-700 text-sm"><span class="font-bold">市場佔比：</span><span class="font-bold text-green-700">4.4%</span></p>
-                    <p class="text-gray-600 text-sm mt-1"><span class="font-bold">公司簡介：</span>中興電工旗下品牌，為台灣歷史悠久的停車場業者之一，在全台各地擁有廣泛的停車網絡。</p>
+                <div class="bento-block bg-green-50 relative animate-on-scroll">
+                    <div class="gradient-overlay gradient-green"></div>
+                    <div class="relative z-10">
+                        <span class="large-number text-green-700">2.</span>
+                        <h3 class="text-xl sm:text-2xl font-semibold text-green-800 mb-2">嘟嘟房 (中興電工)</h3>
+                        <p class="text-gray-700 text-base"><span class="font-bold">經營停車場數：</span><span class="font-bold text-green-700">600 場</span></p>
+                        <p class="text-gray-700 text-base"><span class="font-bold">車格數：</span><span class="font-bold text-green-700">60,000 格</span></p>
+                        <p class="text-gray-700 text-base"><span class="font-bold">市場佔比：</span><span class="font-bold text-green-700">4.4%</span></p>
+                        <p class="text-gray-600 text-sm mt-2"><span class="font-bold">公司簡介：</span>中興電工旗下品牌，為台灣歷史悠久的停車場業者之一，在全台各地擁有廣泛的停車網絡。</p>
+                    </div>
                 </div>
                 <!-- Operator Block 3 -->
-                <div class="bg-yellow-100 p-4 rounded-lg shadow-md ranking-block hover:shadow-lg transition-shadow duration-200">
-                    <h3 class="text-lg sm:text-xl font-semibold text-yellow-800 mb-2">3. 國雲停車 (中興保全)</h3>
-                    <p class="text-gray-700 text-sm"><span class="font-bold">經營停車場數：</span><span class="font-bold text-yellow-700">500 場</span></p>
-                    <p class="text-gray-700 text-sm"><span class="font-bold">車格數：</span><span class="font-bold text-yellow-700">50,000 格</span></p>
-                    <p class="text-gray-700 text-sm"><span class="font-bold">市場佔比：</span><span class="font-bold text-yellow-700">2.6%</span></p>
-                    <p class="text-gray-600 text-sm mt-1"><span class="font-bold">公司簡介：</span>中興保全集團成員，專注於智慧路邊停車及公有停車場標案，結合科技提供停車解決方案。</p>
+                <div class="bento-block bg-yellow-50 relative animate-on-scroll">
+                    <div class="gradient-overlay gradient-yellow"></div>
+                    <div class="relative z-10">
+                        <span class="large-number text-yellow-700">3.</span>
+                        <h3 class="text-xl sm:text-2xl font-semibold text-yellow-800 mb-2">國雲停車 (中興保全)</h3>
+                        <p class="text-gray-700 text-base"><span class="font-bold">經營停車場數：</span><span class="font-bold text-yellow-700">500 場</span></p>
+                        <p class="text-gray-700 text-base"><span class="font-bold">車格數：</span><span class="font-bold text-yellow-700">50,000 格</span></p>
+                        <p class="text-gray-700 text-base"><span class="font-bold">市場佔比：</span><span class="font-bold text-yellow-700">2.6%</span></p>
+                        <p class="text-gray-600 text-sm mt-2"><span class="font-bold">公司簡介：</span>中興保全集團成員，專注於智慧路邊停車及公有停車場標案，結合科技提供停車解決方案。</p>
+                    </div>
                 </div>
                 <!-- Operator Block 4 -->
-                <div class="bg-red-100 p-4 rounded-lg shadow-md ranking-block hover:shadow-lg transition-shadow duration-200">
-                    <h3 class="text-lg sm:text-xl font-semibold text-red-800 mb-2">4. USPACE (悠勢)</h3>
-                    <p class="text-gray-700 text-sm"><span class="font-bold">經營停車場數：</span><span class="font-bold text-red-700">300 場</span></p>
-                    <p class="text-gray-700 text-sm"><span class="font-bold">車格數：</span><span class="font-bold text-red-700">30,000 格</span></p>
-                    <p class="text-gray-700 text-sm"><span class="font-bold">市場佔比：</span><span class="font-bold text-red-700">1.7%</span></p>
-                    <p class="text-gray-600 text-sm mt-1"><span class="font-bold">公司簡介：</span>以共享停車位模式創新市場，透過科技平台媒合閒置車位，提供便利的停車服務。</p>
+                <div class="bento-block bg-red-50 relative animate-on-scroll">
+                    <div class="gradient-overlay gradient-red"></div>
+                    <div class="relative z-10">
+                        <span class="large-number text-red-700">4.</span>
+                        <h3 class="text-xl sm:text-2xl font-semibold text-red-800 mb-2">USPACE (悠勢)</h3>
+                        <p class="text-gray-700 text-base"><span class="font-bold">經營停車場數：</span><span class="font-bold text-red-700">300 場</span></p>
+                        <p class="text-gray-700 text-base"><span class="font-bold">車格數：</span><span class="font-bold text-red-700">30,000 格</span></p>
+                    <p class="text-gray-700 text-base"><span class="font-bold">市場佔比：</span><span class="font-bold text-red-700">1.7%</span></p>
+                    <p class="text-gray-600 text-sm mt-2"><span class="font-bold">公司簡介：</span>以共享停車位模式創新市場，透過科技平台媒合閒置車位，提供便利的停車服務。</p>
+                </div>
                 </div>
                 <!-- Operator Block 5 -->
-                <div class="bg-purple-100 p-4 rounded-lg shadow-md ranking-block hover:shadow-lg transition-shadow duration-200">
-                    <h3 class="text-lg sm:text-xl font-semibold text-purple-800 mb-2">5. 歐特儀 (CAR IN!)</h3>
-                    <p class="text-gray-700 text-sm"><span class="font-bold">經營停車場數：</span><span class="font-bold text-purple-700">230 場</span></p>
-                    <p class="text-gray-700 text-sm"><span class="font-bold">車格數：</span><span class="font-bold text-purple-700">20,000 格</span></p>
-                    <p class="text-gray-700 text-sm"><span class="font-bold">市場佔比：</span><span class="font-bold text-purple-700">1.1%</span></p>
-                    <p class="text-gray-600 text-sm mt-1"><span class="font-bold">公司簡介：</span>全台連鎖的停車場經營業者，致力於提供高品質的停車服務和智慧化停車管理系統。</p>
+                <div class="bento-block bg-purple-50 relative animate-on-scroll">
+                    <div class="gradient-overlay gradient-purple"></div>
+                    <div class="relative z-10">
+                        <span class="large-number text-purple-700">5.</span>
+                        <h3 class="text-xl sm:text-2xl font-semibold text-purple-800 mb-2">歐特儀 (CAR IN!)</h3>
+                        <p class="text-gray-700 text-base"><span class="font-bold">經營停車場數：</span><span class="font-bold text-purple-700">230 場</span></p>
+                        <p class="text-gray-700 text-base"><span class="font-bold">車格數：</span><span class="font-bold text-purple-700">20,000 格</span></p>
+                        <p class="text-gray-700 text-base"><span class="font-bold">市場佔比：</span><span class="font-bold text-purple-700">1.1%</span></p>
+                        <p class="text-gray-600 text-sm mt-2"><span class="font-bold">公司簡介：</span>全台連鎖的停車場經營業者，致力於提供高品質的停車服務和智慧化停車管理系統。</p>
+                    </div>
                 </div>
                 <!-- Operator Block 6 -->
-                <div class="bg-indigo-100 p-4 rounded-lg shadow-md ranking-block hover:shadow-lg transition-shadow duration-200">
-                    <h3 class="text-lg sm:text-xl font-semibold text-indigo-800 mb-2">6. 普客二四 (Park24)</h3>
-                    <p class="text-gray-700 text-sm"><span class="font-bold">經營停車場數：</span><span class="font-bold text-indigo-700">200 場</span></p>
-                    <p class="text-gray-700 text-sm"><span class="font-bold">車格數：</span><span class="font-bold text-indigo-700">15,000 格</span></p>
-                    <p class="text-gray-700 text-sm"><span class="font-bold">市場佔比：</span><span class="font-bold text-indigo-700">0.8%</span></p>
-                    <p class="text-gray-600 text-sm mt-1"><span class="font-bold">公司簡介：</span>來自日本的國際停車場品牌，以其自動化停車系統和高效管理聞名，近年來積極拓展台灣市場。</p>
+                <div class="bento-block bg-indigo-50 relative animate-on-scroll">
+                    <div class="gradient-overlay gradient-indigo"></div>
+                    <div class="relative z-10">
+                        <span class="large-number text-indigo-700">6.</span>
+                        <h3 class="text-xl sm:text-2xl font-semibold text-indigo-800 mb-2">普客二四 (Park24)</h3>
+                        <p class="text-gray-700 text-base"><span class="font-bold">經營停車場數：</span><span class="font-bold text-indigo-700">200 場</span></p>
+                        <p class="text-gray-700 text-base"><span class="font-bold">車格數：</span><span class="font-bold text-indigo-700">15,000 格</span></p>
+                        <p class="text-gray-700 text-base"><span class="font-bold">市場佔比：</span><span class="font-bold text-indigo-700">0.8%</span></p>
+                        <p class="text-gray-600 text-sm mt-2"><span class="font-bold">公司簡介：</span>來自日本的國際停車場品牌，以其自動化停車系統和高效管理聞名，近年來積極拓展台灣市場。</p>
+                    </div>
                 </div>
                 <!-- Operator Block 7 -->
-                <div class="bg-pink-100 p-4 rounded-lg shadow-md ranking-block hover:shadow-lg transition-shadow duration-200">
-                    <h3 class="text-lg sm:text-xl font-semibold text-pink-800 mb-2">7. 俥亭停車事業</h3>
-                    <p class="text-gray-700 text-sm"><span class="font-bold">經營停車場數：</span><span class="font-bold text-pink-700">150 場</span></p>
-                    <p class="text-gray-700 text-sm"><span class="font-bold">車格數：</span><span class="font-bold text-pink-700">10,000 格</span></p>
-                    <p class="text-gray-700 text-sm"><span class="font-bold">市場佔比：</span><span class="font-bold text-pink-700">0.6%</span></p>
-                    <p class="text-gray-600 text-sm mt-1"><span class="font-bold">公司簡介：</span>台灣地區性的停車場經營業者，主要服務於特定區域，提供便捷的停車解決方案。</p>
+                <div class="bento-block bg-pink-50 relative animate-on-scroll">
+                    <div class="gradient-overlay gradient-pink"></div>
+                    <div class="relative z-10">
+                        <span class="large-number text-pink-700">7.</span>
+                        <h3 class="text-xl sm:text-2xl font-semibold text-pink-800 mb-2">俥亭停車事業</h3>
+                        <p class="text-gray-700 text-base"><span class="font-bold">經營停車場數：</span><span class="font-bold text-pink-700">150 場</span></p>
+                        <p class="text-gray-700 text-base"><span class="font-bold">車格數：</span><span class="font-bold text-pink-700">10,000 格</span></p>
+                        <p class="text-gray-700 text-base"><span class="font-bold">市場佔比：</span><span class="font-bold text-pink-700">0.6%</span></p>
+                        <p class="text-gray-600 text-sm mt-2"><span class="font-bold">公司簡介：</span>台灣地區性的停車場經營業者，主要服務於特定區域，提供便捷的停車解決方案。</p>
+                    </div>
                 </div>
                 <!-- Operator Block 8 -->
-                <div class="bg-teal-100 p-4 rounded-lg shadow-md ranking-block hover:shadow-lg transition-shadow duration-200">
-                    <h3 class="text-lg sm:text-xl font-semibold text-teal-800 mb-2">8. 九亭/日月亭</h3>
-                    <p class="text-gray-700 text-sm"><span class="font-bold">經營停車場數：</span><span class="font-bold text-teal-700">120 場</span></p>
-                    <p class="text-gray-700 text-sm"><span class="font-bold">車格數：</span><span class="font-bold text-teal-700">9,000 格</span></p>
-                    <p class="text-gray-700 text-sm"><span class="font-bold">市場佔比：</span><span class="font-bold text-teal-700">0.5%</span></p>
-                    <p class="text-gray-600 text-sm mt-1"><span class="font-bold">公司簡介：</span>地方型停車場品牌，在特定城市或區域內提供停車服務，注重社區便利性。</p>
+                <div class="bento-block bg-teal-50 relative animate-on-scroll">
+                    <div class="gradient-overlay gradient-teal"></div>
+                    <div class="relative z-10">
+                        <span class="large-number text-teal-700">8.</span>
+                        <h3 class="text-xl sm:text-2xl font-semibold text-teal-800 mb-2">九亭/日月亭</h3>
+                        <p class="text-gray-700 text-base"><span class="font-bold">經營停車場數：</span><span class="font-bold text-teal-700">120 場</span></p>
+                        <p class="text-gray-700 text-base"><span class="font-bold">車格數：</span><span class="font-bold text-teal-700">9,000 格</span></p>
+                        <p class="text-gray-700 text-base"><span class="font-bold">市場佔比：</span><span class="font-bold text-teal-700">0.5%</span></p>
+                        <p class="text-gray-600 text-sm mt-2"><span class="font-bold">公司簡介：</span>地方型停車場品牌，在特定城市或區域內提供停車服務，注重社區便利性。</p>
+                    </div>
                 </div>
                 <!-- Operator Block 9 -->
-                <div class="bg-orange-100 p-4 rounded-lg shadow-md ranking-block hover:shadow-lg transition-shadow duration-200">
-                    <h3 class="text-lg sm:text-xl font-semibold text-orange-800 mb-2">9. 其他創新/在地業者</h3>
-                    <p class="text-gray-700 text-sm"><span class="font-bold">經營停車場數：</span><span class="font-bold text-orange-700">100 場</span></p>
-                    <p class="text-gray-700 text-sm"><span class="font-bold">車格數：</span><span class="font-bold text-orange-700">50,000 格</span></p>
-                    <p class="text-gray-700 text-sm"><span class="font-bold">市場佔比：</span><span class="font-bold text-orange-700">2.8%</span></p>
-                    <p class="text-gray-600 text-sm mt-1"><span class="font-bold">公司簡介：</span>包含眾多中小型或新興的停車場管理公司，透過在地化服務或創新技術滿足特定市場需求。</p>
+                <div class="bento-block bg-orange-50 relative animate-on-scroll">
+                    <div class="gradient-overlay gradient-orange"></div>
+                    <div class="relative z-10">
+                        <span class="large-number text-orange-700">9.</span>
+                        <h3 class="text-xl sm:text-2xl font-semibold text-orange-800 mb-2">其他創新/在地業者</h3>
+                        <p class="text-gray-700 text-base"><span class="font-bold">經營停車場數：</span><span class="font-bold text-orange-700">100 場</span></p>
+                        <p class="text-gray-700 text-base"><span class="font-bold">車格數：</span><span class="font-bold text-orange-700">50,000 格</span></p>
+                        <p class="text-gray-700 text-base"><span class="font-bold">市場佔比：</span><span class="font-bold text-orange-700">2.8%</span></p>
+                        <p class="text-gray-600 text-sm mt-2"><span class="font-bold">公司簡介：</span>包含眾多中小型或新興的停車場管理公司，透過在地化服務或創新技術滿足特定市場需求。</p>
+                    </div>
                 </div>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <!-- Main Operators Overview Table (Moved down) -->
-        <section class="mb-10">
-            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 border-b-2 border-blue-500 pb-2 rounded-md">停車場經營業者概覽</h2>
+    <!-- Page 4: 停車場經營業者概覽 (Operator Overview Table) -->
+    <section id="page-table" class="full-page-section bg-white text-gray-800 relative">
+        <div class="animate-on-scroll w-full max-w-4xl">
+            <h2 class="text-3xl sm:text-4xl font-bold text-gray-800 mb-6 border-b-2 border-blue-500 pb-2 rounded-md">停車場經營業者概覽</h2>
             <div class="overflow-x-auto rounded-lg shadow-md">
                 <table class="min-w-full bg-white border-collapse">
                     <thead class="bg-blue-600 text-white">
@@ -143,83 +274,96 @@
                     </thead>
                     <tbody class="text-gray-700">
                         <tr class="border-b border-gray-200 hover:bg-blue-50 transition duration-150 ease-in-out">
-                            <td class="py-3 px-4 text-sm sm:text-base font-medium text-center">阜爾運通 (城市車旅)</td>
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">1,100 場</td>
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">130,000 格</td>
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">7.2%</td>
+                            <td class="py-3 px-4 text-base font-medium text-center">阜爾運通 (城市車旅)</td>
+                            <td class="py-3 px-4 text-base text-center">1,100 場</td>
+                            <td class="py-3 px-4 text-base text-center">130,000 格</td>
+                            <td class="py-3 px-4 text-base text-center">7.2%</td>
                         </tr>
                         <tr class="border-b border-gray-200 hover:bg-blue-50 transition duration-150 ease-in-out">
-                            <td class="py-3 px-4 text-sm sm:text-base font-medium text-center">嘟嘟房 (中興電工)</td>
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">600 場</td>
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">60,000 格</td>
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">4.4%</td>
+                            <td class="py-3 px-4 text-base font-medium text-center">嘟嘟房 (中興電工)</td>
+                            <td class="py-3 px-4 text-base text-center">600 場</td>
+                            <td class="py-3 px-4 text-base text-center">60,000 格</td>
+                            <td class="py-3 px-4 text-base text-center">4.4%</td>
                         </tr>
                         <tr class="border-b border-gray-200 hover:bg-blue-50 transition duration-150 ease-in-out">
-                            <td class="py-3 px-4 text-sm sm:text-base font-medium text-center">國雲停車 (中興保全)</td>
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">500 場</td>
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">50,000 格</td>
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">2.6%</td>
+                            <td class="py-3 px-4 text-base font-medium text-center">國雲停車 (中興保全)</td>
+                            <td class="py-3 px-4 text-base text-center">500 場</td>
+                            <td class="py-3 px-4 text-base text-center">50,000 格</td>
+                            <td class="py-3 px-4 text-base text-center">2.6%</td>
                         </tr>
                         <tr class="border-b border-gray-200 hover:bg-blue-50 transition duration-150 ease-in-out">
-                            <td class="py-3 px-4 text-sm sm:text-base font-medium text-center">USPACE (悠勢)</td>
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">300 場</td>
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">30,000 格</td>
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">1.7%</td>
+                            <td class="py-3 px-4 text-base font-medium text-center">USPACE (悠勢)</td>
+                            <td class="py-3 px-4 text-base text-center">300 場</td>
+                            <td class="py-3 px-4 text-base text-center">30,000 格</td>
+                            <td class="py-3 px-4 text-base text-center">1.7%</td>
                         </tr>
                         <tr class="border-b border-gray-200 hover:bg-blue-50 transition duration-150 ease-in-out">
-                            <td class="py-3 px-4 text-sm sm:text-base font-medium text-center">歐特儀 (CAR IN!)</td>
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">230 場</td>
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">20,000 格</td>
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">1.1%</td>
+                            <td class="py-3 px-4 text-base font-medium text-center">歐特儀 (CAR IN!)</td>
+                            <td class="py-3 px-4 text-base text-center">230 場</td>
+                            <td class="py-3 px-4 text-base text-center">20,000 格</td>
+                            <td class="py-3 px-4 text-base text-center">1.1%</td>
                         </tr>
                         <tr class="border-b border-gray-200 hover:bg-blue-50 transition duration-150 ease-in-out">
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">普客二四 (Park24)</td>
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">200 場</td>
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">15,000 格</td>
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">0.8%</td>
+                            <td class="py-3 px-4 text-base text-center">普客二四 (Park24)</td>
+                            <td class="py-3 px-4 text-base text-center">200 場</td>
+                            <td class="py-3 px-4 text-base text-center">15,000 格</td>
+                            <td class="py-3 px-4 text-base text-center">0.8%</td>
                         </tr>
                         <tr class="border-b border-gray-200 hover:bg-blue-50 transition duration-150 ease-in-out">
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">俥亭停車事業</td>
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">150 場</td>
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">10,000 格</td>
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">0.6%</td>
+                            <td class="py-3 px-4 text-base text-center">俥亭停車事業</td>
+                            <td class="py-3 px-4 text-base text-center">150 場</td>
+                            <td class="py-3 px-4 text-base text-center">10,000 格</td>
+                            <td class="py-3 px-4 text-base text-center">0.6%</td>
                         </tr>
                         <tr class="border-b border-gray-200 hover:bg-blue-50 transition duration-150 ease-in-out">
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">九亭/日月亭</td>
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">120 場</td>
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">9,000 格</td>
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">0.5%</td>
+                            <td class="py-3 px-4 text-base text-center">九亭/日月亭</td>
+                            <td class="py-3 px-4 text-base text-center">120 場</td>
+                            <td class="py-3 px-4 text-base text-center">9,000 格</td>
+                            <td class="py-3 px-4 text-base text-center">0.5%</td>
                         </tr>
                         <tr class="border-b border-gray-200 hover:bg-blue-50 transition duration-150 ease-in-out">
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">其他創新/在地業者</td>
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">100 場</td>
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">50,000 格</td>
-                            <td class="py-3 px-4 text-sm sm:text-base text-center">2.8%</td>
+                            <td class="py-3 px-4 text-base text-center">其他創新/在地業者</td>
+                            <td class="py-3 px-4 text-base text-center">100 場</td>
+                            <td class="py-3 px-4 text-base text-center">50,000 格</td>
+                            <td class="py-3 px-4 text-base text-center">2.8%</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <!-- Chart Section -->
-        <section class="mb-10">
-            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 border-b-2 border-blue-500 pb-2 rounded-md">前五大業者綜合數據圖表</h2>
-            <div class="bg-gray-50 p-4 rounded-lg shadow-inner" style="height: 500px;"> <!-- Adjusted height for better visibility -->
+    <!-- Page 5: 前五大業者綜合數據圖表 (Top 5 Operators Combined Data Chart) -->
+    <section id="page-chart" class="full-page-section bg-gray-100 text-gray-800 relative">
+        <div class="animate-on-scroll w-full max-w-4xl">
+            <h2 class="text-3xl sm:text-4xl font-bold text-gray-800 mb-6 border-b-2 border-blue-500 pb-2 rounded-md">前五大業者綜合數據圖表</h2>
+            <div class="bg-white p-6 rounded-lg shadow-inner border border-gray-200" style="height: 500px;">
                 <canvas id="parkingCombinedChart"></canvas>
             </div>
-            <p class="text-gray-600 text-sm mt-4">
-                *本圖表包含三種不同尺度的數據。左側Y軸為「經營停車場數」與「車格數」的對數刻度，右側Y軸為「市場佔比」的百分比刻度。
+            <p class="text-gray-600 text-sm mt-4 text-center">
+                *本圖表包含三種不同尺度的數據。左側Y軸為「經營停車場數」與「車格數」的對數刻度，右側Y軸為「市場佔比」的百分比刻度。<br>
+                長條圖的顏色與X軸上的業者名稱順序對應，方便您識別各家數據。
             </p>
-        </section>
+        </div>
+    </section>
 
-        <!-- Conclusion Section -->
-        <section>
-            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 border-b-2 border-blue-500 pb-2 rounded-md">結論與限制</h2>
-            <p class="text-gray-700 leading-relaxed text-base sm:text-lg">
+    <!-- Page 6: 結論 (Conclusion) -->
+    <section id="page-conclusion" class="full-page-section bg-gradient-to-br from-purple-700 to-indigo-800 text-white relative">
+        <div class="animate-on-scroll max-w-3xl text-center">
+            <h2 class="text-4xl sm:text-5xl font-extrabold mb-6 drop-shadow-lg">結論</h2>
+            <p class="text-lg sm:text-xl leading-relaxed mb-8 opacity-90">
                 台灣停車場經營市場競爭激烈，各業者積極拓展站點。本報告已整合最新資料，提供各主要業者之經營規模與市場佔比。然而，由於部分數據為估計值且來源可能不同，報告中的資訊僅供參考。若需更精確的數據，建議直接向各業者洽詢或參考專業市場調查報告。
             </p>
-        </section>
-    </div>
+            <h3 class="text-2xl sm:text-3xl font-bold mb-4 text-white opacity-95">待辦行動事項 <i class="fas fa-clipboard-list"></i></h3>
+            <ul class="text-lg sm:text-xl list-disc list-inside text-left mx-auto max-w-md space-y-2 opacity-90">
+                <li>持續追蹤市場新進業者與技術發展。</li>
+                <li>定期更新業者數據與市場佔比分析。</li>
+                <li>深入研究智慧停車技術對產業的影響。</li>
+                <li>評估不同區域停車需求差異，優化佈局策略。</li>
+                <li>探討潛在合作機會，擴大市場影響力。</li>
+            </ul>
+        </div>
+    </section>
 
     <script>
         // JavaScript for Chart.js
@@ -400,6 +544,39 @@
                 }
             });
         });
+
+        // Intersection Observer for scroll animations
+        const animateOnScrollElements = document.querySelectorAll('.animate-on-scroll');
+
+        const observerOptions = {
+            root: null, /* viewport */
+            rootMargin: '0px',
+            threshold: 0.2 /* Trigger when 20% of the element is visible */
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target); /* Stop observing once animated */
+                }
+            });
+        }, observerOptions);
+
+        animateOnScrollElements.forEach(element => {
+            observer.observe(element);
+        });
+
+        // Add a subtle dot pattern background for the title page
+        const styleSheet = document.createElement("style");
+        styleSheet.type = "text/css";
+        styleSheet.innerText = `
+            .bg-pattern-dots {
+                background-image: radial-gradient(#ffffff33 1px, transparent 1px);
+                background-size: 20px 20px;
+            }
+        `;
+        document.head.appendChild(styleSheet);
     </script>
 </body>
 </html>
