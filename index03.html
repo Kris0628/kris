@@ -6,6 +6,10 @@
     <title>充電站加盟分析</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Chart.js CDN for drawing charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <!-- Chart.js DataLabels Plugin CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <style>
         /* Custom font for traditional Chinese and Inter for English, ensuring proper display */
         body {
@@ -74,12 +78,13 @@
             .full-page-section {
                 padding: 2rem 1rem;
             }
-            .text-7xl { font-size: 3.5rem; }
-            .text-6xl { font-size: 3rem; }
-            .text-5xl { font-size: 2.5rem; }
-            .text-4xl { font-size: 2rem; }
-            .text-3xl { font-size: 1.75rem; }
-            .text-2xl { font-size: 1.5rem; }
+            /* Adjusted font sizes for smaller screens */
+            .text-7xl { font-size: 3rem; } /* Reduced from 3.5rem */
+            .text-6xl { font-size: 2.5rem; } /* Reduced from 3rem */
+            .text-5xl { font-size: 2rem; } /* Reduced from 2.5rem */
+            .text-4xl { font-size: 1.75rem; } /* Reduced from 2rem */
+            .text-3xl { font-size: 1.5rem; } /* Reduced from 1.75rem */
+            .text-2xl { font-size: 1.25rem; } /* Reduced from 1.5rem */
             .bento-grid {
                 grid-template-columns: 1fr;
             }
@@ -254,13 +259,29 @@
         #admin-details-section {
             display: none; /* Initially hidden */
         }
+        #chart-container {
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: rgba(0, 0, 0, 0.8); /* Dark background for chart */
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            opacity: 0; /* Changed from display: none */
+            pointer-events: none; /* Disable interaction when hidden */
+            transition: opacity 0.5s ease-out; /* Smooth transition */
+            height: 500px; /* Increased fixed height for the chart container */
+        }
+        #chart-container.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
     </style>
 </head>
 <body class="bg-black text-white">
 
     <section id="page-title" class="full-page-section bg-gradient-to-br from-black to-gray-900">
         <div class="animate-on-scroll flex flex-col items-center justify-center">
-            <h1 class="text-7xl md:text-8xl lg:text-9xl font-extrabold text-emerald-400 leading-tight mb-4 drop-shadow-lg">
+            <h1 class="text-6xl md:text-7xl lg:text-8xl font-extrabold text-emerald-400 leading-tight mb-4 drop-shadow-lg">
                 充電站(樁)投資加盟分析
             </h1>
             <p class="text-xl md:text-2xl lg:text-3xl text-gray-300 font-light tracking-wide">
@@ -665,7 +686,7 @@
 
     <!-- Page: Charging Station Revenue Estimation Calculator -->
     <section id="page-revenue-calculator" class="full-page-section bg-black">
-        <div class="animate-on-scroll bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+        <div class="animate-on-scroll bg-white p-8 rounded-xl shadow-lg w-full max-w-3xl"> <!-- Changed max-w-md to max-w-3xl -->
             <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">充電站營收預估試算</h2>
 
             <!-- 充電功率 (保留在頂部) -->
@@ -696,6 +717,11 @@
 
             <div id="calc-result" class="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200 text-gray-800 text-lg leading-relaxed hidden">
                 <!-- 結果將顯示在這裡 -->
+            </div>
+
+            <!-- Chart Container -->
+            <div id="chart-container" class="w-full" style="height: 500px;"> <!-- Increased height for the chart container -->
+                <canvas id="revenueChart"></canvas>
             </div>
 
             <hr class="my-6 border-gray-300" />
@@ -734,6 +760,12 @@
                     <input type="number" id="calc-electricityCost" value="4.0" min="0" step="0.1" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800" />
                 </div>
 
+                <!-- 新增電動車充電年增率輸入欄位 -->
+                <div class="mb-4">
+                    <label for="calc-annualGrowthRate" class="block text-gray-700 text-sm font-medium mb-2">電動車充電年增率（%）：</label>
+                    <input type="number" id="calc-annualGrowthRate" value="10" min="0" step="1" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800" />
+                </div>
+
                 <!-- 新增投資成本輸入欄位 -->
                 <div class="mb-6">
                     <label for="calc-investmentCostPerKW" class="block text-gray-700 text-sm font-medium mb-2">每 KW 投資成本（NTD/kW）：</label>
@@ -742,12 +774,12 @@
 
                 <h5 class="text-md font-bold text-gray-700 mb-2 mt-4">計算細項：</h5>
                 <p><strong>台電成本：</strong> <span id="admin-electricity-cost"></span> NTD/度</p>
-                <p><strong>每度電淨利潤：</strong> <span id="admin-net-profit"></span> NTD/度 (計算：費率 - 電成本)</p>
-                <p><strong>每日總充電度數 / 格：</strong> <span id="admin-daily-kwh-per-slot"></span> 度/格 (計算：每日車次/格 × 每車平均充電度數)</p>
+                <p><strong>每度電淨利潤：：</strong> <span id="admin-net-profit"></span> NTD/度 (計算：費率 - 電成本)</p>
+                <p><strong>每日總充電度數 / 格：：</strong> <span id="admin-daily-kwh-per-slot"></span> 度/格 (計算：每日車次/格 × 每車平均充電度數)</p>
                 <p><strong>每個車格每日淨營收：：</strong> <span id="admin-daily-net-revenue-per-slot"></span> NTD/格 (計算：每日總充電度數/格 × 每度電淨利潤)</p>
                 <p><strong>總每日淨營收：：</strong> <span id="admin-total-daily-net-revenue"></span> NTD (計算：每個車格每日淨營收 × 車格數)</p>
-                <p><strong>總每年淨營收：：</strong> <span id="admin-total-annual-net-revenue"></span> NTD (計算：總每日淨營收 × 365天)</p>
-                <p><strong>總營運年期淨營收：：</strong> <span id="admin-total-projected-revenue"></span> NTD (計算：總每年淨營收 × 營運年期)</p>
+                <p><strong>總每年淨營收 (第一年)：：</strong> <span id="admin-total-annual-net-revenue"></span> NTD (計算：總每日淨營收 × 365天)</p>
+                <p><strong>總營運年期淨營收：：</strong> <span id="admin-total-projected-revenue"></span> NTD (計算：總每年淨營收 × 營運年期，考慮年增率)</p>
                 <p class="mt-4"><strong>總投資成本金額：：</strong> <span id="admin-total-investment-cost"></span> NTD</p>
                 <p class="text-xs text-gray-600">
                     (計算：<span id="admin-investment-formula"></span>)
@@ -758,6 +790,10 @@
 
     <script>
         let isAdmin = false; // 管理員登入狀態
+        let revenueChartInstance = null; // 用於儲存 Chart.js 實例
+
+        // Register Chart.js DataLabels plugin globally
+        Chart.register(ChartDataLabels);
 
         /**
          * 載入管理員參數預設值或儲存的值。
@@ -770,6 +806,7 @@
                 averageKWH: 30,
                 chargingRate: 9,
                 electricityCost: 4.0,
+                annualGrowthRate: 10, // 新增年增率預設值
                 investmentCostPerKW: 12000
             };
 
@@ -778,6 +815,7 @@
             document.getElementById('calc-averageKWHPerVehicleCharge').value = localStorage.getItem('calc-averageKWHPerVehicleCharge') || defaultValues.averageKWH;
             document.getElementById('calc-chargingRate').value = localStorage.getItem('calc-chargingRate') || defaultValues.chargingRate;
             document.getElementById('calc-electricityCost').value = localStorage.getItem('calc-electricityCost') || defaultValues.electricityCost;
+            document.getElementById('calc-annualGrowthRate').value = localStorage.getItem('calc-annualGrowthRate') || defaultValues.annualGrowthRate; // 載入年增率
             document.getElementById('calc-investmentCostPerKW').value = localStorage.getItem('calc-investmentCostPerKW') || defaultValues.investmentCostPerKW;
         }
 
@@ -790,6 +828,7 @@
             localStorage.setItem('calc-averageKWHPerVehicleCharge', document.getElementById('calc-averageKWHPerVehicleCharge').value);
             localStorage.setItem('calc-chargingRate', document.getElementById('calc-chargingRate').value);
             localStorage.setItem('calc-electricityCost', document.getElementById('calc-electricityCost').value);
+            localStorage.setItem('calc-annualGrowthRate', document.getElementById('calc-annualGrowthRate').value); // 儲存年增率
             localStorage.setItem('calc-investmentCostPerKW', document.getElementById('calc-investmentCostPerKW').value);
         }
 
@@ -802,6 +841,7 @@
                 document.getElementById('calc-averageKWHPerVehicleCharge'),
                 document.getElementById('calc-chargingRate'),
                 document.getElementById('calc-electricityCost'),
+                document.getElementById('calc-annualGrowthRate'), // 新增年增率到管理員輸入列表
                 document.getElementById('calc-investmentCostPerKW')
             ];
 
@@ -827,6 +867,7 @@
          * 計算每日、每年及總營運期間的預估淨營收。並加入投資成本的計算。
          */
         window.calculateRevenue = function() {
+            console.log("calculateRevenue called.");
             // 獲取使用者輸入的值 (來自公共區塊和管理員區塊)
             const slots = parseInt(document.getElementById('calc-slots').value);
             const years = parseInt(document.getElementById('calc-years').value);
@@ -834,12 +875,14 @@
             const averageKWHPerVehicleCharge = parseInt(document.getElementById('calc-averageKWHPerVehicleCharge').value);
             const chargingRatePerKWH = parseFloat(document.getElementById('calc-chargingRate').value);
             const electricityCostPerKWH = parseFloat(document.getElementById('calc-electricityCost').value);
+            const annualGrowthRate = parseFloat(document.getElementById('calc-annualGrowthRate').value) / 100; // 轉換為小數
             const investmentCostPerKW = parseFloat(document.getElementById('calc-investmentCostPerKW').value);
 
             const averagePowerConsumptionKW = parseFloat(document.getElementById('calc-powerConsumption').value);
 
             const resultDiv = document.getElementById('calc-result');
             const adminDetailsSection = document.getElementById('admin-details-section');
+            const chartContainer = document.getElementById('chart-container');
 
             // 驗證輸入是否為有效數字且大於0 (成本可以為0)
             if (isNaN(slots) || slots <= 0 ||
@@ -848,11 +891,14 @@
                 isNaN(averageKWHPerVehicleCharge) || averageKWHPerVehicleCharge <= 0 ||
                 isNaN(chargingRatePerKWH) || chargingRatePerKWH <= 0 ||
                 isNaN(electricityCostPerKWH) || electricityCostPerKWH < 0 ||
+                isNaN(annualGrowthRate) || annualGrowthRate < 0 || // 年增率可以為0
                 isNaN(investmentCostPerKW) || investmentCostPerKW < 0)
             {
                 resultDiv.innerHTML = '<p class="text-red-600 font-semibold">請輸入有效的數值 (所有欄位除了台電成本和投資成本，其餘必須為正數)。</p>';
                 resultDiv.classList.remove('hidden');
+                chartContainer.classList.remove('visible'); // Hide chart on error
                 if (isAdmin) adminDetailsSection.style.display = 'block'; // 保持顯示管理員詳情以便修改錯誤
+                console.log("Input validation failed.");
                 return;
             }
 
@@ -861,7 +907,9 @@
                 if (slots < 2 || slots % 2 !== 0) {
                     resultDiv.innerHTML = '<p class="text-red-600 font-semibold">錯誤：當充電功率為 30kW 以上時，車格數必須是偶數且至少為 2 格。</p>';
                     resultDiv.classList.remove('hidden');
+                    chartContainer.classList.remove('visible'); // Hide chart on error
                     if (isAdmin) adminDetailsSection.style.display = 'block'; // 保持顯示管理員詳情以便修改錯誤
+                    console.log("Slot count validation failed for high power.");
                     return;
                 }
             }
@@ -876,7 +924,9 @@
             if (netProfitPerKWH < 0) {
                 resultDiv.innerHTML = '<p class="text-red-600 font-semibold">警告：您的每度電費率低於台電成本，將導致虧損！</p>';
                 resultDiv.classList.remove('hidden');
+                chartContainer.classList.remove('visible'); // Hide chart on error
                 if (isAdmin) adminDetailsSection.style.display = 'block'; // 保持顯示管理員詳情以便修改錯誤
+                console.log("Negative net profit warning.");
                 return;
             }
 
@@ -887,13 +937,25 @@
             const dailyNetRevenuePerSlot = totalDailyKWHPerSlot * netProfitPerKWH;
 
             // 步驟 4: 計算總每日淨營收 (所有車格)
-            const totalDailyNetRevenue = dailyNetRevenuePerSlot * slots;
+            let initialTotalDailyNetRevenue = dailyNetRevenuePerSlot * slots;
 
-            // 步驟 5: 計算總每年淨營收 (所有車格)
-            const totalAnnualNetRevenue = totalDailyNetRevenue * operationDaysPerYear;
+            // 步驟 5: 計算總每年淨營收 (第一年)
+            let initialTotalAnnualNetRevenue = initialTotalDailyNetRevenue * operationDaysPerYear;
 
-            // 步驟 6: 計算總營運期間的預估淨營收
-            const totalProjectedRevenue = totalAnnualNetRevenue * years;
+            // 步驟 6: 計算總營運期間的預估淨營收 (考慮年增率)
+            let totalProjectedRevenue = 0;
+            const annualRevenuesForChart = []; // For cumulative revenue
+            const annualNetRevenuesPerYearForChart = []; // For annual revenue line
+
+            let currentAnnualRevenue = initialTotalAnnualNetRevenue;
+            for (let i = 0; i < years; i++) {
+                if (i > 0) {
+                    currentAnnualRevenue *= (1 + annualGrowthRate);
+                }
+                totalProjectedRevenue += currentAnnualRevenue;
+                annualRevenuesForChart.push(totalProjectedRevenue); // Cumulative
+                annualNetRevenuesPerYearForChart.push(currentAnnualRevenue); // Annual for line
+            }
 
             // 步驟 7: 計算投資成本金額
             let totalInvestmentCost = 0;
@@ -910,29 +972,43 @@
             // 儲存最新的管理員參數值 (只有在所有驗證通過後才儲存)
             saveAdminParameters();
 
-            // 格式化數字為新台幣金額 (加入千分位逗號)
-            const formatter = new Intl.NumberFormat('zh-TW', {
-                style: 'currency',
-                currency: 'TWD',
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            });
+            // Helper function to format currency based on value (for display in resultDiv)
+            function formatCurrencyForDisplay(value) {
+                // Round to nearest integer before checking magnitude
+                const roundedValue = Math.round(value);
+                if (Math.abs(roundedValue) >= 10000) { // If absolute value is 10,000 or more, display in 萬元
+                    return `${(roundedValue / 10000).toLocaleString('zh-TW', { maximumFractionDigits: 0 })} 萬元`;
+                } else { // Otherwise, display in 元
+                    return `${roundedValue.toLocaleString('zh-TW')} 元`;
+                }
+            }
 
             // 將計算結果顯示在頁面上
             resultDiv.innerHTML = `
-                <p><strong class="text-blue-700">每日預估淨營收：</strong> ${formatter.format(totalDailyNetRevenue)}</p>
-                <p><strong class="text-blue-700">每年預估淨營收：</strong> ${formatter.format(totalAnnualNetRevenue)}</p>
-                <p><strong class="text-blue-700">總營運${years}年預估淨營收：</strong> ${formatter.format(totalProjectedRevenue)}</p>
-                <p class="mt-4"><strong class="text-blue-700">總投資成本金額：</strong> ${formatter.format(totalInvestmentCost)}</p>
+                <p><strong class="text-blue-700">投資成本(預估)：</strong> ${formatCurrencyForDisplay(totalInvestmentCost)}</p>
+                <p><strong class="text-blue-700">每日營收(預估)：</strong> ${formatCurrencyForDisplay(initialTotalDailyNetRevenue)}</p>
+                <p><strong class="text-blue-700">每年營收(預估 - 第一年)：</strong> ${formatCurrencyForDisplay(initialTotalAnnualNetRevenue)}</p>
+                <p><strong class="text-blue-700">營運年期總營收(預估)：</strong> ${formatCurrencyForDisplay(totalProjectedRevenue)}</p>
                 <p class="mt-4 text-sm text-gray-600">
-                    ※ 備註：此為預估值，實際淨營收會受使用率、維護成本、其他營運成本、折舊等因素影響。
-                    本計算假設每車格每日充電車次為 ${dailyVehicleCountPerSlot} 次，每次平均充電 ${averageKWHPerVehicleCharge} 度，
-                    充電功率為 ${averagePowerConsumptionKW} kW，每度電費率 ${chargingRatePerKWH} NTD，台電成本 ${electricityCostPerKWH} NTD。
-                    充電功率為 7kW 或 30kW 時，以 1 格 1 樁計算投資成本；充電功率大於 30kW 時，則以每樁服務 2 格計算投資成本。
-                    每KW投資成本為 ${investmentCostPerKW} NTD。
+                    ※ 備註：此為預估值，實際營收會因使用率、其他營運成本、折舊等因素影響。
+                    本計算假設每車格每日充電車次為 <strong class="text-blue-700">${dailyVehicleCountPerSlot}</strong> 次，
+                    每次平均充電 <strong class="text-blue-700">${averageKWHPerVehicleCharge}</strong> 度，
+                    充電功率為 <strong class="text-blue-700">${averagePowerConsumptionKW}</strong> kW。
+                    每度電費率 <strong class="text-blue-700">${chargingRatePerKWH}</strong> NTD，台電成本 <strong class="text-blue-700">${electricityCostPerKWH}</strong> NTD。
+                    電動車充電年增率為 <strong class="text-blue-700">${(annualGrowthRate * 100).toFixed(0)}</strong>%。
+                    <br>
+                    <span class="font-bold">重要提示：依據過往加盟績效進行預估，不保證方案之最低收益，亦不代表未來績效之保證。</span>
                 </p>
             `;
-            resultDiv.classList.remove('hidden');
+            resultDiv.classList.remove('hidden'); // 顯示結果區塊
+
+            chartContainer.classList.add('visible'); // Show chart container by adding 'visible' class
+            // Defer chart drawing slightly to ensure canvas has rendered with dimensions
+            console.log("Calling drawRevenueChart with delay...");
+            setTimeout(() => {
+                // Pass both cumulative and annual data for charting
+                drawRevenueChart(annualRevenuesForChart, years, annualNetRevenuesPerYearForChart);
+            }, 200); // Increased delay to 200ms
 
             // 如果是管理員模式，顯示詳細計算公式
             if (isAdmin) {
@@ -940,10 +1016,10 @@
                 document.getElementById('admin-net-profit').textContent = netProfitPerKWH.toFixed(2);
                 document.getElementById('admin-daily-kwh-per-slot').textContent = totalDailyKWHPerSlot.toFixed(0);
                 document.getElementById('admin-daily-net-revenue-per-slot').textContent = dailyNetRevenuePerSlot.toFixed(2);
-                document.getElementById('admin-total-daily-net-revenue').textContent = totalDailyNetRevenue.toFixed(2);
-                document.getElementById('admin-total-annual-net-revenue').textContent = totalAnnualNetRevenue.toFixed(2);
+                document.getElementById('admin-total-daily-net-revenue').textContent = initialTotalDailyNetRevenue.toFixed(2);
+                document.getElementById('admin-total-annual-net-revenue').textContent = initialTotalAnnualNetRevenue.toFixed(2);
                 document.getElementById('admin-total-projected-revenue').textContent = totalProjectedRevenue.toFixed(2);
-                document.getElementById('admin-total-investment-cost').textContent = totalInvestmentCost.toFixed(2); // 顯示投資成本
+                document.getElementById('admin-total-investment-cost').textContent = totalInvestmentCost.toFixed(2);
                 document.getElementById('admin-investment-formula').textContent = investmentFormulaText; // 顯示投資成本公式
                 adminDetailsSection.style.display = 'block'; // 顯示管理員詳情
             } else {
@@ -952,13 +1028,162 @@
         }
 
         /**
+         * 繪製營收成長柱狀圖。
+         * @param {Array<number>} cumulativeRevenues - 每年累積的淨營收 (單位元)。
+         * @param {number} years - 營運年期。
+         * @param {Array<number>} annualNetRevenuesPerYear - 每年淨營收的陣列 (單位元)。
+         */
+        function drawRevenueChart(cumulativeRevenues, years, annualNetRevenuesPerYear) {
+            console.log("drawRevenueChart started.");
+            const canvas = document.getElementById('revenueChart');
+            if (!canvas) {
+                console.error("Canvas element 'revenueChart' not found.");
+                return;
+            }
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+                console.error("Failed to get 2D context for canvas.");
+                return;
+            }
+            console.log("Canvas and context obtained. Drawing chart with data:", cumulativeRevenues, "years:", years, "annual data:", annualNetRevenuesPerYear);
+
+
+            // 如果已有圖表實例，先銷毀它
+            if (revenueChartInstance) {
+                revenueChartInstance.destroy();
+                console.log("Existing chart instance destroyed.");
+            }
+
+            const labels = [];
+            const annualRevenueDataForChart = annualNetRevenuesPerYear.map(val => Math.round(val / 10000)); // Convert annual revenue to 萬元 and round
+            
+            for (let i = 1; i <= years; i++) {
+                labels.push(`第 ${i} 年`);
+            }
+
+            revenueChartInstance = new Chart(ctx, {
+                type: 'bar', // 柱狀圖
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '累積淨營收 (萬元)',
+                        data: cumulativeRevenues.map(val => Math.round(val / 10000)), // Convert cumulative to 萬元 and round
+                        backgroundColor: 'rgba(52, 211, 153, 0.8)', // Emerald green for bars
+                        borderColor: 'rgba(52, 211, 153, 1)',
+                        borderWidth: 1,
+                        borderRadius: 5, // Rounded corners for bars
+                    },
+                    {
+                        type: 'line', // Line chart for annual revenue
+                        label: '每年淨營收趨勢 (萬元)', // Updated label for clarity
+                        data: annualRevenueDataForChart,
+                        borderColor: 'rgba(6, 182, 212, 1)', // Cyan for annual line
+                        backgroundColor: 'rgba(6, 182, 212, 0.2)',
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.1, // Smooth the line
+                        pointRadius: 5, // Show points on the line
+                        pointHoverRadius: 7,
+                        datalabels: {
+                            display: false // Disable datalabels on the line itself
+                        }
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '營收成長(預估)', // Updated title
+                            color: '#e2e8f0', // Gray-200 for title
+                            font: {
+                                size: 18,
+                                weight: 'bold'
+                            }
+                        },
+                        legend: {
+                            labels: {
+                                color: '#cbd5e1', // Slate-300 for legend text
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        // Format to integer and add 萬元
+                                        label += `${Math.round(context.parsed.y).toLocaleString('zh-TW')} 萬元`;
+                                    }
+                                    return label;
+                                }
+                            }
+                        },
+                        datalabels: { // Global datalabels configuration (for bars, if any)
+                            display: false, // Disable datalabels for bars by default
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '營運年期',
+                                color: '#94a3b8', // Slate-400
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)', // Lighter grid lines
+                            },
+                            ticks: {
+                                color: '#cbd5e1', // Slate-300 for x-axis labels
+                                callback: function(value, index, ticks) {
+                                    const yearLabel = `第 ${index + 1} 年`;
+                                    // Ensure annualNetRevenue is in 萬元 and rounded for display
+                                    const annualValueWan = annualRevenueDataForChart[index]; // Use the already converted annual data
+                                    return [yearLabel, `${annualValueWan.toLocaleString('zh-TW')} 萬元`];
+                                },
+                                autoSkip: false, // Prevent ticks from being skipped
+                                maxRotation: 0, // Prevent rotation
+                                minRotation: 0,
+                                padding: 10 // Add padding between labels and the axis line
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '金額 (萬元)', // Updated Y-axis title
+                                color: '#94a3b8', // Slate-400
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)', // Lighter grid lines
+                            },
+                            ticks: {
+                                color: '#cbd5e1', // Slate-300 for y-axis labels
+                                callback: function(value) {
+                                    // Format to integer for y-axis ticks
+                                    return Math.round(value).toLocaleString('zh-TW');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            console.log("Chart instance created.");
+        }
+
+        /**
          * 處理管理員登入。
          * 如果密碼正確，則啟用管理員模式並顯示詳細計算區塊。
          */
         window.loginAdmin = function() { // Made global
+            console.log("loginAdmin called.");
             const pass = document.getElementById("adminPass").value;
             const loginStatus = document.getElementById("login-status");
             const adminDetailsSection = document.getElementById('admin-details-section');
+            const resultDiv = document.getElementById('calc-result'); // Get result div
+            const chartContainer = document.getElementById('chart-container'); // Get chart container
 
             if (pass === "1688") { // 管理密碼
                 isAdmin = true;
@@ -969,13 +1194,17 @@
                 calculateRevenue(); // 使用更新後的 calculateRevenue 函數
                 setAdminInputStates(); // 更新輸入欄位狀態
                 adminDetailsSection.style.display = 'block'; // 確保管理員區塊在登入時可見
+                console.log("Admin login successful.");
             } else {
                 isAdmin = false;
                 loginStatus.textContent = "❌ 密碼錯誤";
                 loginStatus.classList.remove('text-green-600');
                 loginStatus.classList.add('text-red-600');
                 adminDetailsSection.style.display = 'none'; // 密碼錯誤時隱藏管理員詳情
+                resultDiv.classList.add('hidden'); // 密碼錯誤時隱藏結果區塊
+                chartContainer.classList.remove('visible'); // 密碼錯誤時隱藏圖表
                 setAdminInputStates(); // 更新輸入欄位狀態
+                console.log("Admin login failed.");
             }
         }
 
@@ -1205,41 +1434,27 @@
             const calcAverageKWHPerVehicleChargeInput = document.getElementById('calc-averageKWHPerVehicleCharge');
             const calcChargingRateInput = document.getElementById('calc-chargingRate');
             const calcElectricityCostInput = document.getElementById('calc-electricityCost');
+            const calcAnnualGrowthRateInput = document.getElementById('calc-annualGrowthRate'); // 新增年增率 input
             const calcInvestmentCostPerKWInput = document.getElementById('calc-investmentCostPerKW');
             const adminPassInput = document.getElementById('adminPass');
 
-            // Attach event listeners to all calculator inputs to trigger recalculation
-            const calculatorInputs = [
-                calcPowerConsumptionSelect,
-                calcSlotsInput,
-                calcYearsInput,
-                calcDailyVehicleCountPerSlotInput,
-                calcAverageKWHPerVehicleChargeInput,
-                calcChargingRateInput,
-                calcElectricityCostInput,
-                calcInvestmentCostPerKWInput
-            ];
+            // Function to hide results and chart when key public inputs change
+            function hideCalculatorResults() {
+                document.getElementById('calc-result').classList.add('hidden');
+                document.getElementById('chart-container').classList.remove('visible'); // Hide chart using 'visible' class
+                if (!isAdmin) { // Only hide admin section if not logged in
+                    document.getElementById('admin-details-section').style.display = 'none';
+                }
+            }
 
-            calculatorInputs.forEach(input => {
-                input.addEventListener('change', calculateRevenue);
-                input.addEventListener('blur', calculateRevenue);
-                input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        calculateRevenue();
-                        e.preventDefault();
-                    }
-                });
-            });
-
-            // Specific listeners for inputs that have dynamic disabled states based on powerConsumption
+            // Attach event listeners to power, slots, and years inputs for updating dependent fields AND hiding results
             calcPowerConsumptionSelect.addEventListener('change', () => {
                 updateChargingRateBasedOnPower();
                 updateDailyVehicleCountBasedOnPower();
                 updateSlotsMinAndValue();
-                calculateRevenue(); // Trigger calculation after dependent fields are updated
+                hideCalculatorResults(); // Hide results immediately
             });
 
-            // Listen to slots input for real-time even number correction if power > 30kW
             calcSlotsInput.addEventListener('input', () => {
                 const selectedPower = parseFloat(calcPowerConsumptionSelect.value);
                 let currentSlots = parseInt(calcSlotsInput.value);
@@ -1250,7 +1465,41 @@
                         if (currentSlots === 1) calcSlotsInput.value = 2;
                     }
                 }
-                calculateRevenue(); // Trigger calculation after input correction
+                hideCalculatorResults(); // Hide results immediately
+            });
+
+            calcYearsInput.addEventListener('change', hideCalculatorResults); // Hide results immediately
+            calcYearsInput.addEventListener('input', hideCalculatorResults); // Hide results immediately
+            calcYearsInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    hideCalculatorResults(); // Hide results immediately
+                }
+            });
+            
+            // Attach event listeners to admin-controlled inputs for updating dependent fields only
+            const adminControlledInputs = [
+                calcDailyVehicleCountPerSlotInput,
+                calcAverageKWHPerVehicleChargeInput,
+                calcChargingRateInput,
+                calcElectricityCostInput,
+                calcAnnualGrowthRateInput, // Add new input to event listeners
+                calcInvestmentCostPerKWInput
+            ];
+
+            adminControlledInputs.forEach(input => {
+                input.addEventListener('change', () => {
+                    // No calculateRevenue() here, only update dependent states if needed
+                    // Results will be hidden by the main button click or public input changes
+                });
+                input.addEventListener('blur', () => {
+                    // No calculateRevenue() here
+                });
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        // No calculateRevenue() here
+                        e.preventDefault();
+                    }
+                });
             });
 
 
@@ -1268,7 +1517,8 @@
             updateDailyVehicleCountBasedOnPower(); // Set initial state for daily vehicle count based on loaded power
             updateSlotsMinAndValue(); // Set initial state for slots based on loaded power
             setAdminInputStates(); // Set initial disabled states for admin inputs
-            calculateRevenue(); // Perform initial calculation
+            // Initially hide the results and admin section until calculation button is pressed or admin logs in
+            hideCalculatorResults(); 
         });
     </script>
 </body>
