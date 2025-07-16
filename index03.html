@@ -259,6 +259,7 @@
         #admin-details-section {
             display: none; /* Initially hidden */
         }
+        /* Chart Container - Initially hidden by display: none */
         #chart-container {
             margin-top: 2rem;
             padding: 1rem;
@@ -266,14 +267,24 @@
             border-radius: 0.75rem;
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            opacity: 0; /* Changed from display: none */
-            pointer-events: none; /* Disable interaction when hidden */
+            height: 500px; /* Fixed height for the chart container */
+            display: none; /* Initially hidden */
+            opacity: 0; /* For smooth transition */
             transition: opacity 0.5s ease-out; /* Smooth transition */
-            height: 500px; /* Increased fixed height for the chart container */
         }
         #chart-container.visible {
             opacity: 1;
-            pointer-events: auto;
+        }
+
+        /* Custom class for centered list items */
+        .list-center-aligned ul {
+            text-align: center; /* Center the list items */
+            list-style-position: inside; /* Keep bullets inside */
+        }
+        .list-center-aligned ul li {
+            text-align: -webkit-match-parent; /* For WebKit browsers */
+            display: list-item; /* Ensure it behaves as a list item */
+            margin: 0 auto; /* Center individual list items */
         }
     </style>
 </head>
@@ -331,9 +342,9 @@
                     <div class="text-7xl font-extrabold text-cyan-400 mb-2">26%</div>
                     <p class="text-xl text-gray-200">年增長率 (vs. 2023)</p>
                 </div>
-                <div class="bento-item col-span-full highlight-gradient-emerald">
+                <div class="bento-item col-span-full highlight-gradient-emerald list-center-aligned">
                     <h3 class="text-4xl font-bold mb-4 text-emerald-400">主要因素</h3>
-                    <ul class="list-disc list-inside w-full max-w-md mx-auto text-left">
+                    <ul class="list-disc list-inside w-full max-w-md mx-auto">
                         <li>政府政策推動</li>
                         <li>嚴格燃油車排放標準</li>
                         <li>電池技術進步</li>
@@ -364,9 +375,9 @@
                     <p class="text-xl text-gray-200">年增長率 (vs. 2023)</p>
                 </div>
                 
-                <div class="bento-item col-span-full highlight-gradient-cyan">
+                <div class="bento-item col-span-full highlight-gradient-cyan list-center-aligned">
                     <h3 class="text-4xl font-bold mb-4 text-cyan-400">主要因素</h3>
-                    <ul class="list-disc list-inside w-full max-w-md mx-auto text-left">
+                    <ul class="list-disc list-inside w-full max-w-md mx-auto">
                         <li>國產電動車 n7 上市造成爆發性成長</li>
                         <li>Tesla 持續主導 + 價格調整策略</li>
                         <li>政府政策與補助支持</li>
@@ -644,9 +655,9 @@
                 </div>
 
                 <div class="flow-node node-star-charger">
-                    <p class="flow-text-bold text-emerald-400">星舟快充</p>
-                    <p class="flow-text text-gray-400">STAR CHARGER</p>
-                    <p class="flow-text text-gray-500 mt-1">（含認證廠商與平台）</p> </div>
+                    <p class="flow-text-bold text-white">星舟快充</p>
+                    <p class="flow-text text-gray-300">STAR CHARGER</p>
+                    <p class="flow-text text-gray-300 mt-1">（含認證廠商與平台）</p> </div>
 
                 <div class="flow-arrow text-blue-400">
                     <span class="text-blue-300">規劃、建置與維護</span>
@@ -674,7 +685,7 @@
             <div class="mt-12 text-center text-gray-400 text-sm space-y-2">
                 <p>此流程圖概括了星舟快充生態系的運作模式，以及加盟方案的主要互動關係：</p>
                 <ul class="list-disc list-inside mx-auto max-w-3xl text-left">
-                    <li><strong class="text-purple-400">投資方 (地主/企業/社區)</strong> 提供**資金與場地**給<strong class="text-emerald-400">星舟快充 (含認證廠商與平台)</strong>，並從星舟快充處獲得**營收與服務回饋**。</li>
+                    <li><strong class="text-purple-400">投資方 (地主/企業/社區)</strong> 提供**資金與場地**給星舟快充，並從星舟快充獲得**營收與服務回饋**。</li>
                     <li><strong class="text-emerald-400">星舟快充 (含認證廠商與平台)</strong> 負責<strong class="text-cyan-400">充電站</strong>的**規劃、建置與維護**。</li>
                     <li><strong class="text-cyan-400">充電站</strong>向<strong class="text-blue-400">充電車主</strong>**提供充電服務**。</li>
                     <li><strong class="text-blue-400">充電車主**支付**充電費用**給<strong class="text-cyan-400">充電站**。</li>
@@ -686,7 +697,7 @@
 
     <!-- Page: Charging Station Revenue Estimation Calculator -->
     <section id="page-revenue-calculator" class="full-page-section bg-black">
-        <div class="animate-on-scroll bg-white p-8 rounded-xl shadow-lg w-full max-w-3xl"> <!-- Changed max-w-md to max-w-3xl -->
+        <div class="animate-on-scroll bg-white p-8 rounded-xl shadow-lg w-full max-w-3xl">
             <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">充電站營收預估試算</h2>
 
             <!-- 充電功率 (保留在頂部) -->
@@ -715,12 +726,12 @@
                 計算預估營收
             </button>
 
+            <!-- Results and Chart Container - Initially hidden -->
             <div id="calc-result" class="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200 text-gray-800 text-lg leading-relaxed hidden">
                 <!-- 結果將顯示在這裡 -->
             </div>
 
-            <!-- Chart Container -->
-            <div id="chart-container" class="w-full" style="height: 500px;"> <!-- Increased height for the chart container -->
+            <div id="chart-container" class="w-full" style="height: 500px;">
                 <canvas id="revenueChart"></canvas>
             </div>
 
@@ -897,6 +908,7 @@
                 resultDiv.innerHTML = '<p class="text-red-600 font-semibold">請輸入有效的數值 (所有欄位除了台電成本和投資成本，其餘必須為正數)。</p>';
                 resultDiv.classList.remove('hidden');
                 chartContainer.classList.remove('visible'); // Hide chart on error
+                chartContainer.style.display = 'none'; // Ensure chart is hidden
                 if (isAdmin) adminDetailsSection.style.display = 'block'; // 保持顯示管理員詳情以便修改錯誤
                 console.log("Input validation failed.");
                 return;
@@ -908,6 +920,7 @@
                     resultDiv.innerHTML = '<p class="text-red-600 font-semibold">錯誤：當充電功率為 30kW 以上時，車格數必須是偶數且至少為 2 格。</p>';
                     resultDiv.classList.remove('hidden');
                     chartContainer.classList.remove('visible'); // Hide chart on error
+                    chartContainer.style.display = 'none'; // Ensure chart is hidden
                     if (isAdmin) adminDetailsSection.style.display = 'block'; // 保持顯示管理員詳情以便修改錯誤
                     console.log("Slot count validation failed for high power.");
                     return;
@@ -925,6 +938,7 @@
                 resultDiv.innerHTML = '<p class="text-red-600 font-semibold">警告：您的每度電費率低於台電成本，將導致虧損！</p>';
                 resultDiv.classList.remove('hidden');
                 chartContainer.classList.remove('visible'); // Hide chart on error
+                chartContainer.style.display = 'none'; // Ensure chart is hidden
                 if (isAdmin) adminDetailsSection.style.display = 'block'; // 保持顯示管理員詳情以便修改錯誤
                 console.log("Negative net profit warning.");
                 return;
@@ -965,6 +979,7 @@
                 totalInvestmentCost = averagePowerConsumptionKW * slots * investmentCostPerKW;
                 investmentFormulaText = `${averagePowerConsumptionKW} kW × ${slots} 格 × ${investmentCostPerKW} NTD/kW`;
             } else { // 120kW, 180kW, 360kW
+                // For 120kW, 180kW, 360kW, calculate based on (slots / 2) as one pile
                 totalInvestmentCost = averagePowerConsumptionKW * (slots / 2) * investmentCostPerKW;
                 investmentFormulaText = `${averagePowerConsumptionKW} kW × (${slots} 格 / 2) × ${investmentCostPerKW} NTD/kW`;
             }
@@ -985,10 +1000,10 @@
 
             // 將計算結果顯示在頁面上
             resultDiv.innerHTML = `
-                <p><strong class="text-blue-700">投資成本(預估)：</strong> ${formatCurrencyForDisplay(totalInvestmentCost)}</p>
-                <p><strong class="text-blue-700">每日營收(預估)：</strong> ${formatCurrencyForDisplay(initialTotalDailyNetRevenue)}</p>
-                <p><strong class="text-blue-700">每年營收(預估 - 第一年)：</strong> ${formatCurrencyForDisplay(initialTotalAnnualNetRevenue)}</p>
-                <p><strong class="text-blue-700">營運年期總營收(預估)：</strong> ${formatCurrencyForDisplay(totalProjectedRevenue)}</p>
+                <p><strong class="text-blue-700">加盟方案營收(預估)：</strong></p>
+                <p><strong class="text-blue-700">投資成本：</strong> ${formatCurrencyForDisplay(totalInvestmentCost)}</p>
+                <p><strong class="text-blue-700">每日營收：</strong> ${formatCurrencyForDisplay(initialTotalDailyNetRevenue)}</p>
+                <p><strong class="text-blue-700">營運年期總營收：</strong> ${formatCurrencyForDisplay(totalProjectedRevenue)}</p>
                 <p class="mt-4 text-sm text-gray-600">
                     ※ 備註：此為預估值，實際營收會因使用率、其他營運成本、折舊等因素影響。
                     本計算假設每車格每日充電車次為 <strong class="text-blue-700">${dailyVehicleCountPerSlot}</strong> 次，
@@ -1002,13 +1017,13 @@
             `;
             resultDiv.classList.remove('hidden'); // 顯示結果區塊
 
-            chartContainer.classList.add('visible'); // Show chart container by adding 'visible' class
-            // Defer chart drawing slightly to ensure canvas has rendered with dimensions
-            console.log("Calling drawRevenueChart with delay...");
+            // Show chart container and then add 'visible' class for transition
+            chartContainer.style.display = 'block'; // Make it display block first
             setTimeout(() => {
+                chartContainer.classList.add('visible'); // Then add visible for opacity transition
                 // Pass both cumulative and annual data for charting
                 drawRevenueChart(annualRevenuesForChart, years, annualNetRevenuesPerYearForChart);
-            }, 200); // Increased delay to 200ms
+            }, 50); // Small delay to allow display:block to render
 
             // 如果是管理員模式，顯示詳細計算公式
             if (isAdmin) {
@@ -1077,8 +1092,8 @@
                         type: 'line', // Line chart for annual revenue
                         label: '每年淨營收趨勢 (萬元)', // Updated label for clarity
                         data: annualRevenueDataForChart,
-                        borderColor: 'rgba(6, 182, 212, 1)', // Cyan for annual line
-                        backgroundColor: 'rgba(6, 182, 212, 0.2)',
+                        borderColor: 'rgba(255, 165, 0, 1)', // Orange for annual line - High contrast
+                        backgroundColor: 'rgba(255, 165, 0, 0.2)', // Light orange background
                         borderWidth: 2,
                         fill: false,
                         tension: 0.1, // Smooth the line
@@ -1203,6 +1218,7 @@
                 adminDetailsSection.style.display = 'none'; // 密碼錯誤時隱藏管理員詳情
                 resultDiv.classList.add('hidden'); // 密碼錯誤時隱藏結果區塊
                 chartContainer.classList.remove('visible'); // 密碼錯誤時隱藏圖表
+                chartContainer.style.display = 'none'; // Ensure chart is hidden
                 setAdminInputStates(); // 更新輸入欄位狀態
                 console.log("Admin login failed.");
             }
@@ -1442,6 +1458,7 @@
             function hideCalculatorResults() {
                 document.getElementById('calc-result').classList.add('hidden');
                 document.getElementById('chart-container').classList.remove('visible'); // Hide chart using 'visible' class
+                document.getElementById('chart-container').style.display = 'none'; // Ensure chart is hidden
                 if (!isAdmin) { // Only hide admin section if not logged in
                     document.getElementById('admin-details-section').style.display = 'none';
                 }
@@ -1460,9 +1477,11 @@
                 let currentSlots = parseInt(calcSlotsInput.value);
 
                 if (selectedPower > 30) {
-                    if (currentSlots % 2 !== 0) {
-                        calcSlotsInput.value = Math.max(calcSlotsInput.min, currentSlots - 1);
-                        if (currentSlots === 1) calcSlotsInput.value = 2;
+                    // If power > 30kW, ensure slots is even and at least 2
+                    if (currentSlots < 2 || currentSlots % 2 !== 0) {
+                        // If currentSlots is 1, set to 2. If odd > 1, set to currentSlots - 1 (making it even)
+                        calcSlotsInput.value = (currentSlots === 1) ? 2 : (currentSlots % 2 !== 0 ? currentSlots - 1 : currentSlots);
+                        if (parseInt(calcSlotsInput.value) < 2) calcSlotsInput.value = 2; // Ensure it's at least 2
                     }
                 }
                 hideCalculatorResults(); // Hide results immediately
