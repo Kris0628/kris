@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>電動車&充電樁統計及預估</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* 自訂字體 */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5; /* 淺灰色背景 */
+        }
+        /* 表格樣式 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); /* 更明顯的陰影 */
+            border-radius: 0.75rem; /* 圓角 */
+            overflow: hidden; /* 確保圓角生效 */
+        }
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e0e4e8; /* 淺灰色底部邊框 */
+        }
+        th {
+            background-color: #3b82f6; /* 藍色表頭背景 */
+            color: #ffffff; /* 白色文字 */
+            font-weight: 600; /* 加粗字體 */
+            /* white-space: nowrap; /* 確保表頭文字不換行 - 已移除 */
+        }
+        tr:nth-child(even) {
+            background-color: #f8fafc; /* 斑馬紋效果 - 淺藍白 */
+        }
+        tr:nth-child(odd) {
+            background-color: #ffffff; /* 斑馬紋效果 - 白色 */
+        }
+        tr:hover {
+            background-color: #e0f7fa; /* 懸停效果 - 淺青色 */
+        }
+        /* 按鈕樣式 */
+        .btn {
+            background-color: #3b82f6; /* 藍色背景 */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* 更明顯的陰影 */
+        }
+        .btn:hover {
+            background-color: #2563eb; /* 懸停時深藍色 */
+            transform: translateY(-2px); /* 輕微上浮效果 */
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+        .btn:active {
+            transform: translateY(0); /* 按下時恢復 */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 2025年標註顏色 - 調整為藍色字體 */
+        .highlight-2025 {
+            /* background-color: #ffeb3b; /* 鮮明的黃色 - 已移除 */
+            font-weight: 700; /* 更粗的字體 */
+            color: #2563eb; /* 深藍色文字 */
+        }
+
+        /* 自定義模態框樣式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6); /* 半透明黑色背景 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000; /* 確保在最上層 */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 1rem; /* 圓角 */
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+            text-align: center;
+            max-width: 90%;
+            width: auto; /* Allow content to dictate width, but respect max-width */
+            max-height: 90vh; /* Set max height for scrolling */
+            overflow-y: auto; /* Enable vertical scrolling */
+            position: relative;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.show .modal-content {
+            transform: translateY(0);
+        }
+        .modal-close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #6b7280;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        .modal-close-btn:hover {
+            color: #374151;
+        }
+        /* 加載指示器樣式 */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+            display: none; /* 預設隱藏 */
+        }
+        .loader.show {
+            display: block;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 返回頂部按鈕樣式 */
+        #backToTopBtn {
+            display: none; /* 預設隱藏 */
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 50%; /* 圓形按鈕 */
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: background-color 0.3s ease, opacity 0.3s ease, transform 0.2s ease;
+            z-index: 999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #backToTopBtn:hover {
+            background-color: #2563eb;
+            transform: translateY(-2px);
+        }
+        #backToTopBtn:active {
+            transform: translateY(0);
+        }
+
+        /* 圖表容器樣式 */
+        .chart-container {
+            position: relative;
+            margin: auto;
+            height: 400px; /* 固定高度 */
+            width: 100%; /* 響應式寬度 */
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        /* 確保 canvas 響應式 */
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        /* 編輯模式下的表格樣式 */
+        .editable-table td[contenteditable="true"] {
+            background-color: #fffbeb; /* 淺黃色背景 */
+            border: 1px solid #fcd34d; /* 黃色邊框 */
+            padding: 0.9rem; /* 調整內邊距 */
+            border-radius: 0.25rem;
+            outline: none; /* 移除點擊時的藍色外框 */
+        }
+        .editable-table td[contenteditable="true"]:focus {
+            box-shadow: 0 0 0 2px rgba(252, 211, 77, 0.5); /* 聚焦時的陰影 */
+        }
+        /* 新增：不可編輯欄位的樣式 */
+        .non-editable-cell {
+            background-color: #f8f8f8; /* 淺灰色背景 */
+            cursor: default; /* 預設游標 */
+            /* 可以添加其他樣式，例如更淺的文字顏色或不同的邊框 */
+            color: #6b7280; /* 較淺的文字顏色 */
+        }
+
+        /* 調整年份欄位寬度 */
+        table th:first-child,
+        table td:first-child {
+            min-width: 120px; /* 設置最小寬度 */
+            white-space: nowrap; /* 防止文字換行 */
+        }
+
+        /* 新增樣式：數據顯示單元格 - 置中且粗體 */
+        .data-display-cell {
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .edit-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .edit-controls .btn {
+            padding: 0.6rem 1.2rem;
+            font-size: 0.9rem;
+        }
+        .password-change-section {
+            background-color: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            margin-top: 2rem;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .password-change-section input[type="password"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+        .password-change-section .btn {
+            width: auto;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8 md:p-12 lg:p-16">
+    <div class="max-w-6xl mx-auto bg-white p-6 sm:p-8 md:p-10 rounded-xl shadow-lg">
+        <h1 class="text-3xl sm:text-4xl font-bold text-center text-gray-800 mb-8">電動車&充電樁統計及預估<span class="text-xl sm:text-2xl">(2018-2030)</span></h1>
+
+        <div class="mb-8">
+            <h2 class="text-xl sm:text-2xl font-semibold text-gray-700 mb-2">台灣電動車掛牌數統計及未來預估 (2018-2030)</h2>
+            <div class="overflow-x-auto rounded-xl">
+                <table id="ev-registrations-table">
+                    <thead>
+                        <tr>
+                            <th>年度 (YEAR)</th>
+                            <th>累計掛牌數 (輛) (CUMULATIVE REGISTRATIONS)</th>
+                            <th>年度新掛牌數 (輛) (ANNUAL NEW REGISTRATIONS)</th>
+                            <th>年增率 (%) (ANNUAL GROWTH RATE)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ev-registrations-table-body">
+                        <!-- Data will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex justify-between items-center mt-4">
+                <div class="flex-grow pl-4"> <!-- Added flex-grow and pl-4 for indentation -->
+                    <p class="text-sm text-gray-500">資料來源: 交通部公路局2018-2025上半年 (2025-2030為預估值)</p>
+                </div>
+                <button class="btn px-4 py-2 text-sm ml-4" onclick="showPasswordModal('ev')">管理</button> <!-- Added ml-4 for spacing -->
+            </div>
+            <!-- 電動車掛牌數圖表容器 -->
+            <div class="chart-container">
+                <canvas id="evRegistrationsChart"></canvas>
+            </div>
+        </div>
+
+        <div class="mb-12">
+            <h2 class="text-2xl sm:text-3xl font-semibold text-gray-700 mb-4">充電樁統計及未來預估 (2018-2030)</h2>
+            <div class="overflow-x-auto rounded-xl">
+                <table id="charging-piles-table">
+                    <thead>
+                        <tr>
+                            <th>年份 (Year)</th>
+                            <th>公共充電樁總數 (槍) (Total Piles)</th>
+                            <th>慢充 (槍) (Slow Charge)</th>
+                            <th>快充 (槍) (Fast Charge)</th>
+                            <th>車樁比 (Car-to-Pile Ratio)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="charging-piles-table-body">
+                        <!-- Data will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex justify-between items-start mt-4"> <!-- Changed items-center to items-start for multi-line text alignment -->
+                <div class="flex-grow pl-4"> <!-- Added flex-grow and pl-4 for indentation -->
+                    <p class="text-sm text-gray-500">資料來源：電動小客車掛牌數：CSR@天下 (2.4), 經濟部 (3.2), 交通部公路局統計查詢網, 車輛中心 (ARTC 4.1), 國發會淨零排放路徑計畫 (5.1, 2.1)</p>
+                    <p class="text-sm text-gray-500">公共充電樁數量：用戶提供數據 (交通部統計), 工商時報, 聯合報 (1.2, 1.3), 鉅亨網 (4.3, 3.1), 交通部運輸研究所 (2.2)</p>
+                    <p class="text-sm text-gray-500">部分數據為基於公開資料之趨勢推估。</p>
+                </div>
+                <button class="btn px-4 py-2 text-sm ml-4" onclick="showPasswordModal('charging')">管理</button> <!-- Added ml-4 for spacing -->
+            </div>
+            <!-- 充電樁圖表容器 -->
+            <div class="chart-container">
+                <canvas id="chargingPilesChart"></canvas>
+            </div>
+        </div>
+
+        <div class="text-center mt-8">
+            <button class="btn" onclick="showExportModal()">匯出到試算表</button>
+        </div>
+    </div>
+
+    <!-- 密碼輸入模態框 -->
+    <div id="passwordModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close-btn" onclick="hidePasswordModal()">&times;</button>
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">輸入管理密碼</h3>
+            <input type="password" id="passwordInput" class="w-full p-3 border border-gray-300 rounded-lg mb-4 text-center" placeholder="請輸入密碼">
+            <p id="passwordError" class="text-red-600 text-sm mb-4 hidden">密碼錯誤，請重試。</p>
+            <button class="btn" onclick="authenticatePassword()">確認</button>
+        </div>
+    </div>
+
+    <!-- 數據編輯模態框 -->
+    <div id="editModal" class="modal-overlay">
+        <div class="modal-content !max-w-3xl !w-auto"> <!-- Make it wider for table content -->
+            <button class="modal-close-btn" onclick="saveChanges()">&times;</button> <!-- Changed to saveChanges -->
+            <h3 class="text-xl font-semibold text-gray-800 mb-4" id="editModalTitle">編輯數據</h3>
+            <div class="overflow-x-auto rounded-xl">
+                <table class="editable-table w-full">
+                    <thead>
+                        <tr id="editTableHeaders">
+                            <!-- Headers will be dynamically loaded -->
+                        </tr>
+                    </thead>
+                    <tbody id="editTableBody">
+                        <!-- Editable data will be dynamically loaded -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="edit-controls">
+                <button class="btn bg-green-500 hover:bg-green-600" onclick="saveChanges()">儲存變更</button>
+                <button class="btn bg-red-500 hover:bg-red-600" onclick="cancelEditChanges()">取消</button>
+            </div>
+
+            <div class="password-change-section">
+                <h4 class="text-lg font-semibold text-gray-700 mb-3">更改管理密碼</h4>
+                <input type="password" id="newPasswordInput" placeholder="輸入新密碼">
+                <input type="password" id="confirmNewPasswordInput" placeholder="確認新密碼">
+                <p id="passwordChangeError" class="text-red-600 text-sm mb-2 hidden">密碼不一致或格式錯誤。</p>
+                <p id="passwordChangeSuccess" class="text-green-600 text-sm mb-2 hidden">密碼已成功更改！</p>
+                <button class="btn" onclick="changePassword()">更改密碼</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 匯出模態框 -->
+    <div id="exportModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close-btn" onclick="hideExportModal()">&times;</button>
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">匯出功能</h3>
+            <div id="loader" class="loader"></div>
+            <p id="modalMessage" class="text-gray-700">此為示範功能，實際匯出功能需後端支援。</p>
+            <div id="downloadLinksContainer" class="mt-4 flex flex-col gap-2"></div>
+        </div>
+    </div>
+
+    <!-- 返回頂部按鈕 -->
+    <button id="backToTopBtn" title="返回頂部">↑</button>
+
+    <script>
+        // 初始數據（如果 localStorage 中沒有，則使用這些）
+        let initialEvData = [
+            { year: '2018', cumulative: 598, annualNew: 598, growthRate: 0 },
+            { year: '2019', cumulative: 3959, annualNew: 3361, growthRate: 462 },
+            { year: '2020', cumulative: 10202, annualNew: 6243, growthRate: 86 },
+            { year: '2021', cumulative: 17199, annualNew: 6997, growthRate: 12 },
+            { year: '2022', cumulative: 33305, annualNew: 16106, growthRate: 130 },
+            { year: '2023', cumulative: 58011, annualNew: 24706, growthRate: 53 },
+            { year: '2024', cumulative: 95707, annualNew: 37696, growthRate: 53 },
+            { year: '2025', cumulative: 150357, annualNew: 54650, growthRate: 45 },
+            { year: '2026', cumulative: 233053, annualNew: 82696, growthRate: 55 },
+            { year: '2027', cumulative: 344918, annualNew: 111865, growthRate: 48 },
+            { year: '2028', cumulative: 482885, annualNew: 137967, growthRate: 40 },
+            { year: '2029', cumulative: 627751, annualNew: 144866, growthRate: 30 },
+            { year: '2030', cumulative: 721914, annualNew: 94163, growthRate: 15 }
+        ];
+
+        let initialChargingData = [
+            { year: '2018', totalPiles: 500, slowCharge: 400, fastCharge: 100, carToPileRatio: 7.40 },
+            { year: '2019', totalPiles: 1000, slowCharge: 700, fastCharge: 300, carToPileRatio: 8.00 },
+            { year: '2020', totalPiles: 2000, slowCharge: 1400, fastCharge: 600, carToPileRatio: 7.50 },
+            { year: '2021', totalPiles: 3500, slowCharge: 2400, fastCharge: 1100, carToPileRatio: 7.14 },
+            { year: '2022', totalPiles: 5000, slowCharge: 3400, fastCharge: 1600, carToPileRatio: 8.00 },
+            { year: '2023', totalPiles: 7000, slowCharge: 4500, fastCharge: 2500, carToPileRatio: 10.00 },
+            { year: '2024', totalPiles: 10086, slowCharge: 7681, fastCharge: 2405, carToPileRatio: 9.55 },
+            { year: '2025 (預估)', totalPiles: 10838, slowCharge: 7735, fastCharge: 3103, carToPileRatio: 13.84 },
+            { year: '2026 (預估)', totalPiles: 20000, slowCharge: 15000, fastCharge: 5000, carToPileRatio: 12.50 },
+            { year: '2027 (預估)', totalPiles: 40000, slowCharge: 30000, fastCharge: 10000, carToPileRatio: 10.00 },
+            { year: '2028 (預估)', totalPiles: 70000, slowCharge: 50000, fastCharge: 20000, carToPileRatio: 8.57 },
+            { year: '2029 (預估)', totalPiles: 110000, slowCharge: 80000, fastCharge: 30000, carToPileRatio: 7.73 },
+            { year: '2030 (預估)', totalPiles: 150000, slowCharge: 120000, fastCharge: 30000, carToPileRatio: 8.00 }
+        ];
+
+        // 從 localStorage 加載數據，如果沒有則使用初始數據
+        let evData = [];
+        let chargingData = [];
+        let currentPassword = localStorage.getItem('adminPassword') || '0000'; // 預設密碼
+
+        let currentTableType = ''; // 用於追蹤當前正在編輯哪個表格
+
+        // Global temporary storage for data before editing
+        let tempEvData = [];
+        let tempChargingData = [];
+
+        // --- 數據處理和渲染函數 (Moved to top for hoisting) ---
+
+        // 重新計算電動車數據：從年增率回推 年度新掛牌數 和 累計掛牌數
+        // This function is now called with a startIndex to propagate changes downwards
+        function recalculateEvDataFromGrowthRates(startIndex) {
+            // This function assumes evData[0] is correct and starts calculations from startIndex.
+            for (let i = startIndex; i < evData.length; i++) {
+                const prevAnnualNew = evData[i - 1].annualNew || 0;
+                const currentGrowthRate = parseFloat(evData[i].growthRate) || 0;
+                evData[i].annualNew = Math.round(prevAnnualNew * (1 + currentGrowthRate / 100));
+                evData[i].cumulative = evData[i-1].cumulative + evData[i].annualNew;
+            }
+        }
+
+        // 根據累計掛牌數回推年度新掛牌數和年增率 (主要用於初始載入時校正數據)
+        function reconcileEvDataFromCumulative() {
+            // 2018年數據作為基準，其年度新掛牌數等於累計掛牌數，年增率為0
+            if (evData.length > 0) {
+                evData[0].annualNew = evData[0].cumulative;
+                evData[0].growthRate = 0;
+            }
+
+            for (let i = 1; i < evData.length; i++) {
+                const currentCumulative = evData[i].cumulative;
+                const prevCumulative = evData[i - 1].cumulative;
+                evData[i].annualNew = currentCumulative - prevCumulative;
+
+                const currentAnnualNew = evData[i].annualNew;
+                const prevAnnualNew = evData[i - 1].annualNew;
+
+                if (prevAnnualNew > 0) {
+                    evData[i].growthRate = parseFloat((((currentAnnualNew - prevAnnualNew) / prevAnnualNew) * 100).toFixed(0));
+                } else if (currentAnnualNew > 0) {
+                    evData[i].growthRate = 100;
+                } else {
+                    evData[i].growthRate = 0;
+                }
+            }
+        }
+
+        // 重新計算充電樁車樁比
+        function recalculateChargingRatios() {
+            for (let i = 0; i < chargingData.length; i++) {
+                // 獲取對應年份的電動車累計掛牌數
+                const evCumulative = evData[i] ? evData[i].cumulative : 0;
+                const totalPiles = chargingData[i].totalPiles;
+                if (totalPiles > 0) {
+                    chargingData[i].carToPileRatio = (evCumulative / totalPiles);
+                } else {
+                    chargingData[i].carToPileRatio = 0;
+                }
+            }
+        }
+
+        // 填充表格數據
+        function populateTables() {
+            const evTableBody = document.getElementById('ev-registrations-table-body');
+            evTableBody.innerHTML = ''; // 清空現有內容
+            evData.forEach(row => {
+                const tr = document.createElement('tr');
+                // 檢查是否為 2025 年，如果是則添加高亮類
+                const highlightClass = (row.year === '2025') ? 'highlight-2025' : ''; // 重新應用 highlight-2025
+                tr.innerHTML = `
+                    <td class="${highlightClass}">${row.year}</td>
+                    <td class="${highlightClass} data-display-cell">${row.cumulative.toLocaleString()}</td>
+                    <td class="${highlightClass}">${row.annualNew.toLocaleString()}</td>
+                    <td class="${highlightClass}">${row.growthRate}%</td>
+                `;
+                evTableBody.appendChild(tr);
+            });
+
+            const chargingTableBody = document.getElementById('charging-piles-table-body');
+            chargingTableBody.innerHTML = ''; // 清空現有內容
+            chargingData.forEach(row => {
+                const tr = document.createElement('tr');
+                // 檢查是否為 2025 年，如果是則添加高亮類
+                const highlightClass = (row.year.includes('2025')) ? 'highlight-2025' : ''; // 重新應用 highlight-2025
+                tr.innerHTML = `
+                    <td class="${highlightClass}">${row.year}</td>
+                    <td class="${highlightClass} data-display-cell">${row.totalPiles.toLocaleString()}</td>
+                    <td class="${highlightClass}">${row.slowCharge.toLocaleString()}</td>
+                    <td class="${highlightClass}">${row.fastCharge.toLocaleString()}</td>
+                    <td class="${highlightClass}">${row.carToPileRatio.toFixed(2)}</td>
+                `;
+                chargingTableBody.appendChild(tr);
+            });
+        }
+
+        // 繪製電動車掛牌數圖表
+        let evChartInstance = null; // 儲存圖表實例
+        function renderEvRegistrationsChart() {
+            if (evChartInstance) {
+                evChartInstance.destroy(); // 銷毀舊圖表實例
+            }
+
+            const years = evData.map(row => row.year);
+            const cumulativeRegistrations = evData.map(row => row.cumulative);
+            const annualNewRegistrations = evData.map(row => row.annualNew);
+            const annualGrowthRate = evData.map(row => row.growthRate);
+
+            const ctx = document.getElementById('evRegistrationsChart').getContext('2d');
+            evChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: years,
+                    datasets: [
+                        {
+                            label: '累計掛牌數 (輛)',
+                            data: cumulativeRegistrations,
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 5,
+                            pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                            yAxisID: 'y',
+                            order: 1
+                        },
+                        {
+                            label: '年度新掛牌數 (輛)',
+                            data: annualNewRegistrations,
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 5,
+                            pointBackgroundColor: 'rgba(16, 185, 129, 1)',
+                            yAxisID: 'y',
+                            order: 2
+                        },
+                        {
+                            label: '年增率 (%)',
+                            data: annualGrowthRate,
+                            borderColor: 'rgba(239, 68, 68, 1)',
+                            backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 5,
+                            pointBackgroundColor: 'rgba(239, 68, 68, 1)',
+                            yAxisID: 'y1',
+                            order: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '台灣電動小客車掛牌數與增長率趨勢 (2018-2030)',
+                            font: {
+                                size: 18,
+                                weight: 'bold'
+                            },
+                            color: '#333'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        if (context.dataset.label === '年增率 (%)') {
+                                            label += context.parsed.y.toLocaleString() + '%';
+                                        } else {
+                                            label += context.parsed.y.toLocaleString();
+                                        }
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '年度',
+                                font: {
+                                    size: 14
+                                },
+                                color: '#555'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: '掛牌數 (輛)',
+                                font: {
+                                    size: 14
+                                },
+                                color: '#555'
+                            },
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString();
+                                }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: '年增率 (%)',
+                                font: {
+                                    size: 14
+                                },
+                                color: '#555'
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            },
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 繪製充電樁統計圖表
+        let chargingChartInstance = null; // 儲存圖表實例
+        function renderChargingPilesChart() {
+            if (chargingChartInstance) {
+                chargingChartInstance.destroy(); // 銷毀舊圖表實例
+            }
+
+            const years = chargingData.map(row => row.year);
+            const totalPiles = chargingData.map(row => row.totalPiles);
+            const slowCharge = chargingData.map(row => row.slowCharge);
+            const fastCharge = chargingData.map(row => row.fastCharge);
+            const carToPileRatio = chargingData.map(row => row.carToPileRatio);
+
+            const ctx = document.getElementById('chargingPilesChart').getContext('2d');
+            chargingChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: years,
+                    datasets: [
+                        {
+                            label: '公共充電樁總數 (槍)',
+                            data: totalPiles,
+                            borderColor: 'rgba(234, 88, 12, 1)',
+                            backgroundColor: 'rgba(234, 88, 12, 0.2)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 5,
+                            pointBackgroundColor: 'rgba(234, 88, 12, 1)',
+                            yAxisID: 'y',
+                            order: 1
+                        },
+                        {
+                            label: '慢充 (槍)',
+                            data: slowCharge,
+                            borderColor: 'rgba(6, 182, 212, 1)',
+                            backgroundColor: 'rgba(6, 182, 212, 0.7)',
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 5,
+                            pointBackgroundColor: 'rgba(6, 182, 212, 1)',
+                            yAxisID: 'y',
+                            order: 2
+                        },
+                        {
+                            label: '快充 (槍)',
+                            data: fastCharge,
+                            borderColor: 'rgba(168, 85, 247, 1)',
+                            backgroundColor: 'rgba(168, 85, 247, 0.7)',
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 5,
+                            pointBackgroundColor: 'rgba(168, 85, 247, 1)',
+                            yAxisID: 'y',
+                            order: 3
+                        },
+                        {
+                            label: '車樁比 (Car-to-Pile Ratio)',
+                            data: carToPileRatio,
+                            borderColor: 'rgba(255, 193, 7, 1)',
+                            backgroundColor: 'rgba(255, 193, 7, 0.7)',
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 5,
+                            pointBackgroundColor: 'rgba(255, 193, 7, 1)',
+                            yAxisID: 'y1',
+                            order: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '充電樁統計及未來預估 (2018-2030)',
+                            font: {
+                                size: 18,
+                                weight: 'bold'
+                            },
+                            color: '#333'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        if (context.dataset.label === '車樁比 (Car-to-Pile Ratio)') {
+                                            label += context.parsed.y.toFixed(2);
+                                        } else {
+                                            label += context.parsed.y.toLocaleString();
+                                        }
+                                    }
+                                    return label;
+                                }
+                            }
+                        },
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '年份',
+                                font: {
+                                    size: 14
+                                },
+                                color: '#555'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: '數量 (槍)',
+                                font: {
+                                    size: 14
+                                },
+                                color: '#555'
+                            },
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString();
+                                }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: '車樁比',
+                                font: {
+                                    size: 14
+                                },
+                                color: '#555'
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            },
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toFixed(1);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 頁面載入時初始化數據的總函數
+        function initializeDataOnLoad() {
+            // Load from localStorage or use initial data
+            // Create a deep copy of initial data to ensure it's truly independent
+            evData = JSON.parse(localStorage.getItem('evData')) || JSON.parse(JSON.stringify(initialEvData));
+            chargingData = JSON.parse(localStorage.getItem('chargingData')) || JSON.parse(JSON.stringify(initialChargingData));
+
+            // Ensure 2018 is base
+            if (evData.length > 0) {
+                evData[0].annualNew = evData[0].cumulative;
+                evData[0].growthRate = 0;
+            }
+
+            // Recalculate all EV data based on the defined logic:
+            // For 2019-2024 (historical data): annualNew and growthRate derived from cumulative
+            // For 2025-2030 (forecast data): annualNew and cumulative derived from growthRate
+            for (let i = 1; i < evData.length; i++) {
+                const yearNum = parseInt(evData[i].year);
+                
+                if (yearNum <= 2024) { // Historical data: cumulative is primary
+                    const currentCumulative = evData[i].cumulative;
+                    const prevCumulative = evData[i - 1].cumulative;
+                    evData[i].annualNew = currentCumulative - prevCumulative;
+
+                    const currentAnnualNew = evData[i].annualNew;
+                    const prevAnnualNew = evData[i - 1].annualNew;
+
+                    if (prevAnnualNew > 0) {
+                        evData[i].growthRate = parseFloat((((currentAnnualNew - prevAnnualNew) / prevAnnualNew) * 100).toFixed(0));
+                    } else if (currentAnnualNew > 0) {
+                        evData[i].growthRate = 100;
+                    } else {
+                        evData[i].growthRate = 0;
+                    }
+                } else { // Forecast data (2025+): growthRate is primary input
+                    // Use the existing growthRate from evData (which came from localStorage or initialEvData)
+                    // and calculate annualNew and cumulative based on it.
+                    const prevAnnualNew = evData[i - 1].annualNew || 0;
+                    const currentGrowthRate = parseFloat(evData[i].growthRate) || 0; // Use existing growthRate for forecast
+                    evData[i].annualNew = Math.round(prevAnnualNew * (1 + currentGrowthRate / 100));
+                    evData[i].cumulative = evData[i-1].cumulative + evData[i].annualNew;
+                }
+            }
+
+            // Recalculate charging ratios based on the finalized EV data
+            recalculateChargingRatios();
+        }
+
+
+        // --- 模態框操作函數 ---
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+        }
+
+        function hideModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        // 匯出模態框
+        function showExportModal() {
+            const modal = document.getElementById('exportModal');
+            const loader = document.getElementById('loader');
+            const message = document.getElementById('modalMessage');
+            const modalContent = modal.querySelector('.modal-content'); // Get the content area to append links
+
+            loader.classList.add('show');
+            message.textContent = '正在準備匯出資料...';
+            message.classList.remove('text-gray-700', 'text-green-600', 'text-red-600');
+            message.classList.add('text-blue-600');
+
+            // Clear any previous download links
+            let downloadLinksContainer = document.getElementById('downloadLinksContainer');
+            if (!downloadLinksContainer) {
+                downloadLinksContainer = document.createElement('div');
+                downloadLinksContainer.id = 'downloadLinksContainer';
+                downloadLinksContainer.className = 'mt-4 flex flex-col gap-2';
+                modalContent.appendChild(downloadLinksContainer);
+            }
+            downloadLinksContainer.innerHTML = ''; // Clear previous links
+
+            showModal('exportModal');
+
+            setTimeout(() => {
+                try {
+                    // --- CSV Export ---
+                    // Ensure numbers are not locale-formatted for CSV
+                    const csvEvData = evData.map(e => `${e.year},${e.cumulative},${e.annualNew},${e.growthRate}`);
+                    const csvChargingData = chargingData.map(c => `${c.year},${c.totalPiles},${c.slowCharge},${c.fastCharge},${c.carToPileRatio.toFixed(2)}`); // Apply toFixed for ratio
+
+                    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" // Add BOM for Chinese characters
+                        + "年度,累計掛牌數(輛),年度新掛牌數(輛),年增率(%)\n"
+                        + csvEvData.join("\n")
+                        + "\n\n年份,公共充電樁總數(槍),慢充(槍),快充(槍),車樁比\n"
+                        + csvChargingData.join("\n");
+                    
+                    const encodedUri = encodeURI(csvContent);
+                    const linkCsv = document.createElement("a");
+                    linkCsv.setAttribute("href", encodedUri);
+                    linkCsv.setAttribute("download", "電動車_充電樁統計及預估數據.csv");
+                    linkCsv.className = 'btn bg-blue-500 hover:bg-blue-600';
+                    linkCsv.textContent = '下載電動車/充電樁數據 (CSV)';
+                    downloadLinksContainer.appendChild(linkCsv);
+                    // Trigger download immediately for CSV
+                    linkCsv.click();
+
+                    // --- Chart Image Export ---
+                    const chartsToExport = [
+                        { id: 'evRegistrationsChart', name: '電動車掛牌數圖表' },
+                        { id: 'chargingPilesChart', name: '充電樁統計圖表' }
+                    ];
+
+                    chartsToExport.forEach(chartInfo => {
+                        const canvas = document.getElementById(chartInfo.id);
+                        if (canvas) {
+                            const imgDataUrl = canvas.toDataURL('image/png');
+                            const linkImg = document.createElement("a");
+                            linkImg.setAttribute("href", imgDataUrl);
+                            linkImg.setAttribute("download", `${chartInfo.name}.png`);
+                            linkImg.className = 'btn bg-purple-500 hover:bg-purple-600';
+                            linkImg.textContent = `下載 ${chartInfo.name} (PNG)`;
+                            downloadLinksContainer.appendChild(linkImg);
+                            // Trigger download immediately for images too
+                            linkImg.click();
+                        }
+                    });
+
+                    loader.classList.remove('show');
+                    message.textContent = '資料和圖表已準備好下載！請檢查您的下載項目。';
+                    message.classList.remove('text-blue-600', 'text-red-600');
+                    message.classList.add('text-green-600');
+
+                } catch (error) {
+                    loader.classList.remove('show');
+                    message.textContent = '匯出失敗：' + error.message + '。請確認瀏覽器允許多個檔案下載。';
+                    message.classList.remove('text-blue-600', 'text-green-600');
+                    message.classList.add('text-red-600');
+                    console.error('Export failed:', error);
+                }
+                // Do NOT automatically hide the modal. User will close with 'x' button.
+            }, 2000); // Simulate 2 seconds of processing
+        }
+
+        function hideExportModal() {
+            hideModal('exportModal');
+            const message = document.getElementById('modalMessage');
+            message.classList.remove('text-green-600', 'text-red-600', 'text-blue-600');
+            message.classList.add('text-gray-700');
+            // Clear download links when modal is hidden
+            const downloadLinksContainer = document.getElementById('downloadLinksContainer');
+            if (downloadLinksContainer) {
+                downloadLinksContainer.innerHTML = '';
+            }
+        }
+
+        // 密碼模態框
+        function showPasswordModal(tableType) {
+            currentTableType = tableType;
+            document.getElementById('passwordInput').value = ''; // 清空密碼輸入框
+            document.getElementById('passwordError').classList.add('hidden'); // 隱藏錯誤訊息
+            showModal('passwordModal');
+            document.getElementById('passwordInput').focus(); // 自動聚焦密碼輸入框
+        }
+
+        function hidePasswordModal() {
+            hideModal('passwordModal');
+        }
+
+        function authenticatePassword() {
+            const passwordInput = document.getElementById('passwordInput');
+            const passwordError = document.getElementById('passwordError');
+
+            if (passwordInput.value === currentPassword) {
+                hidePasswordModal();
+                showEditModal(currentTableType);
+            } else {
+                passwordError.classList.remove('hidden');
+            }
+        }
+
+        // 編輯模態框
+        function showEditModal(tableType) {
+            const editModalTitle = document.getElementById('editModalTitle');
+            const editTableHeaders = document.getElementById('editTableHeaders');
+            const editTableBody = document.getElementById('editTableBody');
+            editTableBody.innerHTML = ''; // 清空舊數據
+
+            // Deep copy current data before editing
+            tempEvData = JSON.parse(JSON.stringify(evData));
+            tempChargingData = JSON.parse(JSON.stringify(chargingData));
+
+            // 隱藏密碼更改訊息
+            document.getElementById('passwordChangeError').classList.add('hidden');
+            document.getElementById('passwordChangeSuccess').classList.add('hidden');
+            document.getElementById('newPasswordInput').value = '';
+            document.getElementById('confirmNewPasswordInput').value = '';
+
+
+            if (tableType === 'ev') {
+                editModalTitle.textContent = '編輯台灣電動車掛牌數數據';
+                editTableHeaders.innerHTML = `
+                    <th>年度 (YEAR)</th>
+                    <th>累計掛牌數 (輛) (CUMULATIVE REGISTRATIONS)</th>
+                    <th>年度新掛牌數 (輛) (ANNUAL NEW REGISTRATIONS)</th>
+                    <th>年增率 (%) (ANNUAL GROWTH RATE)</th>
+                `;
+                evData.forEach((row, index) => {
+                    const tr = document.createElement('tr');
+                    const yearNum = parseInt(row.year);
+                    // 檢查是否為 2025 年，如果是則添加高亮類
+                    const highlightClass = (row.year === '2025') ? 'highlight-2025' : ''; // 重新應用 highlight-2025
+                    
+                    // Cumulative is always non-editable now, and now also has data-display-cell
+                    let cumulativeCell = `<td class="${highlightClass} non-editable-cell data-display-cell" data-field="cumulative" data-index="${index}">${row.cumulative.toLocaleString()}</td>`;
+                    
+                    // Annual New is editable for 2025+
+                    let annualNewCell = `<td class="${highlightClass} ${yearNum >= 2025 ? '' : 'non-editable-cell'}" ${yearNum >= 2025 ? 'contenteditable="true"' : ''} data-field="annualNew" data-index="${index}">${row.annualNew.toLocaleString()}</td>`;
+                    
+                    // Growth Rate is editable for 2025+
+                    let growthRateCell = `<td class="${highlightClass} ${yearNum >= 2025 ? '' : 'non-editable-cell'}" ${yearNum >= 2025 ? 'contenteditable="true"' : ''} data-field="growthRate" data-index="${index}">${row.growthRate}%</td>`;
+
+                    tr.innerHTML = `
+                        <td class="${highlightClass} non-editable-cell">${row.year}</td>
+                        ${cumulativeCell}
+                        ${annualNewCell}
+                        ${growthRateCell}
+                    `;
+                    editTableBody.appendChild(tr);
+                });
+            } else if (tableType === 'charging') {
+                editModalTitle.textContent = '編輯充電樁統計數據';
+                editTableHeaders.innerHTML = `
+                    <th>年份 (Year)</th>
+                    <th>公共充電樁總數 (槍) (Total Piles)</th>
+                    <th>慢充 (槍) (Slow Charge)</th>
+                    <th>快充 (槍) (Fast Charge)</th>
+                    <th>車樁比 (Car-to-Pile Ratio)</th>
+                `;
+                chargingData.forEach((row, index) => {
+                    const tr = document.createElement('tr');
+                    const yearNum = parseInt(row.year.split(' ')[0]); // Extract year number from "YYYY (預估)"
+                    const isEditable = yearNum >= 2025; // 2025年及以後可編輯
+
+                    // 檢查是否為 2025 年，如果是則添加高亮類
+                    const highlightClass = (row.year.includes('2025')) ? 'highlight-2025' : ''; // 重新應用 highlight-2025
+
+                    let slowChargeCell = `<td class="${highlightClass} ${isEditable ? '' : 'non-editable-cell'}" ${isEditable ? 'contenteditable="true"' : ''} data-field="slowCharge" data-index="${index}">${row.slowCharge.toLocaleString()}</td>`;
+                    let fastChargeCell = `<td class="${highlightClass} ${isEditable ? '' : 'non-editable-cell'}" ${isEditable ? 'contenteditable="true"' : ''} data-field="fastCharge" data-index="${index}">${row.fastCharge.toLocaleString()}</td>`;
+
+                    tr.innerHTML = `
+                        <td class="${highlightClass} non-editable-cell">${row.year}</td>
+                        <td class="${highlightClass} non-editable-cell data-display-cell" data-field="totalPiles" data-index="${index}">${row.totalPiles.toLocaleString()}</td> <!-- Added data-field and data-display-cell -->
+                        ${slowChargeCell}
+                        ${fastChargeCell}
+                        <td class="${highlightClass} non-editable-cell" data-field="carToPileRatio" data-index="${index}">${row.carToPileRatio.toFixed(2)}</td> <!-- Added data-field -->
+                    `;
+                    editTableBody.appendChild(tr);
+                });
+            }
+            showModal('editModal');
+
+            // Add focus and blur event listeners to editable cells for mutual exclusivity and immediate formatting/calculation
+            const editableCells = editTableBody.querySelectorAll('td[contenteditable="true"]');
+            editableCells.forEach(cell => {
+                cell.addEventListener('focus', function() {
+                    const row = this.closest('tr');
+                    const yearNum = parseInt(row.querySelector('td:first-child').innerText);
+                    if (currentTableType === 'ev' && yearNum >= 2025) { // Only apply exclusivity for editable years
+                        const annualNewCell = row.querySelector('td[data-field="annualNew"]');
+                        const growthRateCell = row.querySelector('td[data-field="growthRate"]');
+                        
+                        if (this.dataset.field === 'annualNew') {
+                            if (growthRateCell) {
+                                growthRateCell.contentEditable = 'false';
+                                growthRateCell.classList.add('non-editable-cell');
+                            }
+                        } else if (this.dataset.field === 'growthRate') {
+                            if (annualNewCell) {
+                                annualNewCell.contentEditable = 'false';
+                                annualNewCell.classList.add('non-editable-cell');
+                            }
+                        }
+                    }
+                });
+
+                cell.addEventListener('blur', function() {
+                    const field = this.dataset.field;
+                    const index = parseInt(this.dataset.index);
+                    let value = this.innerText.replace(/,/g, '').replace('%', ''); // Remove commas and %
+
+                    if (currentTableType === 'ev') {
+                        const row = this.closest('tr');
+                        const yearNum = parseInt(evData[index].year); // Get year from data model
+                        const isRowEditable = yearNum >= 2025;
+
+                        const annualNewCell = row.querySelector('td[data-field="annualNew"]');
+                        const growthRateCell = row.querySelector('td[data-field="growthRate"]');
+                        const cumulativeCell = row.querySelector('td[data-field="cumulative"]'); 
+
+                        if (field === 'annualNew') {
+                            let numValue = parseInt(value);
+                            if (isNaN(numValue)) numValue = 0;
+                            evData[index].annualNew = numValue;
+                            this.innerText = numValue.toLocaleString(); // Format immediately
+
+                            // Recalculate current row's cumulative and growthRate
+                            const prevCumulative = index > 0 ? evData[index-1].cumulative : 0;
+                            evData[index].cumulative = prevCumulative + evData[index].annualNew;
+
+                            const currentAnnualNewLocal = evData[index].annualNew; // Correctly define locally
+                            const prevAnnualNewLocal = index > 0 ? evData[index-1].annualNew : 0; // Correctly define locally
+
+                            if (prevAnnualNewLocal > 0) {
+                                evData[index].growthRate = parseFloat((((currentAnnualNewLocal - prevAnnualNewLocal) / prevAnnualNewLocal) * 100).toFixed(0));
+                            } else if (currentAnnualNewLocal > 0) {
+                                evData[index].growthRate = 100; // If prev is 0 but current is >0, it's 100% growth
+                            } else {
+                                evData[index].growthRate = 0;
+                            }
+
+                            // Update current row's display in modal
+                            if (cumulativeCell) cumulativeCell.innerText = evData[index].cumulative.toLocaleString();
+                            if (growthRateCell) growthRateCell.innerText = evData[index].growthRate.toLocaleString() + '%';
+
+                            // Propagate changes downwards from the next year using existing growth rates
+                            for (let i = index + 1; i < evData.length; i++) {
+                                const prevAnnualNewProp = evData[i - 1].annualNew || 0;
+                                const currentGrowthRateProp = parseFloat(evData[i].growthRate) || 0; // Use existing growth rate
+                                evData[i].annualNew = Math.round(prevAnnualNewProp * (1 + currentGrowthRateProp / 100));
+                                evData[i].cumulative = evData[i-1].cumulative + evData[i].annualNew;
+
+                                // Update display for affected rows in modal
+                                const affectedRowInModal = document.getElementById('editTableBody').getElementsByTagName('tr')[i];
+                                if (affectedRowInModal) {
+                                    affectedRowInModal.querySelector('td[data-field="cumulative"]').innerText = evData[i].cumulative.toLocaleString();
+                                    affectedRowInModal.querySelector('td[data-field="annualNew"]').innerText = evData[i].annualNew.toLocaleString();
+                                    // No need to update growthRate display for subsequent rows as they are input-driven
+                                }
+                            }
+
+                        } else if (field === 'growthRate') {
+                            let numValue = parseFloat(value);
+                            if (isNaN(numValue)) numValue = 0;
+                            evData[index].growthRate = numValue;
+                            this.innerText = numValue.toLocaleString() + '%'; // Format immediately
+
+                            // Recalculate from current row downwards based on new growthRate
+                            recalculateEvDataFromGrowthRates(index); // Call with starting index
+
+                            // Update the displayed values in the current edit modal table for all affected rows
+                            const allRowsInModal = document.getElementById('editTableBody').getElementsByTagName('tr');
+                            for (let i = index; i < evData.length; i++) {
+                                const currentRowInModal = allRowsInModal[i];
+                                if (currentRowInModal) {
+                                    currentRowInModal.querySelector('td[data-field="cumulative"]').innerText = evData[i].cumulative.toLocaleString();
+                                    currentRowInModal.querySelector('td[data-field="annualNew"]').innerText = evData[i].annualNew.toLocaleString();
+                                    // growthRate cell is already updated by this.innerText for the current row.
+                                    // For subsequent rows, growthRate is input, so no need to update its display here.
+                                }
+                            }
+                        }
+
+                        // Re-enable the other cell after blur, if the row is editable
+                        if (yearNum >= 2025) { // Check if the year is 2025 or later
+                            if (annualNewCell) {
+                                annualNewCell.contentEditable = 'true';
+                                annualNewCell.classList.remove('non-editable-cell');
+                            }
+                            if (growthRateCell) {
+                                growthRateCell.contentEditable = 'true';
+                                growthRateCell.classList.remove('non-editable-cell');
+                            }
+                        }
+                        // Recalculate charging ratios because EV data has changed
+                        recalculateChargingRatios();
+
+                    } else if (currentTableType === 'charging') {
+                        let numValue = parseInt(value);
+                        if (isNaN(numValue)) numValue = 0;
+                        chargingData[index][field] = numValue;
+                        
+                        chargingData[index].totalPiles = chargingData[index].slowCharge + chargingData[index].fastCharge;
+                        recalculateChargingRatios();
+
+                        const currentRow = this.closest('tr');
+                        const totalPilesCell = currentRow.querySelector('td[data-field="totalPiles"]');
+                        const carToPileRatioCell = currentRow.querySelector('td[data-field="carToPileRatio"]');
+                        
+                        this.innerText = numValue.toLocaleString();
+                        if (totalPilesCell) totalPilesCell.innerText = chargingData[index].totalPiles.toLocaleString();
+                        if (carToPileRatioCell) carToPileRatioCell.innerText = chargingData[index].carToPileRatio.toFixed(2);
+                    }
+                });
+            });
+        }
+
+        // 新增一個函數來處理取消編輯並還原數據
+        function cancelEditChanges() {
+            // Revert data to the state before editing
+            evData = JSON.parse(JSON.stringify(tempEvData));
+            chargingData = JSON.parse(JSON.stringify(tempChargingData));
+
+            // Re-populate main tables and charts with the reverted data
+            populateTables();
+            renderEvRegistrationsChart();
+            renderChargingPilesChart();
+
+            hideModal('editModal'); // Call the generic hide utility
+        }
+
+        function saveChanges() {
+            // The data (evData and chargingData) is already updated by the blur event listeners.
+            // This function primarily saves to localStorage and refreshes the main display.
+
+            if (currentTableType === 'ev') {
+                localStorage.setItem('evData', JSON.stringify(evData));
+            } else if (currentTableType === 'charging') {
+                localStorage.setItem('chargingData', JSON.stringify(chargingData));
+            }
+
+            populateTables(); // Refresh with the *current* (saved) data
+            renderEvRegistrationsChart();
+            renderChargingPilesChart();
+            hideModal('editModal'); // Call the generic hide utility, do NOT revert data here
+        }
+
+        // 更改密碼功能
+        function changePassword() {
+            const newPass = document.getElementById('newPasswordInput').value;
+            const confirmNewPass = document.getElementById('confirmNewPasswordInput').value;
+            const errorMsg = document.getElementById('passwordChangeError');
+            const successMsg = document.getElementById('passwordChangeSuccess');
+
+            errorMsg.classList.add('hidden');
+            successMsg.classList.add('hidden');
+
+            if (newPass.length < 4 || newPass !== confirmNewPass) {
+                errorMsg.classList.remove('hidden');
+                errorMsg.textContent = '密碼長度至少4位且兩次輸入必須一致。';
+                return;
+            }
+
+            currentPassword = newPass;
+            localStorage.setItem('adminPassword', newPass);
+            successMsg.classList.remove('hidden');
+            successMsg.textContent = '密碼已成功更改！';
+            document.getElementById('newPasswordInput').value = '';
+            document.getElementById('confirmNewPasswordInput').value = '';
+        }
+
+        // 在 DOMContentLoaded 事件觸發後執行初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 首次載入時，先根據累計掛牌數校正年度新掛牌數和年增率
+            initializeDataOnLoad(); // Call the unified initialization function
+
+            populateTables(); // 首次載入時填充表格
+            renderEvRegistrationsChart();
+            renderChargingPilesChart();
+
+            // 為密碼輸入框添加 Enter 鍵事件監聽
+            document.getElementById('passwordInput').addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault(); // 防止表單提交或其他預設行為
+                    authenticatePassword();
+                }
+            });
+
+            // 為編輯模態框中的可編輯單元格添加 Enter 鍵事件監聽
+            document.getElementById('editModal').addEventListener('keydown', function(event) {
+                // 檢查事件來源是否為可編輯的 td 元素
+                if (event.key === 'Enter' && event.target.closest('td[contenteditable="true"]')) {
+                    event.preventDefault(); // 阻止預設的換行行為
+                    event.target.blur(); // 使當前編輯的單元格失去焦點
+                }
+            });
+
+            // 為文檔添加 ESC 鍵事件監聽，用於關閉編輯模態框或取消單元格編輯
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape') {
+                    const editModal = document.getElementById('editModal');
+                    if (editModal.classList.contains('show')) {
+                        const activeElement = document.activeElement;
+                        // Check if the currently focused element is an editable cell within the modal
+                        if (activeElement && activeElement.closest('#editModal') === editModal && activeElement.getAttribute('contenteditable') === 'true') {
+                            // If an editable cell is focused, just unfocus it (blur)
+                            activeElement.blur();
+                            // No need to prevent default here, as saveChanges will handle closing
+                        }
+                        // Always save changes and close the modal when ESC is pressed in edit mode
+                        saveChanges(); // This will save data and hide the modal
+                        event.preventDefault(); // Prevent default ESC behavior
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
