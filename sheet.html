@@ -33,6 +33,10 @@
             font-weight: 600; /* 加粗字體 */
             /* white-space: nowrap; /* 確保表頭文字不換行 - 已移除 */
         }
+        .english-small-text {
+            font-size: 0.8em; /* 讓英文字母更小 */
+            font-weight: normal; /* 讓英文字母不那麼粗體 */
+        }
         tr:nth-child(even) {
             background-color: #f8fafc; /* 斑馬紋效果 - 淺藍白 */
         }
@@ -252,18 +256,18 @@
 </head>
 <body class="p-4 sm:p-8 md:p-12 lg:p-16">
     <div class="max-w-6xl mx-auto bg-white p-6 sm:p-8 md:p-10 rounded-xl shadow-lg">
-        <h1 class="text-3xl sm:text-4xl font-bold text-center text-gray-800 mb-8">電動車&充電樁統計及預估<span class="text-xl sm:text-2xl">(2018-2030)</span></h1>
+        <h1 class="text-3xl sm:text-4xl font-bold text-center text-gray-800 mb-8">電動車&充電樁統計及預估<span class="text-lg sm:text-xl">(2018-2030)</span></h1>
 
         <div class="mb-8">
-            <h2 class="text-xl sm:text-2xl font-semibold text-gray-700 mb-2">台灣電動車掛牌數統計及未來預估 (2018-2030)</h2>
+            <h2 class="text-lg sm:text-xl font-semibold text-gray-700 mb-2 text-center">台灣電動車掛牌數統計及未來預估 (2018-2030)</h2>
             <div class="overflow-x-auto rounded-xl">
                 <table id="ev-registrations-table">
                     <thead>
                         <tr>
-                            <th>年度 (YEAR)</th>
-                            <th>累計掛牌數 (輛) (CUMULATIVE REGISTRATIONS)</th>
-                            <th>年度新掛牌數 (輛) (ANNUAL NEW REGISTRATIONS)</th>
-                            <th>年增率 (%) (ANNUAL GROWTH RATE)</th>
+                            <th>年度 <span class="english-small-text">(YEAR)</span></th>
+                            <th>累計掛牌數 (輛) <span class="english-small-text">(CUMULATIVE REGISTRATIONS)</span></th>
+                            <th>年度新掛牌數 (輛) <span class="english-small-text">(ANNUAL NEW REGISTRATIONS)</span></th>
+                            <th>年增率 (%) <span class="english-small-text">(ANNUAL GROWTH RATE)</span></th>
                         </tr>
                     </thead>
                     <tbody id="ev-registrations-table-body">
@@ -283,17 +287,17 @@
             </div>
         </div>
 
-        <div class="mb-12">
-            <h2 class="text-2xl sm:text-3xl font-semibold text-gray-700 mb-4">充電樁統計及未來預估 (2018-2030)</h2>
+        <div class="mb-12 mt-8"> <!-- Added mt-8 here -->
+            <h2 class="text-lg sm:text-xl font-semibold text-gray-700 mb-4 text-center">充電樁統計及未來預估 (2018-2030)</h2>
             <div class="overflow-x-auto rounded-xl">
                 <table id="charging-piles-table">
                     <thead>
                         <tr>
-                            <th>年份 (Year)</th>
-                            <th>公共充電樁總數 (槍) (Total Piles)</th>
-                            <th>慢充 (槍) (Slow Charge)</th>
-                            <th>快充 (槍) (Fast Charge)</th>
-                            <th>車樁比 (Car-to-Pile Ratio)</th>
+                            <th>年份 <span class="english-small-text">(Year)</span></th>
+                            <th>公共充電樁總數 (槍) <span class="english-small-text">(Total Piles)</span></th>
+                            <th>慢充 (槍) <span class="english-small-text">(Slow Charge)</span></th>
+                            <th>快充 (槍) <span class="english-small-text">(Fast Charge)</span></th>
+                            <th>車樁比 <span class="english-small-text">(Car-to-Pile Ratio)</span></th>
                         </tr>
                     </thead>
                     <tbody id="charging-piles-table-body">
@@ -389,11 +393,11 @@
             { year: '2023', cumulative: 58011, annualNew: 24706, growthRate: 53 },
             { year: '2024', cumulative: 95707, annualNew: 37696, growthRate: 53 },
             { year: '2025', cumulative: 150357, annualNew: 54650, growthRate: 45 },
-            { year: '2026', cumulative: 233053, annualNew: 82696, growthRate: 55 },
-            { year: '2027', cumulative: 344918, annualNew: 111865, growthRate: 48 },
-            { year: '2028', cumulative: 482885, annualNew: 137967, growthRate: 40 },
-            { year: '2029', cumulative: 627751, annualNew: 144866, growthRate: 30 },
-            { year: '2030', cumulative: 721914, annualNew: 94163, growthRate: 15 }
+            { year: '2026 (預估)', cumulative: 233053, annualNew: 82696, growthRate: 55 },
+            { year: '2027 (預估)', cumulative: 344918, annualNew: 111865, growthRate: 48 },
+            { year: '2028 (預估)', cumulative: 482885, annualNew: 137967, growthRate: 40 },
+            { year: '2029 (預估)', cumulative: 627751, annualNew: 144866, growthRate: 30 },
+            { year: '2030 (預估)', cumulative: 721914, annualNew: 94163, growthRate: 15 }
         ];
 
         let initialChargingData = [
@@ -404,7 +408,7 @@
             { year: '2022', totalPiles: 5000, slowCharge: 3400, fastCharge: 1600, carToPileRatio: 8.00 },
             { year: '2023', totalPiles: 7000, slowCharge: 4500, fastCharge: 2500, carToPileRatio: 10.00 },
             { year: '2024', totalPiles: 10086, slowCharge: 7681, fastCharge: 2405, carToPileRatio: 9.55 },
-            { year: '2025 (預估)', totalPiles: 10838, slowCharge: 7735, fastCharge: 3103, carToPileRatio: 13.84 },
+            { year: '2025', totalPiles: 10838, slowCharge: 7735, fastCharge: 3103, carToPileRatio: 13.84 },
             { year: '2026 (預估)', totalPiles: 20000, slowCharge: 15000, fastCharge: 5000, carToPileRatio: 12.50 },
             { year: '2027 (預估)', totalPiles: 40000, slowCharge: 30000, fastCharge: 10000, carToPileRatio: 10.00 },
             { year: '2028 (預估)', totalPiles: 70000, slowCharge: 50000, fastCharge: 20000, carToPileRatio: 8.57 },
@@ -412,7 +416,7 @@
             { year: '2030 (預估)', totalPiles: 150000, slowCharge: 120000, fastCharge: 30000, carToPileRatio: 8.00 }
         ];
 
-        // 從 localStorage 加載數據，如果沒有則使用初始數據
+        // 從 localStorage 加載數據，如果沒有則使用這些）
         let evData = [];
         let chargingData = [];
         let currentPassword = localStorage.getItem('adminPassword') || '0000'; // 預設密碼
@@ -467,7 +471,11 @@
         function recalculateChargingRatios() {
             for (let i = 0; i < chargingData.length; i++) {
                 // 獲取對應年份的電動車累計掛牌數
-                const evCumulative = evData[i] ? evData[i].cumulative : 0;
+                // Parse year from chargingData.year to match evData.year for comparison
+                const chargingYear = parseInt(chargingData[i].year.split(' ')[0]);
+                const evRow = evData.find(row => parseInt(row.year.split(' ')[0]) === chargingYear); // Also parse evData.year for comparison
+                const evCumulative = evRow ? evRow.cumulative : 0;
+
                 const totalPiles = chargingData[i].totalPiles;
                 if (totalPiles > 0) {
                     chargingData[i].carToPileRatio = (evCumulative / totalPiles);
@@ -484,7 +492,7 @@
             evData.forEach(row => {
                 const tr = document.createElement('tr');
                 // 檢查是否為 2025 年，如果是則添加高亮類
-                const highlightClass = (row.year === '2025') ? 'highlight-2025' : ''; // 重新應用 highlight-2025
+                const highlightClass = (row.year === '2025') ? 'highlight-2025' : ''; // 精確匹配 '2025'
                 tr.innerHTML = `
                     <td class="${highlightClass}">${row.year}</td>
                     <td class="${highlightClass} data-display-cell">${row.cumulative.toLocaleString()}</td>
@@ -499,7 +507,7 @@
             chargingData.forEach(row => {
                 const tr = document.createElement('tr');
                 // 檢查是否為 2025 年，如果是則添加高亮類
-                const highlightClass = (row.year.includes('2025')) ? 'highlight-2025' : ''; // 重新應用 highlight-2025
+                const highlightClass = (row.year === '2025') ? 'highlight-2025' : ''; // 精確匹配 '2025'
                 tr.innerHTML = `
                     <td class="${highlightClass}">${row.year}</td>
                     <td class="${highlightClass} data-display-cell">${row.totalPiles.toLocaleString()}</td>
@@ -845,7 +853,7 @@
             // For 2019-2024 (historical data): annualNew and growthRate derived from cumulative
             // For 2025-2030 (forecast data): annualNew and cumulative derived from growthRate
             for (let i = 1; i < evData.length; i++) {
-                const yearNum = parseInt(evData[i].year);
+                const yearNum = parseInt(evData[i].year.split(' ')[0]); // Parse year number correctly
                 
                 if (yearNum <= 2024) { // Historical data: cumulative is primary
                     const currentCumulative = evData[i].cumulative;
@@ -1028,16 +1036,16 @@
             if (tableType === 'ev') {
                 editModalTitle.textContent = '編輯台灣電動車掛牌數數據';
                 editTableHeaders.innerHTML = `
-                    <th>年度 (YEAR)</th>
-                    <th>累計掛牌數 (輛) (CUMULATIVE REGISTRATIONS)</th>
-                    <th>年度新掛牌數 (輛) (ANNUAL NEW REGISTRATIONS)</th>
-                    <th>年增率 (%) (ANNUAL GROWTH RATE)</th>
+                    <th>年度 <span class="english-small-text">(YEAR)</span></th>
+                    <th>累計掛牌數 (輛) <span class="english-small-text">(CUMULATIVE REGISTRATIONS)</span></th>
+                    <th>年度新掛牌數 (輛) <span class="english-small-text">(ANNUAL NEW REGISTRATIONS)</span></th>
+                    <th>年增率 (%) <span class="english-small-text">(ANNUAL GROWTH RATE)</span></th>
                 `;
                 evData.forEach((row, index) => {
                     const tr = document.createElement('tr');
-                    const yearNum = parseInt(row.year);
+                    const yearNum = parseInt(row.year.split(' ')[0]); // Parse year number correctly
                     // 檢查是否為 2025 年，如果是則添加高亮類
-                    const highlightClass = (row.year === '2025') ? 'highlight-2025' : ''; // 重新應用 highlight-2025
+                    const highlightClass = (row.year === '2025') ? 'highlight-2025' : ''; // 精確匹配 '2025'
                     
                     // Cumulative is always non-editable now, and now also has data-display-cell
                     let cumulativeCell = `<td class="${highlightClass} non-editable-cell data-display-cell" data-field="cumulative" data-index="${index}">${row.cumulative.toLocaleString()}</td>`;
@@ -1059,11 +1067,11 @@
             } else if (tableType === 'charging') {
                 editModalTitle.textContent = '編輯充電樁統計數據';
                 editTableHeaders.innerHTML = `
-                    <th>年份 (Year)</th>
-                    <th>公共充電樁總數 (槍) (Total Piles)</th>
-                    <th>慢充 (槍) (Slow Charge)</th>
-                    <th>快充 (槍) (Fast Charge)</th>
-                    <th>車樁比 (Car-to-Pile Ratio)</th>
+                    <th>年份 <span class="english-small-text">(Year)</span></th>
+                    <th>公共充電樁總數 (槍) <span class="english-small-text">(Total Piles)</span></th>
+                    <th>慢充 (槍) <span class="english-small-text">(Slow Charge)</span></th>
+                    <th>快充 (槍) <span class="english-small-text">(Fast Charge)</span></th>
+                    <th>車樁比 <span class="english-small-text">(Car-to-Pile Ratio)</span></th>
                 `;
                 chargingData.forEach((row, index) => {
                     const tr = document.createElement('tr');
@@ -1071,7 +1079,7 @@
                     const isEditable = yearNum >= 2025; // 2025年及以後可編輯
 
                     // 檢查是否為 2025 年，如果是則添加高亮類
-                    const highlightClass = (row.year.includes('2025')) ? 'highlight-2025' : ''; // 重新應用 highlight-2025
+                    const highlightClass = (row.year === '2025') ? 'highlight-2025' : ''; // 精確匹配 '2025'
 
                     let slowChargeCell = `<td class="${highlightClass} ${isEditable ? '' : 'non-editable-cell'}" ${isEditable ? 'contenteditable="true"' : ''} data-field="slowCharge" data-index="${index}">${row.slowCharge.toLocaleString()}</td>`;
                     let fastChargeCell = `<td class="${highlightClass} ${isEditable ? '' : 'non-editable-cell'}" ${isEditable ? 'contenteditable="true"' : ''} data-field="fastCharge" data-index="${index}">${row.fastCharge.toLocaleString()}</td>`;
@@ -1093,7 +1101,7 @@
             editableCells.forEach(cell => {
                 cell.addEventListener('focus', function() {
                     const row = this.closest('tr');
-                    const yearNum = parseInt(row.querySelector('td:first-child').innerText);
+                    const yearNum = parseInt(row.querySelector('td:first-child').innerText.split(' ')[0]); // Parse year number correctly
                     if (currentTableType === 'ev' && yearNum >= 2025) { // Only apply exclusivity for editable years
                         const annualNewCell = row.querySelector('td[data-field="annualNew"]');
                         const growthRateCell = row.querySelector('td[data-field="growthRate"]');
@@ -1119,7 +1127,7 @@
 
                     if (currentTableType === 'ev') {
                         const row = this.closest('tr');
-                        const yearNum = parseInt(evData[index].year); // Get year from data model
+                        const yearNum = parseInt(evData[index].year.split(' ')[0]); // Get year from data model, parse correctly
                         const isRowEditable = yearNum >= 2025;
 
                         const annualNewCell = row.querySelector('td[data-field="annualNew"]');
