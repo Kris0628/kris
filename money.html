@@ -147,7 +147,7 @@
         </div>
 
         <!-- 滾動觸發區塊 - 數據總覽 -->
-        <section id="section-overview" class="w-full max-w-6xl mx-auto py-24 min-h-screen flex flex-col justify-center items-center relative z-10">
+        <section id="section-overview" class="w-full max-w-6xl mx-auto py-24 min-h-screen flex flex-col justify-center items-center relative z-10 hidden">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
                 <!-- 核心數據卡片 1 -->
                 <div class="bento-item bg-gray-900/40 backdrop-blur-sm rounded-3xl p-8 shadow-lg relative overflow-hidden group">
@@ -194,7 +194,7 @@
         </section>
 
         <!-- 滾動觸發區塊 - 數據詳情與圖表 -->
-        <section id="section-details" class="w-full max-w-6xl mx-auto py-24 min-h-screen flex flex-col justify-center items-center relative z-10">
+        <section id="section-details" class="w-full max-w-6xl mx-auto py-24 min-h-screen flex flex-col justify-center items-center relative z-10 hidden">
             <h2 class="text-5xl md:text-6xl font-extrabold text-white mb-16 text-center bento-item">
                 <span class="text-cyan-400">詳細數據</span>分析
             </h2>
@@ -261,7 +261,7 @@
         </section>
 
         <!-- 滾動觸發區塊 - 總結與風險提示 -->
-        <section id="section-summary" class="w-full max-w-6xl mx-auto py-24 min-h-screen flex flex-col justify-center items-center relative z-10">
+        <section id="section-summary" class="w-full max-w-6xl mx-auto py-24 min-h-screen flex flex-col justify-center items-center relative z-10 hidden">
             <h2 class="text-5xl md:text-6xl font-extrabold text-white mb-16 text-center bento-item">
                 <span class="text-cyan-400">總結與</span>風險提示
             </h2>
@@ -575,22 +575,33 @@
             });
         }, observerOptions);
 
-        bentoItems.forEach(item => {
-            observer.observe(item);
+        // Event listener for the calculate button
+        document.getElementById('calculateBtn').addEventListener('click', () => {
+            updateDashboard(); // 計算並更新數據
+
+            // 顯示結果區塊
+            document.getElementById('section-overview').classList.remove('hidden');
+            document.getElementById('section-details').classList.remove('hidden');
+            document.getElementById('section-summary').classList.remove('hidden');
+
+            // 重新觀察 bento items 以觸發動畫
+            bentoItems.forEach(item => {
+                item.classList.remove('animate-in'); // 重置動畫狀態
+                observer.unobserve(item); // 停止舊的觀察
+                observer.observe(item); // 開始新的觀察
+            });
+
+            // 平滑滾動到結果區塊
+            document.getElementById('section-overview').scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
         });
 
-        // Event listener for the calculate button
-        document.getElementById('calculateBtn').addEventListener('click', updateDashboard);
-
-        // Initial update when the page loads
+        // Initial setup on page load: observe bento items for animation, but don't show results yet
         document.addEventListener('DOMContentLoaded', () => {
-            updateDashboard(); // Calculate and display initial values
-            // Initial check for elements already in view for animation
             bentoItems.forEach(item => {
-                if (item.getBoundingClientRect().top < window.innerHeight * 0.8) {
-                    item.classList.add('animate-in');
-                    observer.unobserve(item);
-                }
+                observer.observe(item); // 觀察所有 bento items，包括輸入區塊
             });
         });
     </script>
