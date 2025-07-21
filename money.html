@@ -97,7 +97,7 @@
         <!-- 主標題區塊 -->
         <div class="text-center mb-16 relative z-10">
             <h1 class="text-6xl md:text-8xl font-extrabold text-white leading-tight mb-4 animate-fade-in-up">
-                <span class="text-cyan-400">洞察</span>您的財務未來
+                <span class="text-cyan-400">洞察</span>您的財務計劃
             </h1>
             <p class="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto animate-fade-in-up delay-200">
                 Uncover the potential of your integrated investment strategy.
@@ -194,12 +194,12 @@
         <!-- 數據總覽區塊 -->
         <section id="section-overview" class="w-full max-w-6xl mx-auto py-24 min-h-screen flex flex-col justify-center items-center relative z-10 hidden">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
-                <!-- 核心數據卡片 1: 總投入資金 -->
+                <!-- 核心數據卡片 1: 總投入資金 / 房貸總額 -->
                 <div class="bento-item bg-gray-900/40 backdrop-blur-sm rounded-3xl p-8 shadow-lg relative overflow-hidden group">
                     <div class="absolute inset-0 gradient-overlay-cyan opacity-50 group-hover:opacity-100 transition-opacity duration-300"></div>
                     <div class="relative z-10">
-                        <h2 class="text-3xl font-bold mb-4 text-cyan-400">總投入資金</h2>
-                        <p class="text-gray-300 text-sm mb-6">Total Capital Deployed</p>
+                        <h2 class="text-3xl font-bold mb-4 text-cyan-400" id="card1Title">現金貸投資額</h2>
+                        <p class="text-gray-300 text-sm mb-6" id="card1Subtitle">Cash Loan Investment Amount</p>
                         <div class="text-6xl md:text-7xl font-extrabold text-white mb-4">
                             <span class="text-cyan-400" id="displayTotalCapital">700</span>萬
                         </div>
@@ -223,12 +223,12 @@
                     </div>
                 </div>
 
-                <!-- 核心數據卡片 3: 預估淨收益 (可隱藏) -->
+                <!-- 核心數據卡片 3: 試算期間年期投資報酬 (原預估淨收益) -->
                 <div id="overviewNetGainCard" class="bento-item bg-gray-900/40 backdrop-blur-sm rounded-3xl p-8 shadow-lg relative overflow-hidden group">
                     <div class="absolute inset-0 gradient-overlay-green opacity-50 group-hover:opacity-100 transition-opacity duration-300"></div>
                     <div class="relative z-10">
-                        <h2 class="text-3xl font-bold mb-4 text-green-400">預估淨收益</h2>
-                        <p class="text-gray-300 text-sm mb-6">Estimated Net Gain (<span id="displayPeriodNetGain">3</span> Years)</p>
+                        <h2 class="text-3xl font-bold mb-4 text-green-400" id="netGainOverallTitle">預估淨收益</h2>
+                        <p class="text-gray-300 text-sm mb-6" id="netGainOverallSubtitle">Estimated Net Gain (<span id="displayPeriodNetGain">3</span> Years)</p>
                         <div class="text-6xl md:text-7xl font-extrabold text-white mb-4">
                             <span class="text-green-400" id="displayNetGain">29.7</span>萬
                         </div>
@@ -245,12 +245,12 @@
             </h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
-                <!-- 左側：貸款成本分析 -->
+                <!-- 左側：貸款成本預估 -->
                 <div class="bento-item bg-gray-900/40 backdrop-blur-sm rounded-3xl p-8 shadow-lg relative overflow-hidden group">
                     <div class="absolute inset-0 gradient-overlay-purple opacity-50 group-hover:opacity-100 transition-opacity duration-300"></div>
                     <div class="relative z-10">
-                        <h3 class="text-3xl font-bold mb-6 text-purple-400">貸款成本預估</h3>
-                        <p class="text-gray-300 text-sm mb-8">Estimated Loan Costs</p>
+                        <h3 class="text-3xl font-bold mb-6 text-purple-400" id="loanCostTitle"><span id="analysisPeriodLoanCost">3</span>年期貸款利息預估</h3>
+                        <p class="text-gray-300 text-sm mb-8">Estimated Loan Interest for <span id="analysisPeriodLoanCostEn">3</span> Years</p>
 
                         <div class="flex items-center mb-6">
                             <div class="outline-circle w-16 h-16 text-purple-400 border-purple-400 mr-4 text-2xl font-bold">1</div>
@@ -288,8 +288,8 @@
                 <div class="bento-item bg-gray-900/40 backdrop-blur-sm rounded-3xl p-8 shadow-lg relative overflow-hidden group">
                     <div class="absolute inset-0 gradient-overlay-green opacity-50 group-hover:opacity-100 transition-opacity duration-300"></div>
                     <div class="relative z-10">
-                        <h3 class="text-3xl font-bold mb-6 text-green-400">房貸每月平均還款</h3>
-                        <p class="text-gray-300 text-sm mb-8">Average Monthly Mortgage Repayment</p>
+                        <h3 class="text-3xl font-bold mb-6 text-green-400" id="mortgageRepaymentTitle"><span id="analysisPeriodMortgageRepayment">3</span>年期房貸平均本利攤</h3>
+                        <p class="text-gray-300 text-sm mb-8">Average Mortgage Principal & Interest for <span id="analysisPeriodMortgageRepaymentEn">3</span> Years</p>
 
                         <div class="flex items-center mb-6">
                             <div class="outline-circle w-16 h-16 text-green-400 border-green-400 mr-4 text-2xl font-bold">✓</div>
@@ -308,6 +308,40 @@
                                 <p class="text-4xl font-extrabold text-green-300 mt-2"><span id="displayAvgMonthlyPrincipal">0</span>元</p>
                             </div>
                         </div>
+
+                        <!-- 新增：每月本息攤 -->
+                        <div class="flex items-center mt-6">
+                            <div class="outline-circle w-16 h-16 text-green-400 border-green-400 mr-4 text-2xl font-bold">Σ</div>
+                            <div>
+                                <p class="text-2xl font-bold text-white">每月本息攤</p>
+                                <p class="text-gray-400 text-sm">Monthly Principal & Interest</p>
+                                <p class="text-5xl font-extrabold text-green-400 mt-2"><span id="displayMonthlyPmtTotal">0</span>元</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 新增區塊：試算期間年期投資報酬 (原預估淨收益說明) -->
+                <div id="detailedNetGainSection" class="bento-item bg-gray-900/40 backdrop-blur-sm rounded-3xl p-8 shadow-lg relative overflow-hidden group md:col-span-2">
+                    <div class="absolute inset-0 gradient-overlay-blue opacity-50 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div class="relative z-10">
+                        <h3 class="text-3xl font-bold mb-6 text-blue-400" id="detailedNetGainTitle">預估淨收益</h3>
+                        <p class="text-gray-300 text-sm mb-8" id="detailedNetGainSubtitle">Estimated Net Gain Explanation</p>
+
+                        <div class="flex items-center mb-6">
+                            <div class="outline-circle w-16 h-16 text-blue-400 border-blue-400 mr-4 text-2xl font-bold">∑</div>
+                            <div>
+                                <p class="text-2xl font-bold text-white">總淨利預估</p>
+                                <p class="text-gray-400 text-sm">Total Net Profit Estimated (<span id="displayNetProfitPeriodDetails">3</span> Years)</p>
+                                <p class="text-4xl font-extrabold text-blue-300 mt-2"><span id="displayFinalNetProfitDetails">29.7</span>萬</p>
+                            </div>
+                        </div>
+                        <p class="text-gray-300 text-lg leading-relaxed mt-4" id="netGainExplanationText">
+                            此淨收益是透過 <span class="font-bold text-green-300">累積 ETF 收益 (<span id="netGainEtfIncome">0</span> 萬)</span> 減去 <span class="font-bold text-purple-300">總利息成本 (<span id="netGainTotalInterestCost">0</span> 萬)</span> 計算得出。
+                            <br>
+                            This net gain is calculated by subtracting <span class="font-bold text-purple-300">Total Interest Cost (<span id="netGainTotalInterestCostEn">0</span> K)</span> from <span class="font-bold text-green-300">Cumulative ETF Income (<span id="netGainEtfIncomeEn">0</span> K)</span>.
+                        </p>
+                        <p class="text-gray-300 text-lg leading-relaxed mt-4 hidden" id="netGainExplanationTextEn"></p>
                     </div>
                 </div>
             </div>
@@ -326,8 +360,8 @@
                         <h3 class="text-3xl font-bold mb-6 text-blue-400">房貸償還趨勢</h3>
                         <p class="text-gray-300 text-sm mb-8">Mortgage Repayment Trend (總年期)</p>
 
-                        <div class="mt-8">
-                            <canvas id="mortgageRepaymentChart"></canvas>
+                        <div class="mt-8 h-[60vh] md:h-[70vh]"> <!-- Increased height for the chart container -->
+                            <canvas id="mortgageRepaymentChart" class="w-full h-full"></canvas>
                         </div>
                     </div>
                 </div>
@@ -524,6 +558,7 @@
             // Calculate average monthly mortgage payments for display in the card
             let avgMonthlyInterest = 0;
             let avgMonthlyPrincipal = 0;
+            let monthlyPmtTotal = 0; // Added for monthly principal + interest
             if (mortgageAmount > 0 && mortgageYears > 0) {
                 const totalMortgageMonths = mortgageYears * 12;
                 const fullMortgagePayments = calculateMortgagePayments(
@@ -536,6 +571,7 @@
                 );
                 avgMonthlyInterest = fullMortgagePayments.totalInterest / totalMortgageMonths;
                 avgMonthlyPrincipal = fullMortgagePayments.totalPrincipal / totalMortgageMonths;
+                monthlyPmtTotal = avgMonthlyInterest + avgMonthlyPrincipal; // Sum of monthly interest and principal
             }
 
 
@@ -556,41 +592,93 @@
             // ETF Income (in ten thousands)
             const etfIncome = (cashLoanAmount * (etfYield / 100) * analysisPeriod);
 
-            // Net Gain (in ten thousands)
+            // Net Gain (in ten thousands) - This is the true net gain for overall return calculation
             const netGain = etfIncome - totalInterestCost;
 
             // Total Capital for Return calculation (only include cash loan if it's active)
-            const totalCapitalForReturn = mortgageAmount + (noCashLoanChecked ? 0 : cashLoanAmount); 
+            // 總投入資金只考慮現金貸款，因為房貸是負債，不是投資本金
+            const totalCapitalForReturn = noCashLoanChecked ? 0 : cashLoanAmount; 
             // Total Return Percentage
             const totalReturn = (totalCapitalForReturn > 0) ? (netGain / totalCapitalForReturn) * 100 : 0;
 
 
             // --- Update Displayed Values ---
+            const card1TitleElem = document.getElementById('card1Title');
+            const card1SubtitleElem = document.getElementById('card1Subtitle');
             const displayTotalCapitalElem = document.getElementById('displayTotalCapital');
-            if (displayTotalCapitalElem) displayTotalCapitalElem.textContent = (mortgageAmount + (noCashLoanChecked ? 0 : cashLoanAmount)).toFixed(0); // Adjusted totalCapital display
+            const displayCapitalBreakdownElem = document.getElementById('displayCapitalBreakdown');
 
-            const displayMortgageAmountElem = document.getElementById('displayMortgageAmount');
-            if (displayMortgageAmountElem) displayMortgageAmountElem.textContent = mortgageAmount.toFixed(0);
-            const displayCashLoanAmountElem = document.getElementById('displayCashLoanAmount');
-            if (displayCashLoanAmountElem) displayCashLoanAmountElem.textContent = cashLoanAmount.toFixed(0); // Will be 0 if noCashLoanChecked
+            if (noCashLoanChecked) {
+                // If no cash loan, show mortgage amount as "房貸總額"
+                if (card1TitleElem) card1TitleElem.textContent = '房貸總額';
+                if (card1SubtitleElem) card1SubtitleElem.textContent = 'Total Mortgage Amount';
+                if (displayTotalCapitalElem) displayTotalCapitalElem.textContent = mortgageAmount.toFixed(0);
+                if (displayCapitalBreakdownElem) displayCapitalBreakdownElem.classList.add('hidden');
+            } else {
+                // If cash loan exists, show cash loan as "現金貸投資額"
+                if (card1TitleElem) card1TitleElem.textContent = '現金貸投資額';
+                if (card1SubtitleElem) card1SubtitleElem.textContent = 'Cash Loan Investment Amount';
+                if (displayTotalCapitalElem) displayTotalCapitalElem.textContent = cashLoanAmount.toFixed(0); // Only cash loan here
+                if (displayCapitalBreakdownElem) {
+                    displayCapitalBreakdownElem.classList.remove('hidden');
+                    // Update breakdown values even if hidden, so they are ready if checkbox changes
+                    const displayMortgageAmountElem = document.getElementById('displayMortgageAmount');
+                    const displayCashLoanAmountElem = document.getElementById('displayCashLoanAmount');
+                    if (displayMortgageAmountElem) displayMortgageAmountElem.textContent = mortgageAmount.toFixed(0);
+                    if (displayCashLoanAmountElem) displayCashLoanAmountElem.textContent = cashLoanAmount.toFixed(0);
+                }
+            }
 
-            // Conditional display for overview cards
+            // Conditional display for overview cards (EtfYieldCard and NetGainCard)
             const overviewEtfYieldCard = document.getElementById('overviewEtfYieldCard');
             const overviewNetGainCard = document.getElementById('overviewNetGainCard');
+            const netGainOverallTitleElem = document.getElementById('netGainOverallTitle'); // For overview card title
+            const netGainOverallSubtitleElem = document.getElementById('netGainOverallSubtitle'); // For overview card subtitle
+            const displayNetGainElem = document.getElementById('displayNetGain'); // Main value in overview card
+
+            // Elements for the detailed net gain explanation section
+            const detailedNetGainSectionElem = document.getElementById('detailedNetGainSection'); // The entire detailed section
+            const detailedNetGainTitleElem = document.getElementById('detailedNetGainTitle'); // For detailed section title
+            const detailedNetGainSubtitleElem = document.getElementById('detailedNetGainSubtitle'); // For detailed section subtitle
+            const displayNetProfitPeriodDetailsElem = document.getElementById('displayNetProfitPeriodDetails');
+            const displayFinalNetProfitDetailsElem = document.getElementById('displayFinalNetProfitDetails');
+            const netGainExplanationTextElem = document.getElementById('netGainExplanationText'); // For explanation paragraph
+            const netGainExplanationTextEnElem = document.getElementById('netGainExplanationTextEn'); // For English explanation paragraph
+
             if (noCashLoanChecked) {
                 if (overviewEtfYieldCard) overviewEtfYieldCard.classList.add('hidden');
                 if (overviewNetGainCard) overviewNetGainCard.classList.add('hidden');
+                if (detailedNetGainSectionElem) detailedNetGainSectionElem.classList.add('hidden'); // Also hide the detailed net gain section
             } else {
                 if (overviewEtfYieldCard) overviewEtfYieldCard.classList.remove('hidden');
                 if (overviewNetGainCard) overviewNetGainCard.classList.remove('hidden');
+                if (detailedNetGainSectionElem) detailedNetGainSectionElem.classList.remove('hidden'); // Show it
+
+                // Update overview Net Gain card (Gross Investment Return)
+                if (netGainOverallTitleElem) netGainOverallTitleElem.textContent = `${analysisPeriod}年期投資報酬`; // Removed "試算期間"
+                if (netGainOverallSubtitleElem) netGainOverallSubtitleElem.textContent = `Investment Return for ${analysisPeriod} Years`;
+                if (displayNetGainElem) displayNetGainElem.textContent = etfIncome.toFixed(1); // Display only ETF income here (Gross)
+
+                // Update detailed Net Gain explanation section (Net Gain)
+                if (detailedNetGainTitleElem) detailedNetGainTitleElem.textContent = `預估淨收益`; // Reverted to "預估淨收益"
+                if (detailedNetGainSubtitleElem) detailedNetGainSubtitleElem.textContent = `Estimated Net Gain Explanation`;
+                if (displayNetProfitPeriodDetailsElem) displayNetProfitPeriodDetailsElem.textContent = analysisPeriod.toFixed(0);
+                if (displayFinalNetProfitDetailsElem) displayFinalNetProfitDetailsElem.textContent = netGain.toFixed(1); // Display netGain (ETF Income - Total Interest Cost)
+
+                // Update the explanation text to include interest deduction
+                if (netGainExplanationTextElem) {
+                    netGainExplanationTextElem.innerHTML = `此淨收益是透過 <span class="font-bold text-green-300">累積 ETF 收益 (${etfIncome.toFixed(1)} 萬)</span> 減去 <span class="font-bold text-purple-300">總利息成本 (${totalInterestCost.toFixed(1)} 萬)</span> 計算得出。`;
+                }
+                if (netGainExplanationTextEnElem) {
+                    netGainExplanationTextEnElem.innerHTML = `This net gain is calculated by subtracting <span class="font-bold text-purple-300">Total Interest Cost (${totalInterestCost.toFixed(1)} K)</span> from <span class="font-bold text-green-300">Cumulative ETF Income (${etfIncome.toFixed(1)} K)</span>.`;
+                }
             }
 
             const displayEtfYieldElem = document.getElementById('displayEtfYield');
             if (displayEtfYieldElem) displayEtfYieldElem.textContent = etfYield.toFixed(1);
             const displayPeriodNetGainElem = document.getElementById('displayPeriodNetGain');
             if (displayPeriodNetGainElem) displayPeriodNetGainElem.textContent = analysisPeriod.toFixed(0);
-            const displayNetGainElem = document.getElementById('displayNetGain');
-            if (displayNetGainElem) displayNetGainElem.textContent = netGain.toFixed(1);
+            // The displayNetGainElem is updated above based on noCashLoanChecked status
 
             const displayMortgagePeriodElem = document.getElementById('displayMortgagePeriod');
             if (displayMortgagePeriodElem) displayMortgagePeriodElem.textContent = analysisPeriod.toFixed(0);
@@ -621,16 +709,29 @@
             const displayTotalInterestElem = document.getElementById('displayTotalInterest');
             if (displayTotalInterestElem) displayTotalInterestElem.textContent = totalInterestCost.toFixed(1);
 
-            const displayEtfPeriodElem = document.getElementById('displayEtfPeriod');
-            if (displayEtfPeriodElem) displayEtfPeriodElem.textContent = etfIncome.toFixed(1); // Changed to show income instead of period
-            const displayEtfIncomeElem = document.getElementById('displayEtfIncome');
-            if (displayEtfIncomeElem) displayEtfIncomeElem.textContent = etfIncome.toFixed(1); // Redundant, removed in next iteration
+            const displayEtfIncomeElem = document.getElementById('displayEtfIncome'); // This is the actual income display
+            if (displayEtfIncomeElem) displayEtfIncomeElem.textContent = etfIncome.toFixed(1);
+
 
             // Update Average Monthly Mortgage Repayment section
             const displayAvgMonthlyInterestElem = document.getElementById('displayAvgMonthlyInterest');
             if (displayAvgMonthlyInterestElem) displayAvgMonthlyInterestElem.textContent = avgMonthlyInterest.toFixed(0);
             const displayAvgMonthlyPrincipalElem = document.getElementById('displayAvgMonthlyPrincipal');
             if (displayAvgMonthlyPrincipalElem) displayAvgMonthlyPrincipalElem.textContent = avgMonthlyPrincipal.toFixed(0);
+            const displayMonthlyPmtTotalElem = document.getElementById('displayMonthlyPmtTotal'); // New element for monthly total
+            if (displayMonthlyPmtTotalElem) displayMonthlyPmtTotalElem.textContent = monthlyPmtTotal.toFixed(0); // Update the new element
+
+            // Update detailed section titles with analysis period
+            const loanCostTitleElem = document.getElementById('loanCostTitle');
+            if (loanCostTitleElem) loanCostTitleElem.innerHTML = `<span id="analysisPeriodLoanCost">${analysisPeriod}</span>年期貸款利息預估`;
+            const analysisPeriodLoanCostEnElem = document.getElementById('analysisPeriodLoanCostEn');
+            if (analysisPeriodLoanCostEnElem) analysisPeriodLoanCostEnElem.textContent = analysisPeriod.toFixed(0);
+
+
+            const mortgageRepaymentTitleElem = document.getElementById('mortgageRepaymentTitle');
+            if (mortgageRepaymentTitleElem) mortgageRepaymentTitleElem.innerHTML = `<span id="analysisPeriodMortgageRepayment">${analysisPeriod}</span>年期房貸平均本利攤`;
+            const analysisPeriodMortgageRepaymentEnElem = document.getElementById('analysisPeriodMortgageRepaymentEn');
+            if (analysisPeriodMortgageRepaymentEnElem) analysisPeriodMortgageRepaymentEnElem.textContent = analysisPeriod.toFixed(0);
 
 
             // --- Update Mortgage Repayment Chart ---
@@ -639,7 +740,6 @@
             const cumulativeMortgagePrincipalData = [];
             const cumulativeEtfIncomeData = [];
             const cumulativeNetProfitData = [];
-            const cumulativeTotalCostData = [];
 
 
             for (let i = 1; i <= mortgageYears; i++) { // Chart spans full mortgage loan term
@@ -670,9 +770,11 @@
                     currentEtfIncomeCumulative = (cashLoanAmount * (etfYield / 100) * i);
                 }
 
-                cumulativeTotalCostData.push(((mortgagePaymentsForChart.totalInterest / 10000) + currentCashLoanInterestCumulative).toFixed(1));
+                const currentTotalCostCumulative = (mortgagePaymentsForChart.totalInterest / 10000) + currentCashLoanInterestCumulative;
+                const currentNetProfitCumulative = currentEtfIncomeCumulative - currentTotalCostCumulative;
+
                 cumulativeEtfIncomeData.push(currentEtfIncomeCumulative.toFixed(1));
-                cumulativeNetProfitData.push((currentEtfIncomeCumulative - ((mortgagePaymentsForChart.totalInterest / 10000) + currentCashLoanInterestCumulative)).toFixed(1));
+                cumulativeNetProfitData.push(currentNetProfitCumulative.toFixed(1));
             }
 
             const ctx = document.getElementById('mortgageRepaymentChart');
@@ -797,7 +899,8 @@
                                 color: '#E0E0E0', // Y軸標籤顏色
                                 font: {
                                     family: 'Inter'
-                                }
+                                },
+                                stepSize: 50 // 設定Y軸刻度為50萬 (因為數據單位是萬)
                             },
                             beginAtZero: true
                         }
@@ -844,6 +947,7 @@
                 cashLoanInputsDiv.classList.remove('hidden');
                 etfAndPeriodSection.classList.remove('hidden');
             }
+            updateDashboard(); // Call updateDashboard to reflect changes in card 1 and net gain sections
         });
 
         // Event listener for the calculate button
@@ -870,6 +974,7 @@
                 block: 'start'
             });
         });
+
 
         // Add event listener for Enter key on the document
         document.addEventListener('keydown', function(event) {
@@ -902,6 +1007,8 @@
                 cashLoanInputsDiv.classList.remove('hidden');
                 etfAndPeriodSection.classList.remove('hidden');
             }
+            // Call updateDashboard once on load to set initial card states
+            updateDashboard();
         });
     </script>
 </body>
