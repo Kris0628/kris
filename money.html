@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>金融洞察儀表板</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000; /* 純黑色底 */
+            color: #E0E0E0; /* 淺灰色文字 */
+            overflow-x: hidden; /* 防止水平滾動 */
+        }
+
+        /* 自定義滾動條樣式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4A4A4A;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #666666;
+        }
+
+        /* Bento Grid Item Animation Base */
+        .bento-item {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+
+        .bento-item.animate-in {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 高亮色自身透明度漸變 */
+        .gradient-overlay-cyan {
+            background: linear-gradient(to bottom, rgba(6, 182, 212, 0.2), rgba(6, 182, 212, 0)); /* cyan-400 透明度漸變 */
+        }
+        .gradient-overlay-purple {
+            background: linear-gradient(to bottom, rgba(168, 85, 247, 0.2), rgba(168, 85, 247, 0)); /* purple-500 透明度漸變 */
+        }
+        .gradient-overlay-green {
+            background: linear-gradient(to bottom, rgba(74, 222, 128, 0.2), rgba(74, 222, 128, 0)); /* green-400 透明度漸變 */
+        }
+        .gradient-overlay-blue {
+            background: linear-gradient(to bottom, rgba(96, 165, 250, 0.2), rgba(96, 165, 250, 0)); /* blue-400 透明度漸變 */
+        }
+
+
+        /* 勾線圖形化 - 簡單的圓圈 */
+        .outline-circle {
+            border: 2px solid;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 確保 Chart.js 圖表背景透明 */
+        canvas {
+            background-color: transparent !important;
+        }
+
+        /* Input field styling */
+        .input-field {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #E0E0E0;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem; /* rounded-xl */
+            font-size: 1rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #60A5FA; /* blue-400 */
+            box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-black text-gray-100">
+    <div class="min-h-screen flex flex-col items-center justify-center p-8 relative overflow-hidden">
+        <!-- 主標題區塊 -->
+        <div class="text-center mb-16 relative z-10">
+            <h1 class="text-6xl md:text-8xl font-extrabold text-white leading-tight mb-4 animate-fade-in-up">
+                <span class="text-cyan-400">洞察</span>您的財務未來
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto animate-fade-in-up delay-200">
+                Uncover the potential of your integrated investment strategy.
+            </p>
+        </div>
+
+        <!-- 輸入參數區塊 -->
+        <section id="input-section" class="w-full max-w-4xl mx-auto py-12 px-8 bg-gray-900/40 backdrop-blur-sm rounded-3xl shadow-lg mb-24 relative z-10 bento-item">
+            <h2 class="text-4xl font-bold mb-8 text-white text-center">輸入您的參數</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                <div>
+                    <label for="mortgageAmount" class="block text-gray-300 text-lg font-medium mb-2">房貸金額 (萬)</label>
+                    <input type="number" id="mortgageAmount" value="200" class="input-field">
+                </div>
+                <div>
+                    <label for="mortgageRate" class="block text-gray-300 text-lg font-medium mb-2">房貸年利率 (%)</label>
+                    <input type="number" id="mortgageRate" value="2.8" step="0.1" class="input-field">
+                </div>
+                <div>
+                    <label for="mortgageYears" class="block text-gray-300 text-lg font-medium mb-2">房貸年限 (年)</label>
+                    <input type="number" id="mortgageYears" value="20" class="input-field">
+                </div>
+                <div>
+                    <label for="cashLoanAmount" class="block text-gray-300 text-lg font-medium mb-2">現金貸款金額 (萬)</label>
+                    <input type="number" id="cashLoanAmount" value="500" class="input-field">
+                </div>
+                <div>
+                    <label for="cashLoanRate" class="block text-gray-300 text-lg font-medium mb-2">現金貸款年利率 (%)</label>
+                    <input type="number" id="cashLoanRate" value="2.4" step="0.1" class="input-field">
+                </div>
+                <div>
+                    <label for="etfYield" class="block text-gray-300 text-lg font-medium mb-2">ETF預期年化殖利率 (%)</label>
+                    <input type="number" id="etfYield" value="5.5" step="0.1" class="input-field">
+                </div>
+                <div class="md:col-span-2">
+                    <label for="analysisPeriod" class="block text-gray-300 text-lg font-medium mb-2">試算期間 (年)</label>
+                    <input type="number" id="analysisPeriod" value="3" class="input-field">
+                </div>
+            </div>
+            <div class="text-center mt-10">
+                <button id="calculateBtn" class="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-cyan-500 focus:ring-opacity-50">
+                    計算結果
+                </button>
+            </div>
+        </section>
+
+        <!-- 滾動提示 -->
+        <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 text-gray-500 text-sm animate-bounce z-10">
+            Scroll Down to Explore Results
+            <svg class="w-5 h-5 mx-auto mt-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+        </div>
+
+        <!-- 滾動觸發區塊 - 數據總覽 -->
+        <section id="section-overview" class="w-full max-w-6xl mx-auto py-24 min-h-screen flex flex-col justify-center items-center relative z-10 hidden">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
+                <!-- 核心數據卡片 1 -->
+                <div class="bento-item bg-gray-900/40 backdrop-blur-sm rounded-3xl p-8 shadow-lg relative overflow-hidden group">
+                    <div class="absolute inset-0 gradient-overlay-cyan opacity-50 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div class="relative z-10">
+                        <h2 class="text-3xl font-bold mb-4 text-cyan-400">總投入資金</h2>
+                        <p class="text-gray-300 text-sm mb-6">Total Capital Deployed</p>
+                        <div class="text-6xl md:text-7xl font-extrabold text-white mb-4">
+                            <span class="text-cyan-400" id="displayTotalCapital">700</span>萬
+                        </div>
+                        <p class="text-gray-400 text-sm" id="displayCapitalBreakdown">
+                            房貸: <span id="displayMortgageAmount">200</span>萬<br>
+                            現金貸: <span id="displayCashLoanAmount">500</span>萬
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 核心數據卡片 2 -->
+                <div class="bento-item bg-gray-900/40 backdrop-blur-sm rounded-3xl p-8 shadow-lg relative overflow-hidden group">
+                    <div class="absolute inset-0 gradient-overlay-purple opacity-50 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div class="relative z-10">
+                        <h2 class="text-3xl font-bold mb-4 text-purple-400">預期年化殖利率</h2>
+                        <p class="text-gray-300 text-sm mb-6">Expected Annual Yield (ETF)</p>
+                        <div class="text-6xl md:text-7xl font-extrabold text-white mb-4">
+                            <span class="text-purple-400" id="displayEtfYield">5.5</span>%
+                        </div>
+                        <p class="text-gray-400 text-sm">平均預估值</p>
+                    </div>
+                </div>
+
+                <!-- 核心數據卡片 3 -->
+                <div class="bento-item bg-gray-900/40 backdrop-blur-sm rounded-3xl p-8 shadow-lg relative overflow-hidden group">
+                    <div class="absolute inset-0 gradient-overlay-green opacity-50 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div class="relative z-10">
+                        <h2 class="text-3xl font-bold mb-4 text-green-400">預估淨收益</h2>
+                        <p class="text-gray-300 text-sm mb-6">Estimated Net Gain (<span id="displayPeriodNetGain">3</span> Years)</p>
+                        <div class="text-6xl md:text-7xl font-extrabold text-white mb-4">
+                            <span class="text-green-400" id="displayNetGain">29.7</span>萬
+                        </div>
+                        <p class="text-gray-400 text-sm">基於目前數據計算</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 滾動觸發區塊 - 數據詳情與圖表 -->
+        <section id="section-details" class="w-full max-w-6xl mx-auto py-24 min-h-screen flex flex-col justify-center items-center relative z-10 hidden">
+            <h2 class="text-5xl md:text-6xl font-extrabold text-white mb-16 text-center bento-item">
+                <span class="text-cyan-400">詳細數據</span>分析
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
+                <!-- 左側：貸款成本分析 -->
+                <div class="bento-item bg-gray-900/40 backdrop-blur-sm rounded-3xl p-8 shadow-lg relative overflow-hidden group">
+                    <div class="absolute inset-0 gradient-overlay-purple opacity-50 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div class="relative z-10">
+                        <h3 class="text-3xl font-bold mb-6 text-purple-400">貸款成本預估</h3>
+                        <p class="text-gray-300 text-sm mb-8">Estimated Loan Costs</p>
+
+                        <div class="flex items-center mb-6">
+                            <div class="outline-circle w-16 h-16 text-purple-400 border-purple-400 mr-4 text-2xl font-bold">1</div>
+                            <div>
+                                <p class="text-2xl font-bold text-white">房貸利息支出</p>
+                                <p class="text-gray-400 text-sm">Mortgage Interest (<span id="displayMortgagePeriod">3</span> Years)</p>
+                                <p class="text-4xl font-extrabold text-purple-300 mt-2"><span id="displayMortgageInterest">16.8</span>萬</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center mb-6">
+                            <div class="outline-circle w-16 h-16 text-purple-400 border-purple-400 mr-4 text-2xl font-bold">2</div>
+                            <div>
+                                <p class="text-2xl font-bold text-white">現金貸款利息支出</p>
+                                <p class="text-gray-400 text-sm">Cash Loan Interest (<span id="displayCashLoanPeriod">3</span> Years)</p>
+                                <p class="text-4xl font-extrabold text-purple-300 mt-2"><span id="displayCashLoanInterest">36</span>萬</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center">
+                            <div class="outline-circle w-16 h-16 text-purple-400 border-purple-400 mr-4 text-2xl font-bold">Σ</div>
+                            <div>
+                                <p class="text-2xl font-bold text-white">總利息成本</p>
+                                <p class="text-gray-400 text-sm">Total Interest Cost</p>
+                                <p class="text-5xl font-extrabold text-purple-400 mt-2"><span id="displayTotalInterest">52.8</span>萬</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右側：ETF收益預估 -->
+                <div class="bento-item bg-gray-900/40 backdrop-blur-sm rounded-3xl p-8 shadow-lg relative overflow-hidden group">
+                    <div class="absolute inset-0 gradient-overlay-green opacity-50 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div class="relative z-10">
+                        <h3 class="text-3xl font-bold mb-6 text-green-400">ETF收益預估</h3>
+                        <p class="text-gray-300 text-sm mb-8">Estimated ETF Returns</p>
+
+                        <div class="flex items-center mb-6">
+                            <div class="outline-circle w-16 h-16 text-green-400 border-green-400 mr-4 text-2xl font-bold">✓</div>
+                            <div>
+                                <p class="text-2xl font-bold text-white">累積股利收入</p>
+                                <p class="text-gray-400 text-sm">Cumulative Dividend Income (<span id="displayEtfPeriod">3</span> Years)</p>
+                                <p class="text-4xl font-extrabold text-green-300 mt-2"><span id="displayEtfIncome">82.5</span>萬</p>
+                            </div>
+                        </div>
+                        <!-- 圖表已移除，此處無圖表 -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 滾動觸發區塊 - 淨利預估與整合圖表 -->
+        <section id="section-net-profit" class="w-full max-w-6xl mx-auto py-24 min-h-screen flex flex-col justify-center items-center relative z-10 hidden">
+            <h2 class="text-5xl md:text-6xl font-extrabold text-white mb-16 text-center bento-item">
+                <span class="text-blue-400">淨利</span>預估與趨勢
+            </h2>
+
+            <div class="grid grid-cols-1 w-full">
+                <div class="bento-item bg-gray-900/40 backdrop-blur-sm rounded-3xl p-8 shadow-lg relative overflow-hidden group">
+                    <div class="absolute inset-0 gradient-overlay-blue opacity-50 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div class="relative z-10">
+                        <h3 class="text-3xl font-bold mb-6 text-blue-400">整合淨利趨勢</h3>
+                        <p class="text-gray-300 text-sm mb-8">Integrated Net Profit Trend</p>
+
+                        <div class="flex items-center mb-6">
+                            <div class="outline-circle w-16 h-16 text-blue-400 border-blue-400 mr-4 text-2xl font-bold">∑</div>
+                            <div>
+                                <p class="text-2xl font-bold text-white">總淨利預估</p>
+                                <p class="text-gray-400 text-sm">Total Net Profit Estimated (<span id="displayNetProfitPeriod">3</span> Years)</p>
+                                <p class="text-5xl font-extrabold text-blue-300 mt-2"><span id="displayFinalNetProfit">29.7</span>萬</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-8">
+                            <canvas id="integratedChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 滾動觸發區塊 - 總結與風險提示 -->
+        <section id="section-summary" class="w-full max-w-6xl mx-auto py-24 min-h-screen flex flex-col justify-center items-center relative z-10 hidden">
+            <h2 class="text-5xl md:text-6xl font-extrabold text-white mb-16 text-center bento-item">
+                <span class="text-cyan-400">總結與</span>風險提示
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
+                <div class="bento-item bg-gray-900/40 backdrop-blur-sm rounded-3xl p-8 shadow-lg relative overflow-hidden group col-span-1 md:col-span-2">
+                    <div class="absolute inset-0 gradient-overlay-cyan opacity-50 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div class="relative z-10">
+                        <h3 class="text-3xl font-bold mb-4 text-cyan-400">整合策略效益</h3>
+                        <p class="text-gray-300 text-sm mb-6">Integrated Strategy Benefits</p>
+                        <p class="text-xl text-gray-200 leading-relaxed mb-6">
+                            透過槓桿投資，您有機會在 <span id="displaySummaryPeriod">3</span> 年內獲得 <span class="text-cyan-300 font-bold" id="displayTotalReturn">約 4.24% 的總投報率</span>。這顯示了在特定市場條件下，借貸投資的潛在效益。
+                            <br>
+                            This leveraged investment strategy could yield an estimated <span class="text-cyan-300 font-bold" id="displayTotalReturnEn">4.24% total return over <span id="displaySummaryPeriodEn">3</span> years</span>, highlighting the potential benefits of debt-financed investment under specific market conditions.
+                        </p>
+                        <div class="flex items-center justify-center mt-8">
+                            <svg class="w-20 h-20 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bento-item bg-gray-900/40 backdrop-blur-sm rounded-3xl p-8 shadow-lg relative overflow-hidden group">
+                    <div class="absolute inset-0 gradient-overlay-purple opacity-50 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div class="relative z-10">
+                        <h3 class="text-3xl font-bold mb-4 text-purple-400">重要風險提示</h3>
+                        <p class="text-gray-300 text-sm mb-6">Important Risk Disclaimer</p>
+                        <ul class="list-disc list-inside text-gray-300 text-lg leading-relaxed space-y-3">
+                            <li><span class="font-bold text-white">市場波動：</span>ETF淨值可能下跌，影響實際收益。 <span class="text-sm text-gray-400">Market Volatility: ETF values can decline.</span></li>
+                            <li><span class="font-bold text-white">利率變動：</span>貸款利率若上升，成本將增加。 <span class="text-sm text-gray-400">Interest Rate Risk: Rising rates increase costs.</span></li>
+                            <li><span class="font-bold text-white">流動性風險：</span>緊急資金需求可能導致虧損賣出。 <span class="text-sm text-gray-400">Liquidity Risk: Forced sales may incur losses.</span></li>
+                            <li><span class="font-bold text-white">稅務考量：</span>股利收入與利息抵扣可能影響最終淨利。 <span class="text-sm text-gray-400">Tax Implications: Affects net profit.</span></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bento-item bg-gray-900/40 backdrop-blur-sm rounded-3xl p-8 shadow-lg relative overflow-hidden group">
+                    <div class="absolute inset-0 gradient-overlay-green opacity-50 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div class="relative z-10">
+                        <h3 class="text-3xl font-bold mb-4 text-green-400">建議與下一步</h3>
+                        <p class="text-gray-300 text-sm mb-6">Recommendations & Next Steps</p>
+                        <p class="text-xl text-gray-200 leading-relaxed mb-6">
+                            在做出任何決策前，請務必 <span class="font-bold text-white">諮詢專業財務顧問</span>，並根據您的風險承受能力和財務目標進行綜合評估。
+                            <br>
+                            Before any decisions, <span class="font-bold text-white">consult a professional financial advisor</span> and assess based on your risk tolerance and financial goals.
+                        </p>
+                        <div class="flex items-center justify-center mt-8">
+                            <svg class="w-20 h-20 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.747 0-3.332.477-4.5 1.253"></path></svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 頁腳 (可選) -->
+        <footer class="w-full text-center text-gray-600 text-sm py-10 relative z-10 mt-20">
+            &copy; 2025 金融洞察. All rights reserved.
+        </footer>
+    </div>
+
+    <script>
+        let myChart; // Global variable to hold the Chart.js instance
+
+        // Function to calculate mortgage interest (simplified PMT and CUMIPMT equivalent)
+        function calculateMortgageInterest(principal, annualRate, years, periodYears) {
+            if (principal <= 0 || annualRate < 0 || years <= 0 || periodYears <= 0) {
+                return 0;
+            }
+            const monthlyRate = annualRate / 12 / 100; // Convert percentage to decimal and annual to monthly
+            const totalMonths = years * 12;
+            const periodMonths = periodYears * 12;
+
+            if (monthlyRate === 0) { // Handle zero interest rate
+                return 0; // No interest if rate is zero
+            }
+
+            // Calculate monthly payment (PMT)
+            const pmt = (principal * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -totalMonths));
+
+            let totalInterest = 0;
+            let remainingPrincipal = principal;
+
+            for (let i = 1; i <= periodMonths; i++) {
+                const interestPayment = remainingPrincipal * monthlyRate;
+                const principalPayment = pmt - interestPayment;
+                totalInterest += interestPayment;
+                remainingPrincipal -= principalPayment;
+                if (remainingPrincipal < 0) remainingPrincipal = 0; // Ensure principal doesn't go negative
+            }
+            return totalInterest;
+        }
+
+        // Function to update all displayed values and chart
+        function updateDashboard() {
+            // Get values from input fields
+            const mortgageAmount = parseFloat(document.getElementById('mortgageAmount').value) || 0;
+            const mortgageRate = parseFloat(document.getElementById('mortgageRate').value) || 0;
+            const mortgageYears = parseFloat(document.getElementById('mortgageYears').value) || 0;
+            const cashLoanAmount = parseFloat(document.getElementById('cashLoanAmount').value) || 0;
+            const cashLoanRate = parseFloat(document.getElementById('cashLoanRate').value) || 0;
+            const etfYield = parseFloat(document.getElementById('etfYield').value) || 0;
+            const analysisPeriod = parseFloat(document.getElementById('analysisPeriod').value) || 0;
+
+            // --- Calculations ---
+            // Total Capital
+            const totalCapital = mortgageAmount + cashLoanAmount;
+
+            // Mortgage Interest (in ten thousands)
+            const mortgageInterest = calculateMortgageInterest(mortgageAmount * 10000, mortgageRate, mortgageYears, analysisPeriod) / 10000;
+
+            // Cash Loan Interest (in ten thousands)
+            const cashLoanInterest = (cashLoanAmount * (cashLoanRate / 100) * analysisPeriod);
+
+            // Total Interest Cost (in ten thousands)
+            const totalInterestCost = mortgageInterest + cashLoanInterest;
+
+            // ETF Income (in ten thousands)
+            const etfIncome = (cashLoanAmount * (etfYield / 100) * analysisPeriod);
+
+            // Net Gain (in ten thousands)
+            const netGain = etfIncome - totalInterestCost;
+
+            // Total Return Percentage
+            const totalReturn = (totalCapital > 0) ? (netGain / totalCapital) * 100 : 0;
+
+            // --- Update Displayed Values ---
+            // Added null checks for all elements before accessing textContent
+            const displayTotalCapitalElem = document.getElementById('displayTotalCapital');
+            if (displayTotalCapitalElem) {
+                displayTotalCapitalElem.textContent = totalCapital.toFixed(0);
+            }
+
+            const displayMortgageAmountElem = document.getElementById('displayMortgageAmount');
+            if (displayMortgageAmountElem) {
+                displayMortgageAmountElem.textContent = mortgageAmount.toFixed(0);
+            }
+            const displayCashLoanAmountElem = document.getElementById('displayCashLoanAmount');
+            if (displayCashLoanAmountElem) {
+                displayCashLoanAmountElem.textContent = cashLoanAmount.toFixed(0);
+            }
+
+            const displayEtfYieldElem = document.getElementById('displayEtfYield');
+            if (displayEtfYieldElem) {
+                displayEtfYieldElem.textContent = etfYield.toFixed(1);
+            }
+            const displayPeriodNetGainElem = document.getElementById('displayPeriodNetGain');
+            if (displayPeriodNetGainElem) {
+                displayPeriodNetGainElem.textContent = analysisPeriod.toFixed(0);
+            }
+            const displayNetGainElem = document.getElementById('displayNetGain');
+            if (displayNetGainElem) {
+                displayNetGainElem.textContent = netGain.toFixed(1);
+            }
+
+            const displayMortgagePeriodElem = document.getElementById('displayMortgagePeriod');
+            if (displayMortgagePeriodElem) {
+                displayMortgagePeriodElem.textContent = analysisPeriod.toFixed(0);
+            }
+            const displayMortgageInterestElem = document.getElementById('displayMortgageInterest');
+            if (displayMortgageInterestElem) {
+                displayMortgageInterestElem.textContent = mortgageInterest.toFixed(1);
+            }
+            const displayCashLoanPeriodElem = document.getElementById('displayCashLoanPeriod');
+            if (displayCashLoanPeriodElem) {
+                displayCashLoanPeriodElem.textContent = analysisPeriod.toFixed(0);
+            }
+            const displayCashLoanInterestElem = document.getElementById('displayCashLoanInterest');
+            if (displayCashLoanInterestElem) {
+                displayCashLoanInterestElem.textContent = cashLoanInterest.toFixed(1);
+            }
+            const displayTotalInterestElem = document.getElementById('displayTotalInterest');
+            if (displayTotalInterestElem) {
+                displayTotalInterestElem.textContent = totalInterestCost.toFixed(1);
+            }
+
+            const displayEtfPeriodElem = document.getElementById('displayEtfPeriod');
+            if (displayEtfPeriodElem) {
+                displayEtfPeriodElem.textContent = analysisPeriod.toFixed(0);
+            }
+            const displayEtfIncomeElem = document.getElementById('displayEtfIncome');
+            if (displayEtfIncomeElem) {
+                displayEtfIncomeElem.textContent = etfIncome.toFixed(1);
+            }
+
+            // Update Net Profit section
+            const displayNetProfitPeriodElem = document.getElementById('displayNetProfitPeriod');
+            if (displayNetProfitPeriodElem) {
+                displayNetProfitPeriodElem.textContent = analysisPeriod.toFixed(0);
+            }
+            const displayFinalNetProfitElem = document.getElementById('displayFinalNetProfit');
+            if (displayFinalNetProfitElem) {
+                displayFinalNetProfitElem.textContent = netGain.toFixed(1);
+            }
+
+            const displaySummaryPeriodElem = document.getElementById('displaySummaryPeriod');
+            if (displaySummaryPeriodElem) {
+                displaySummaryPeriodElem.textContent = analysisPeriod.toFixed(0);
+            }
+            const displayTotalReturnElem = document.getElementById('displayTotalReturn');
+            if (displayTotalReturnElem) {
+                displayTotalReturnElem.textContent = `約 ${totalReturn.toFixed(2)}% 的總投報率`;
+            }
+            const displaySummaryPeriodEnElem = document.getElementById('displaySummaryPeriodEn');
+            if (displaySummaryPeriodEnElem) {
+                displaySummaryPeriodEnElem.textContent = analysisPeriod.toFixed(0);
+            }
+            const displayTotalReturnEnElem = document.getElementById('displayTotalReturnEn');
+            if (displayTotalReturnEnElem) {
+                displayTotalReturnEnElem.textContent = `${totalReturn.toFixed(2)}% total return over ${analysisPeriod.toFixed(0)} years`;
+            }
+
+
+            // --- Update Integrated Chart ---
+            const chartLabels = [];
+            const cumulativeEtfIncomeData = [];
+            const cumulativeTotalCostData = [];
+            const cumulativeNetProfitData = [];
+
+            let currentMortgageInterest = 0;
+            let currentCashLoanInterest = 0;
+            let currentEtfIncome = 0;
+
+            for (let i = 1; i <= analysisPeriod; i++) {
+                chartLabels.push(`第${i}年`);
+
+                // Calculate annual components (simplified for chart visualization)
+                const annualMortgageInterest = calculateMortgageInterest(mortgageAmount * 10000, mortgageRate, mortgageYears, i) / 10000 - currentMortgageInterest;
+                currentMortgageInterest += annualMortgageInterest;
+
+                const annualCashLoanInterest = (cashLoanAmount * (cashLoanRate / 100)); // Cash loan interest is fixed annually
+                const annualEtfIncome = (cashLoanAmount * (etfYield / 100));
+
+                currentCashLoanInterest += annualCashLoanInterest;
+                currentEtfIncome += annualEtfIncome;
+
+                cumulativeEtfIncomeData.push(currentEtfIncome.toFixed(1));
+                cumulativeTotalCostData.push((currentMortgageInterest + currentCashLoanInterest).toFixed(1));
+                cumulativeNetProfitData.push((currentEtfIncome - (currentMortgageInterest + currentCashLoanInterest)).toFixed(1));
+            }
+
+            const ctx = document.getElementById('integratedChart');
+            if (!ctx) return; // Exit if canvas not found
+
+            if (myChart) {
+                myChart.data.labels = chartLabels;
+                myChart.data.datasets[0].data = cumulativeTotalCostData;
+                myChart.data.datasets[1].data = cumulativeEtfIncomeData;
+                myChart.data.datasets[2].data = cumulativeNetProfitData;
+                myChart.update();
+            } else {
+                myChart = new Chart(ctx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: chartLabels,
+                        datasets: [
+                            {
+                                label: '累積利息成本 (萬)',
+                                data: cumulativeTotalCostData,
+                                borderColor: 'rgba(168, 85, 247, 0.8)', // Purple for costs
+                                backgroundColor: 'rgba(168, 85, 247, 0.2)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.4,
+                                pointBackgroundColor: 'rgba(168, 85, 247, 1)',
+                                pointBorderColor: '#000',
+                                pointBorderWidth: 1,
+                                pointRadius: 5,
+                                pointHoverRadius: 7
+                            },
+                            {
+                                label: '累積 ETF 收益 (萬)',
+                                data: cumulativeEtfIncomeData,
+                                borderColor: 'rgba(74, 222, 128, 0.8)', // Green for income
+                                backgroundColor: 'rgba(74, 222, 128, 0.2)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.4,
+                                pointBackgroundColor: 'rgba(74, 222, 128, 1)',
+                                pointBorderColor: '#000',
+                                pointBorderWidth: 1,
+                                pointRadius: 5,
+                                pointHoverRadius: 7
+                            },
+                            {
+                                label: '累積淨利 (萬)',
+                                data: cumulativeNetProfitData,
+                                borderColor: 'rgba(96, 165, 250, 0.8)', // Blue for net profit
+                                backgroundColor: 'rgba(96, 165, 250, 0.2)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.4,
+                                pointBackgroundColor: 'rgba(96, 165, 250, 1)',
+                                pointBorderColor: '#000',
+                                pointBorderWidth: 1,
+                                pointRadius: 5,
+                                pointHoverRadius: 7
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: '#E0E0E0', // 圖例文字顏色
+                                    font: {
+                                        family: 'Inter',
+                                        size: 14
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                titleColor: '#E0E0E0',
+                                bodyColor: '#E0E0E0',
+                                borderColor: 'rgba(255, 255, 255, 0.5)',
+                                borderWidth: 1,
+                                cornerRadius: 8,
+                                displayColors: true
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)', // X軸網格線顏色
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    color: '#E0E0E0', // X軸標籤顏色
+                                    font: {
+                                        family: 'Inter'
+                                    }
+                                }
+                            },
+                            y: {
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)', // Y軸網格線顏色
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    color: '#E0E0E0', // Y軸標籤顏色
+                                    font: {
+                                        family: 'Inter'
+                                    }
+                                },
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // 滾動動畫邏輯 (保持不變)
+        const bentoItems = document.querySelectorAll('.bento-item');
+
+        const observerOptions = {
+            root: null, // 觀察整個視窗
+            rootMargin: '0px',
+            threshold: 0.2 // 當元素20%進入視窗時觸發
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-in');
+                    observer.unobserve(entry.target); // 元素進入後停止觀察
+                }
+            });
+        }, observerOptions);
+
+        // Event listener for the calculate button
+        document.getElementById('calculateBtn').addEventListener('click', () => {
+            updateDashboard(); // 計算並更新數據
+
+            // 顯示結果區塊
+            document.getElementById('section-overview').classList.remove('hidden');
+            document.getElementById('section-details').classList.remove('hidden');
+            document.getElementById('section-net-profit').classList.remove('hidden'); // 顯示淨利預估區塊
+            document.getElementById('section-summary').classList.remove('hidden');
+
+            // 重新觀察 bento items 以觸發動畫
+            bentoItems.forEach(item => {
+                item.classList.remove('animate-in'); // 重置動畫狀態
+                observer.unobserve(item); // 停止舊的觀察
+                observer.observe(item); // 開始新的觀察
+            });
+
+            // 平滑滾動到結果區塊
+            document.getElementById('section-overview').scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        });
+
+        // Initial setup on page load: observe bento items for animation, but don't show results yet
+        document.addEventListener('DOMContentLoaded', () => {
+            bentoItems.forEach(item => {
+                observer.observe(item); // 觀察所有 bento items，包括輸入區塊
+            });
+        });
+    </script>
+</body>
+</html>
