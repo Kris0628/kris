@@ -108,6 +108,11 @@
         <section id="input-section" class="w-full max-w-4xl mx-auto py-12 px-8 bg-gray-900/40 backdrop-blur-sm rounded-3xl shadow-lg mb-24 relative z-10 bento-item">
             <h2 class="text-4xl font-bold mb-8 text-white text-center">輸入您的參數</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+
+                <!-- 房貸部分 -->
+                <div class="md:col-span-2 mb-4">
+                    <h3 class="text-2xl font-bold text-cyan-300 mb-4 border-b border-gray-700 pb-2">房貸資訊</h3>
+                </div>
                 <div>
                     <label for="mortgageAmount" class="block text-gray-300 text-lg font-medium mb-2">房貸金額 (萬)</label>
                     <input type="number" id="mortgageAmount" value="200" class="input-field">
@@ -116,25 +121,67 @@
                     <label for="mortgageRate" class="block text-gray-300 text-lg font-medium mb-2">房貸年利率 (%)</label>
                     <input type="number" id="mortgageRate" value="2.8" step="0.1" class="input-field">
                 </div>
+                <div class="md:col-span-2">
+                    <div class="block text-gray-300 text-lg font-medium mb-2">房貸還款方式</div>
+                    <div class="flex items-center space-x-4 mb-4">
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="mortgageType" value="amortized" id="mortgageTypeAmortized" class="form-radio text-cyan-500" checked>
+                            <span class="ml-2 text-gray-200">本利攤</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="mortgageType" value="grace" id="mortgageTypeGrace" class="form-radio text-cyan-500">
+                            <span class="ml-2 text-gray-200">利息寬限期</span>
+                        </label>
+                    </div>
+                </div>
                 <div>
                     <label for="mortgageYears" class="block text-gray-300 text-lg font-medium mb-2">房貸年限 (年)</label>
                     <input type="number" id="mortgageYears" value="20" class="input-field">
                 </div>
-                <div>
-                    <label for="cashLoanAmount" class="block text-gray-300 text-lg font-medium mb-2">現金貸款金額 (萬)</label>
-                    <input type="number" id="cashLoanAmount" value="500" class="input-field">
+                <div id="mortgageGracePeriodContainer" class="hidden">
+                    <label for="mortgageGracePeriod" class="block text-gray-300 text-lg font-medium mb-2">房貸寬限期年限 (年)</label>
+                    <input type="number" id="mortgageGracePeriod" value="3" class="input-field">
                 </div>
-                <div>
-                    <label for="cashLoanRate" class="block text-gray-300 text-lg font-medium mb-2">現金貸款年利率 (%)</label>
-                    <input type="number" id="cashLoanRate" value="2.4" step="0.1" class="input-field">
+
+                <!-- 現金貸款部分 -->
+                <div class="md:col-span-2 mt-8 mb-4">
+                    <h3 class="text-2xl font-bold text-purple-300 mb-4 border-b border-gray-700 pb-2">現金貸款資訊</h3>
                 </div>
-                <div>
-                    <label for="etfYield" class="block text-gray-300 text-lg font-medium mb-2">ETF預期年化殖利率 (%)</label>
-                    <input type="number" id="etfYield" value="5.5" step="0.1" class="input-field">
+                <div class="md:col-span-2 mb-4">
+                    <label class="inline-flex items-center">
+                        <input type="checkbox" id="noCashLoanCheckbox" class="form-checkbox text-purple-500 rounded">
+                        <span class="ml-2 text-gray-200">暫無現金貸款需求</span>
+                    </label>
                 </div>
-                <div class="md:col-span-2">
-                    <label for="analysisPeriod" class="block text-gray-300 text-lg font-medium mb-2">試算期間 (年)</label>
-                    <input type="number" id="analysisPeriod" value="3" class="input-field">
+
+                <div id="cashLoanInputs" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 md:col-span-2">
+                    <div>
+                        <label for="cashLoanAmount" class="block text-gray-300 text-lg font-medium mb-2">現金貸款金額 (萬)</label>
+                        <input type="number" id="cashLoanAmount" value="500" class="input-field">
+                    </div>
+                    <div>
+                        <label for="cashLoanRate" class="block text-gray-300 text-lg font-medium mb-2">現金貸款年利率 (%)</label>
+                        <input type="number" id="cashLoanRate" value="2.4" step="0.1" class="input-field">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="cashLoanGracePeriod" class="block text-gray-300 text-lg font-medium mb-2">現金貸款寬限期 (年)</label>
+                        <input type="number" id="cashLoanGracePeriod" value="3" class="input-field">
+                    </div>
+                </div>
+
+                <!-- ETF 及試算期間 -->
+                <div id="etfAndPeriodSection" class="md:col-span-2 mt-8 mb-4">
+                    <h3 class="text-2xl font-bold text-green-300 mb-4 border-b border-gray-700 pb-2">投資與試算設定</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                        <div>
+                            <label for="etfYield" class="block text-gray-300 text-lg font-medium mb-2">ETF預期年化殖利率 (%)</label>
+                            <input type="number" id="etfYield" value="5.5" step="0.1" class="input-field">
+                        </div>
+                        <div>
+                            <label for="analysisPeriod" class="block text-gray-300 text-lg font-medium mb-2">試算期間 (年)</label>
+                            <input type="number" id="analysisPeriod" value="3" class="input-field">
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="text-center mt-10">
@@ -144,16 +191,10 @@
             </div>
         </section>
 
-        <!-- 滾動提示 -->
-        <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 text-gray-500 text-sm animate-bounce z-10">
-            Scroll Down to Explore Results
-            <svg class="w-5 h-5 mx-auto mt-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
-        </div>
-
-        <!-- 滾動觸發區塊 - 數據總覽 -->
+        <!-- 數據總覽區塊 -->
         <section id="section-overview" class="w-full max-w-6xl mx-auto py-24 min-h-screen flex flex-col justify-center items-center relative z-10 hidden">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
-                <!-- 核心數據卡片 1 -->
+                <!-- 核心數據卡片 1: 總投入資金 -->
                 <div class="bento-item bg-gray-900/40 backdrop-blur-sm rounded-3xl p-8 shadow-lg relative overflow-hidden group">
                     <div class="absolute inset-0 gradient-overlay-cyan opacity-50 group-hover:opacity-100 transition-opacity duration-300"></div>
                     <div class="relative z-10">
@@ -169,8 +210,8 @@
                     </div>
                 </div>
 
-                <!-- 核心數據卡片 2 -->
-                <div class="bento-item bg-gray-900/40 backdrop-blur-sm rounded-3xl p-8 shadow-lg relative overflow-hidden group">
+                <!-- 核心數據卡片 2: 預期年化殖利率 (可隱藏) -->
+                <div id="overviewEtfYieldCard" class="bento-item bg-gray-900/40 backdrop-blur-sm rounded-3xl p-8 shadow-lg relative overflow-hidden group">
                     <div class="absolute inset-0 gradient-overlay-purple opacity-50 group-hover:opacity-100 transition-opacity duration-300"></div>
                     <div class="relative z-10">
                         <h2 class="text-3xl font-bold mb-4 text-purple-400">預期年化殖利率</h2>
@@ -182,8 +223,8 @@
                     </div>
                 </div>
 
-                <!-- 核心數據卡片 3 -->
-                <div class="bento-item bg-gray-900/40 backdrop-blur-sm rounded-3xl p-8 shadow-lg relative overflow-hidden group">
+                <!-- 核心數據卡片 3: 預估淨收益 (可隱藏) -->
+                <div id="overviewNetGainCard" class="bento-item bg-gray-900/40 backdrop-blur-sm rounded-3xl p-8 shadow-lg relative overflow-hidden group">
                     <div class="absolute inset-0 gradient-overlay-green opacity-50 group-hover:opacity-100 transition-opacity duration-300"></div>
                     <div class="relative z-10">
                         <h2 class="text-3xl font-bold mb-4 text-green-400">預估淨收益</h2>
@@ -197,7 +238,7 @@
             </div>
         </section>
 
-        <!-- 滾動觸發區塊 - 數據詳情與圖表 -->
+        <!-- 詳細數據分析區塊 -->
         <section id="section-details" class="w-full max-w-6xl mx-auto py-24 min-h-screen flex flex-col justify-center items-center relative z-10 hidden">
             <h2 class="text-5xl md:text-6xl font-extrabold text-white mb-16 text-center bento-item">
                 <span class="text-cyan-400">詳細數據</span>分析
@@ -217,6 +258,8 @@
                                 <p class="text-2xl font-bold text-white">房貸利息支出</p>
                                 <p class="text-gray-400 text-sm">Mortgage Interest (<span id="displayMortgagePeriod">3</span> Years)</p>
                                 <p class="text-4xl font-extrabold text-purple-300 mt-2"><span id="displayMortgageInterest">16.8</span>萬</p>
+                                <p class="text-gray-500 text-xs mt-1">還款方式: <span id="displayMortgageRepaymentType">本利攤</span></p>
+                                <p class="text-gray-500 text-xs mt-1 hidden" id="displayMortgageGracePeriodText">寬限期: <span id="displayMortgageGracePeriod">3</span> 年</p>
                             </div>
                         </div>
 
@@ -226,6 +269,7 @@
                                 <p class="text-2xl font-bold text-white">現金貸款利息支出</p>
                                 <p class="text-gray-400 text-sm">Cash Loan Interest (<span id="displayCashLoanPeriod">3</span> Years)</p>
                                 <p class="text-4xl font-extrabold text-purple-300 mt-2"><span id="displayCashLoanInterest">36</span>萬</p>
+                                <p class="text-gray-500 text-xs mt-1">寬限期: <span id="displayCashLoanGracePeriod">3</span> 年</p>
                             </div>
                         </div>
 
@@ -240,58 +284,57 @@
                     </div>
                 </div>
 
-                <!-- 右側：ETF收益預估 -->
+                <!-- 右側：房貸每月平均還款 -->
                 <div class="bento-item bg-gray-900/40 backdrop-blur-sm rounded-3xl p-8 shadow-lg relative overflow-hidden group">
                     <div class="absolute inset-0 gradient-overlay-green opacity-50 group-hover:opacity-100 transition-opacity duration-300"></div>
                     <div class="relative z-10">
-                        <h3 class="text-3xl font-bold mb-6 text-green-400">ETF收益預估</h3>
-                        <p class="text-gray-300 text-sm mb-8">Estimated ETF Returns</p>
+                        <h3 class="text-3xl font-bold mb-6 text-green-400">房貸每月平均還款</h3>
+                        <p class="text-gray-300 text-sm mb-8">Average Monthly Mortgage Repayment</p>
 
                         <div class="flex items-center mb-6">
                             <div class="outline-circle w-16 h-16 text-green-400 border-green-400 mr-4 text-2xl font-bold">✓</div>
                             <div>
-                                <p class="text-2xl font-bold text-white">累積股利收入</p>
-                                <p class="text-gray-400 text-sm">Cumulative Dividend Income (<span id="displayEtfPeriod">3</span> Years)</p>
-                                <p class="text-4xl font-extrabold text-green-300 mt-2"><span id="displayEtfIncome">82.5</span>萬</p>
+                                <p class="text-2xl font-bold text-white">每月平均利息</p>
+                                <p class="text-gray-400 text-sm">Avg. Monthly Interest</p>
+                                <p class="text-4xl font-extrabold text-green-300 mt-2"><span id="displayAvgMonthlyInterest">0</span>元</p>
                             </div>
                         </div>
-                        <!-- 圖表已移除，此處無圖表 -->
+
+                        <div class="flex items-center mb-6">
+                            <div class="outline-circle w-16 h-16 text-green-400 border-green-400 mr-4 text-2xl font-bold">✓</div>
+                            <div>
+                                <p class="text-2xl font-bold text-white">每月還款本金</p>
+                                <p class="text-gray-400 text-sm">Avg. Monthly Principal</p>
+                                <p class="text-4xl font-extrabold text-green-300 mt-2"><span id="displayAvgMonthlyPrincipal">0</span>元</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- 滾動觸發區塊 - 淨利預估與整合圖表 -->
-        <section id="section-net-profit" class="w-full max-w-6xl mx-auto py-24 min-h-screen flex flex-col justify-center items-center relative z-10 hidden">
+        <!-- 房貸還款圖表區塊 -->
+        <section id="section-mortgage-repayment-chart" class="w-full max-w-6xl mx-auto py-24 min-h-screen flex flex-col justify-center items-center relative z-10 hidden">
             <h2 class="text-5xl md:text-6xl font-extrabold text-white mb-16 text-center bento-item">
-                <span class="text-blue-400">淨利</span>預估與趨勢
+                <span class="text-blue-400">房貸</span>還款圖表
             </h2>
 
             <div class="grid grid-cols-1 w-full">
                 <div class="bento-item bg-gray-900/40 backdrop-blur-sm rounded-3xl p-8 shadow-lg relative overflow-hidden group">
                     <div class="absolute inset-0 gradient-overlay-blue opacity-50 group-hover:opacity-100 transition-opacity duration-300"></div>
                     <div class="relative z-10">
-                        <h3 class="text-3xl font-bold mb-6 text-blue-400">整合淨利趨勢</h3>
-                        <p class="text-gray-300 text-sm mb-8">Integrated Net Profit Trend</p>
-
-                        <div class="flex items-center mb-6">
-                            <div class="outline-circle w-16 h-16 text-blue-400 border-blue-400 mr-4 text-2xl font-bold">∑</div>
-                            <div>
-                                <p class="text-2xl font-bold text-white">總淨利預估</p>
-                                <p class="text-gray-400 text-sm">Total Net Profit Estimated (<span id="displayNetProfitPeriod">3</span> Years)</p>
-                                <p class="text-5xl font-extrabold text-blue-300 mt-2"><span id="displayFinalNetProfit">29.7</span>萬</p>
-                            </div>
-                        </div>
+                        <h3 class="text-3xl font-bold mb-6 text-blue-400">房貸償還趨勢</h3>
+                        <p class="text-gray-300 text-sm mb-8">Mortgage Repayment Trend (總年期)</p>
 
                         <div class="mt-8">
-                            <canvas id="integratedChart"></canvas>
+                            <canvas id="mortgageRepaymentChart"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- 滾動觸發區塊 - 總結與風險提示 -->
+        <!-- 總結與風險提示區塊 -->
         <section id="section-summary" class="w-full max-w-6xl mx-auto py-24 min-h-screen flex flex-col justify-center items-center relative z-10 hidden">
             <h2 class="text-5xl md:text-6xl font-extrabold text-white mb-16 text-center bento-item">
                 <span class="text-cyan-400">總結與</span>風險提示
@@ -355,34 +398,91 @@
     <script>
         let myChart; // Global variable to hold the Chart.js instance
 
-        // Function to calculate mortgage interest (simplified PMT and CUMIPMT equivalent)
-        function calculateMortgageInterest(principal, annualRate, years, periodYears) {
-            if (principal <= 0 || annualRate < 0 || years <= 0 || periodYears <= 0) {
-                return 0;
+        /**
+         * Calculates cumulative interest and principal paid for a mortgage over a specified period.
+         * Supports both amortized and interest-only grace period repayment types.
+         * @param {number} principal - Loan principal amount (in base units, e.g., cents or dollars).
+         * @param {number} annualRate - Annual interest rate (e.g., 2.8 for 2.8%).
+         * @param {number} totalLoanYears - Total duration of the loan in years.
+         * @param {number} gracePeriodYears - Duration of the interest-only grace period in years.
+         * @param {number} periodToCalculate - The period (in years) for which to calculate cumulative values.
+         * @param {boolean} isGracePeriodSelected - True if interest-only grace period is selected, false for amortized.
+         * @returns {{totalInterest: number, totalPrincipal: number}} - Object containing cumulative interest and principal paid.
+         */
+        function calculateMortgagePayments(principal, annualRate, totalLoanYears, gracePeriodYears, periodToCalculate, isGracePeriodSelected) {
+            if (principal <= 0 || annualRate < 0 || totalLoanYears <= 0 || periodToCalculate <= 0) {
+                return { totalInterest: 0, totalPrincipal: 0 };
             }
-            const monthlyRate = annualRate / 12 / 100; // Convert percentage to decimal and annual to monthly
-            const totalMonths = years * 12;
-            const periodMonths = periodYears * 12;
 
-            if (monthlyRate === 0) { // Handle zero interest rate
-                return 0; // No interest if rate is zero
+            const monthlyRate = annualRate / 12 / 100;
+            const totalMonths = totalLoanYears * 12;
+            const periodMonths = periodToCalculate * 12;
+
+            let cumulativeInterest = 0;
+            let cumulativePrincipal = 0;
+            let currentPrincipalBalance = principal; // Tracks the principal balance over time
+
+            if (!isGracePeriodSelected || gracePeriodYears === 0) {
+                // Scenario: Principal and Interest (本利攤)
+                // Calculate monthly payment (PMT) for the entire loan term
+                const pmt = (principal * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -totalMonths));
+
+                for (let m = 1; m <= periodMonths; m++) {
+                    if (currentPrincipalBalance <= 0) { // Loan paid off
+                        break;
+                    }
+                    const interestPayment = currentPrincipalBalance * monthlyRate;
+                    let principalPayment = pmt - interestPayment;
+
+                    // Ensure principal payment doesn't exceed remaining balance
+                    if (principalPayment > currentPrincipalBalance) {
+                        principalPayment = currentPrincipalBalance;
+                    }
+
+                    cumulativeInterest += interestPayment;
+                    cumulativePrincipal += principalPayment;
+                    currentPrincipalBalance -= principalPayment;
+                }
+            } else {
+                // Scenario: Interest-Only Grace Period (利息寬限期)
+                const actualGraceMonths = Math.min(gracePeriodYears * 12, totalMonths); // Grace period cannot exceed total loan term
+
+                // Phase 1: Grace Period
+                for (let m = 1; m <= periodMonths && m <= actualGraceMonths; m++) {
+                    const interestPayment = currentPrincipalBalance * monthlyRate;
+                    cumulativeInterest += interestPayment;
+                    // Principal remains unchanged during grace period
+                }
+
+                // Phase 2: Amortization after Grace Period
+                const monthsAfterGraceStarts = actualGraceMonths; // The month amortization starts
+                const remainingLoanMonthsAfterGrace = totalMonths - actualGraceMonths;
+
+                if (remainingLoanMonthsAfterGrace > 0) {
+                    // Calculate PMT for the amortization phase based on original principal and remaining loan months
+                    const pmtAmortization = (principal * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -remainingLoanMonthsAfterGrace));
+                    
+                    for (let m = monthsAfterGraceStarts + 1; m <= periodMonths; m++) {
+                        if (currentPrincipalBalance <= 0) { // Loan paid off
+                            break;
+                        }
+                        const interestPayment = currentPrincipalBalance * monthlyRate;
+                        let principalPayment = pmtAmortization - interestPayment;
+
+                        // Ensure principal payment doesn't exceed remaining balance
+                        if (principalPayment > currentPrincipalBalance) {
+                            principalPayment = currentPrincipalBalance;
+                        }
+
+                        cumulativeInterest += interestPayment;
+                        cumulativePrincipal += principalPayment;
+                        currentPrincipalBalance -= principalPayment;
+                    }
+                }
             }
-
-            // Calculate monthly payment (PMT)
-            const pmt = (principal * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -totalMonths));
-
-            let totalInterest = 0;
-            let remainingPrincipal = principal;
-
-            for (let i = 1; i <= periodMonths; i++) {
-                const interestPayment = remainingPrincipal * monthlyRate;
-                const principalPayment = pmt - interestPayment;
-                totalInterest += interestPayment;
-                remainingPrincipal -= principalPayment;
-                if (remainingPrincipal < 0) remainingPrincipal = 0; // Ensure principal doesn't go negative
-            }
-            return totalInterest;
+            return { totalInterest: cumulativeInterest, totalPrincipal: cumulativePrincipal };
         }
+
 
         // Function to update all displayed values and chart
         function updateDashboard() {
@@ -390,20 +490,65 @@
             const mortgageAmount = parseFloat(document.getElementById('mortgageAmount').value) || 0;
             const mortgageRate = parseFloat(document.getElementById('mortgageRate').value) || 0;
             const mortgageYears = parseFloat(document.getElementById('mortgageYears').value) || 0;
-            const cashLoanAmount = parseFloat(document.getElementById('cashLoanAmount').value) || 0;
-            const cashLoanRate = parseFloat(document.getElementById('cashLoanRate').value) || 0;
-            const etfYield = parseFloat(document.getElementById('etfYield').value) || 0;
+            const isMortgageGracePeriodSelected = document.getElementById('mortgageTypeGrace').checked;
+            const mortgageGracePeriod = parseFloat(document.getElementById('mortgageGracePeriod').value) || 0;
+
+            const noCashLoanChecked = document.getElementById('noCashLoanCheckbox').checked;
+
+            let cashLoanAmount = 0;
+            let cashLoanRate = 0;
+            let cashLoanGracePeriod = 0;
+            let etfYield = 0;
+
+            if (!noCashLoanChecked) {
+                cashLoanAmount = parseFloat(document.getElementById('cashLoanAmount').value) || 0;
+                cashLoanRate = parseFloat(document.getElementById('cashLoanRate').value) || 0;
+                cashLoanGracePeriod = parseFloat(document.getElementById('cashLoanGracePeriod').value) || 0;
+                etfYield = parseFloat(document.getElementById('etfYield').value) || 0;
+            }
+
             const analysisPeriod = parseFloat(document.getElementById('analysisPeriod').value) || 0;
 
             // --- Calculations ---
-            // Total Capital
-            const totalCapital = mortgageAmount + cashLoanAmount;
+            // Mortgage Payments for analysis period
+            const mortgagePaymentsForAnalysis = calculateMortgagePayments(
+                mortgageAmount * 10000,
+                mortgageRate,
+                mortgageYears,
+                mortgageGracePeriod,
+                analysisPeriod,
+                isMortgageGracePeriodSelected
+            );
+            const mortgageInterest = mortgagePaymentsForAnalysis.totalInterest / 10000; // Convert back to ten thousands
 
-            // Mortgage Interest (in ten thousands)
-            const mortgageInterest = calculateMortgageInterest(mortgageAmount * 10000, mortgageRate, mortgageYears, analysisPeriod) / 10000;
+            // Calculate average monthly mortgage payments for display in the card
+            let avgMonthlyInterest = 0;
+            let avgMonthlyPrincipal = 0;
+            if (mortgageAmount > 0 && mortgageYears > 0) {
+                const totalMortgageMonths = mortgageYears * 12;
+                const fullMortgagePayments = calculateMortgagePayments(
+                    mortgageAmount * 10000,
+                    mortgageRate,
+                    mortgageYears,
+                    mortgageGracePeriod,
+                    mortgageYears, // Calculate for the full loan term
+                    isMortgageGracePeriodSelected
+                );
+                avgMonthlyInterest = fullMortgagePayments.totalInterest / totalMortgageMonths;
+                avgMonthlyPrincipal = fullMortgagePayments.totalPrincipal / totalMortgageMonths;
+            }
+
 
             // Cash Loan Interest (in ten thousands)
-            const cashLoanInterest = (cashLoanAmount * (cashLoanRate / 100) * analysisPeriod);
+            let cashLoanInterest = 0;
+            if (!noCashLoanChecked) {
+                if (analysisPeriod <= cashLoanGracePeriod) {
+                    cashLoanInterest = (cashLoanAmount * (cashLoanRate / 100) * analysisPeriod);
+                } else {
+                    // For simplicity, if analysis period exceeds grace period, assume interest-only on original principal
+                    cashLoanInterest = (cashLoanAmount * (cashLoanRate / 100) * analysisPeriod);
+                }
+            }
 
             // Total Interest Cost (in ten thousands)
             const totalInterestCost = mortgageInterest + cashLoanInterest;
@@ -414,236 +559,251 @@
             // Net Gain (in ten thousands)
             const netGain = etfIncome - totalInterestCost;
 
+            // Total Capital for Return calculation (only include cash loan if it's active)
+            const totalCapitalForReturn = mortgageAmount + (noCashLoanChecked ? 0 : cashLoanAmount); 
             // Total Return Percentage
-            const totalReturn = (totalCapital > 0) ? (netGain / totalCapital) * 100 : 0;
+            const totalReturn = (totalCapitalForReturn > 0) ? (netGain / totalCapitalForReturn) * 100 : 0;
+
 
             // --- Update Displayed Values ---
-            // Added null checks for all elements before accessing textContent
             const displayTotalCapitalElem = document.getElementById('displayTotalCapital');
-            if (displayTotalCapitalElem) {
-                displayTotalCapitalElem.textContent = totalCapital.toFixed(0);
-            }
+            if (displayTotalCapitalElem) displayTotalCapitalElem.textContent = (mortgageAmount + (noCashLoanChecked ? 0 : cashLoanAmount)).toFixed(0); // Adjusted totalCapital display
 
             const displayMortgageAmountElem = document.getElementById('displayMortgageAmount');
-            if (displayMortgageAmountElem) {
-                displayMortgageAmountElem.textContent = mortgageAmount.toFixed(0);
-            }
+            if (displayMortgageAmountElem) displayMortgageAmountElem.textContent = mortgageAmount.toFixed(0);
             const displayCashLoanAmountElem = document.getElementById('displayCashLoanAmount');
-            if (displayCashLoanAmountElem) {
-                displayCashLoanAmountElem.textContent = cashLoanAmount.toFixed(0);
+            if (displayCashLoanAmountElem) displayCashLoanAmountElem.textContent = cashLoanAmount.toFixed(0); // Will be 0 if noCashLoanChecked
+
+            // Conditional display for overview cards
+            const overviewEtfYieldCard = document.getElementById('overviewEtfYieldCard');
+            const overviewNetGainCard = document.getElementById('overviewNetGainCard');
+            if (noCashLoanChecked) {
+                if (overviewEtfYieldCard) overviewEtfYieldCard.classList.add('hidden');
+                if (overviewNetGainCard) overviewNetGainCard.classList.add('hidden');
+            } else {
+                if (overviewEtfYieldCard) overviewEtfYieldCard.classList.remove('hidden');
+                if (overviewNetGainCard) overviewNetGainCard.classList.remove('hidden');
             }
 
             const displayEtfYieldElem = document.getElementById('displayEtfYield');
-            if (displayEtfYieldElem) {
-                displayEtfYieldElem.textContent = etfYield.toFixed(1);
-            }
+            if (displayEtfYieldElem) displayEtfYieldElem.textContent = etfYield.toFixed(1);
             const displayPeriodNetGainElem = document.getElementById('displayPeriodNetGain');
-            if (displayPeriodNetGainElem) {
-                displayPeriodNetGainElem.textContent = analysisPeriod.toFixed(0);
-            }
+            if (displayPeriodNetGainElem) displayPeriodNetGainElem.textContent = analysisPeriod.toFixed(0);
             const displayNetGainElem = document.getElementById('displayNetGain');
-            if (displayNetGainElem) {
-                displayNetGainElem.textContent = netGain.toFixed(1);
-            }
+            if (displayNetGainElem) displayNetGainElem.textContent = netGain.toFixed(1);
 
             const displayMortgagePeriodElem = document.getElementById('displayMortgagePeriod');
-            if (displayMortgagePeriodElem) {
-                displayMortgagePeriodElem.textContent = analysisPeriod.toFixed(0);
-            }
+            if (displayMortgagePeriodElem) displayMortgagePeriodElem.textContent = analysisPeriod.toFixed(0);
             const displayMortgageInterestElem = document.getElementById('displayMortgageInterest');
-            if (displayMortgageInterestElem) {
-                displayMortgageInterestElem.textContent = mortgageInterest.toFixed(1);
+            if (displayMortgageInterestElem) displayMortgageInterestElem.textContent = mortgageInterest.toFixed(1);
+
+            const displayMortgageRepaymentTypeElem = document.getElementById('displayMortgageRepaymentType');
+            const displayMortgageGracePeriodTextElem = document.getElementById('displayMortgageGracePeriodText');
+            const displayMortgageGracePeriodElem = document.getElementById('displayMortgageGracePeriod');
+
+            if (displayMortgageRepaymentTypeElem) {
+                if (isMortgageGracePeriodSelected) {
+                    displayMortgageRepaymentTypeElem.textContent = '利息寬限期';
+                    if (displayMortgageGracePeriodTextElem) displayMortgageGracePeriodTextElem.classList.remove('hidden');
+                    if (displayMortgageGracePeriodElem) displayMortgageGracePeriodElem.textContent = mortgageGracePeriod.toFixed(0);
+                } else {
+                    displayMortgageRepaymentTypeElem.textContent = '本利攤';
+                    if (displayMortgageGracePeriodTextElem) displayMortgageGracePeriodTextElem.classList.add('hidden');
+                }
             }
+
             const displayCashLoanPeriodElem = document.getElementById('displayCashLoanPeriod');
-            if (displayCashLoanPeriodElem) {
-                displayCashLoanPeriodElem.textContent = analysisPeriod.toFixed(0);
-            }
+            if (displayCashLoanPeriodElem) displayCashLoanPeriodElem.textContent = analysisPeriod.toFixed(0);
             const displayCashLoanInterestElem = document.getElementById('displayCashLoanInterest');
-            if (displayCashLoanInterestElem) {
-                displayCashLoanInterestElem.textContent = cashLoanInterest.toFixed(1);
-            }
+            if (displayCashLoanInterestElem) displayCashLoanInterestElem.textContent = cashLoanInterest.toFixed(1);
+            const displayCashLoanGracePeriodElem = document.getElementById('displayCashLoanGracePeriod');
+            if (displayCashLoanGracePeriodElem) displayCashLoanGracePeriodElem.textContent = cashLoanGracePeriod.toFixed(0); // Will be 0 if noCashLoanChecked
             const displayTotalInterestElem = document.getElementById('displayTotalInterest');
-            if (displayTotalInterestElem) {
-                displayTotalInterestElem.textContent = totalInterestCost.toFixed(1);
-            }
+            if (displayTotalInterestElem) displayTotalInterestElem.textContent = totalInterestCost.toFixed(1);
 
             const displayEtfPeriodElem = document.getElementById('displayEtfPeriod');
-            if (displayEtfPeriodElem) {
-                displayEtfPeriodElem.textContent = analysisPeriod.toFixed(0);
-            }
+            if (displayEtfPeriodElem) displayEtfPeriodElem.textContent = etfIncome.toFixed(1); // Changed to show income instead of period
             const displayEtfIncomeElem = document.getElementById('displayEtfIncome');
-            if (displayEtfIncomeElem) {
-                displayEtfIncomeElem.textContent = etfIncome.toFixed(1);
-            }
+            if (displayEtfIncomeElem) displayEtfIncomeElem.textContent = etfIncome.toFixed(1); // Redundant, removed in next iteration
 
-            // Update Net Profit section
-            const displayNetProfitPeriodElem = document.getElementById('displayNetProfitPeriod');
-            if (displayNetProfitPeriodElem) {
-                displayNetProfitPeriodElem.textContent = analysisPeriod.toFixed(0);
-            }
-            const displayFinalNetProfitElem = document.getElementById('displayFinalNetProfit');
-            if (displayFinalNetProfitElem) {
-                displayFinalNetProfitElem.textContent = netGain.toFixed(1);
-            }
-
-            const displaySummaryPeriodElem = document.getElementById('displaySummaryPeriod');
-            if (displaySummaryPeriodElem) {
-                displaySummaryPeriodElem.textContent = analysisPeriod.toFixed(0);
-            }
-            const displayTotalReturnElem = document.getElementById('displayTotalReturn');
-            if (displayTotalReturnElem) {
-                displayTotalReturnElem.textContent = `約 ${totalReturn.toFixed(2)}% 的總投報率`;
-            }
-            const displaySummaryPeriodEnElem = document.getElementById('displaySummaryPeriodEn');
-            if (displaySummaryPeriodEnElem) {
-                displaySummaryPeriodEnElem.textContent = analysisPeriod.toFixed(0);
-            }
-            const displayTotalReturnEnElem = document.getElementById('displayTotalReturnEn');
-            if (displayTotalReturnEnElem) {
-                displayTotalReturnEnElem.textContent = `${totalReturn.toFixed(2)}% total return over ${analysisPeriod.toFixed(0)} years`;
-            }
+            // Update Average Monthly Mortgage Repayment section
+            const displayAvgMonthlyInterestElem = document.getElementById('displayAvgMonthlyInterest');
+            if (displayAvgMonthlyInterestElem) displayAvgMonthlyInterestElem.textContent = avgMonthlyInterest.toFixed(0);
+            const displayAvgMonthlyPrincipalElem = document.getElementById('displayAvgMonthlyPrincipal');
+            if (displayAvgMonthlyPrincipalElem) displayAvgMonthlyPrincipalElem.textContent = avgMonthlyPrincipal.toFixed(0);
 
 
-            // --- Update Integrated Chart ---
+            // --- Update Mortgage Repayment Chart ---
             const chartLabels = [];
+            const cumulativeMortgageInterestData = [];
+            const cumulativeMortgagePrincipalData = [];
             const cumulativeEtfIncomeData = [];
-            const cumulativeTotalCostData = [];
             const cumulativeNetProfitData = [];
+            const cumulativeTotalCostData = [];
 
-            let currentMortgageInterest = 0;
-            let currentCashLoanInterest = 0;
-            let currentEtfIncome = 0;
 
-            for (let i = 1; i <= analysisPeriod; i++) {
+            for (let i = 1; i <= mortgageYears; i++) { // Chart spans full mortgage loan term
                 chartLabels.push(`第${i}年`);
 
-                // Calculate annual components (simplified for chart visualization)
-                const annualMortgageInterest = calculateMortgageInterest(mortgageAmount * 10000, mortgageRate, mortgageYears, i) / 10000 - currentMortgageInterest;
-                currentMortgageInterest += annualMortgageInterest;
+                // Mortgage payments up to current year 'i'
+                const mortgagePaymentsForChart = calculateMortgagePayments(
+                    mortgageAmount * 10000,
+                    mortgageRate,
+                    mortgageYears,
+                    mortgageGracePeriod,
+                    i, // Calculate for current year 'i'
+                    isMortgageGracePeriodSelected
+                );
+                cumulativeMortgageInterestData.push((mortgagePaymentsForChart.totalInterest / 10000).toFixed(1));
+                cumulativeMortgagePrincipalData.push((mortgagePaymentsForChart.totalPrincipal / 10000).toFixed(1));
 
-                const annualCashLoanInterest = (cashLoanAmount * (cashLoanRate / 100)); // Cash loan interest is fixed annually
-                const annualEtfIncome = (cashLoanAmount * (etfYield / 100));
+                // Cash Loan and ETF data (only if not "no cash loan")
+                let currentCashLoanInterestCumulative = 0;
+                let currentEtfIncomeCumulative = 0;
 
-                currentCashLoanInterest += annualCashLoanInterest;
-                currentEtfIncome += annualEtfIncome;
+                if (!noCashLoanChecked) {
+                    if (i <= cashLoanGracePeriod) {
+                        currentCashLoanInterestCumulative = (cashLoanAmount * (cashLoanRate / 100) * i);
+                    } else {
+                        currentCashLoanInterestCumulative = (cashLoanAmount * (cashLoanRate / 100) * i);
+                    }
+                    currentEtfIncomeCumulative = (cashLoanAmount * (etfYield / 100) * i);
+                }
 
-                cumulativeEtfIncomeData.push(currentEtfIncome.toFixed(1));
-                cumulativeTotalCostData.push((currentMortgageInterest + currentCashLoanInterest).toFixed(1));
-                cumulativeNetProfitData.push((currentEtfIncome - (currentMortgageInterest + currentCashLoanInterest)).toFixed(1));
+                cumulativeTotalCostData.push(((mortgagePaymentsForChart.totalInterest / 10000) + currentCashLoanInterestCumulative).toFixed(1));
+                cumulativeEtfIncomeData.push(currentEtfIncomeCumulative.toFixed(1));
+                cumulativeNetProfitData.push((currentEtfIncomeCumulative - ((mortgagePaymentsForChart.totalInterest / 10000) + currentCashLoanInterestCumulative)).toFixed(1));
             }
 
-            const ctx = document.getElementById('integratedChart');
-            if (!ctx) return; // Exit if canvas not found
+            const ctx = document.getElementById('mortgageRepaymentChart');
+            if (!ctx) return;
 
+            // Destroy existing chart instance if it exists
             if (myChart) {
-                myChart.data.labels = chartLabels;
-                myChart.data.datasets[0].data = cumulativeTotalCostData;
-                myChart.data.datasets[1].data = cumulativeEtfIncomeData;
-                myChart.data.datasets[2].data = cumulativeNetProfitData;
-                myChart.update();
-            } else {
-                myChart = new Chart(ctx.getContext('2d'), {
-                    type: 'line',
-                    data: {
-                        labels: chartLabels,
-                        datasets: [
-                            {
-                                label: '累積利息成本 (萬)',
-                                data: cumulativeTotalCostData,
-                                borderColor: 'rgba(168, 85, 247, 0.8)', // Purple for costs
-                                backgroundColor: 'rgba(168, 85, 247, 0.2)',
-                                borderWidth: 2,
-                                fill: true,
-                                tension: 0.4,
-                                pointBackgroundColor: 'rgba(168, 85, 247, 1)',
-                                pointBorderColor: '#000',
-                                pointBorderWidth: 1,
-                                pointRadius: 5,
-                                pointHoverRadius: 7
-                            },
-                            {
-                                label: '累積 ETF 收益 (萬)',
-                                data: cumulativeEtfIncomeData,
-                                borderColor: 'rgba(74, 222, 128, 0.8)', // Green for income
-                                backgroundColor: 'rgba(74, 222, 128, 0.2)',
-                                borderWidth: 2,
-                                fill: true,
-                                tension: 0.4,
-                                pointBackgroundColor: 'rgba(74, 222, 128, 1)',
-                                pointBorderColor: '#000',
-                                pointBorderWidth: 1,
-                                pointRadius: 5,
-                                pointHoverRadius: 7
-                            },
-                            {
-                                label: '累積淨利 (萬)',
-                                data: cumulativeNetProfitData,
-                                borderColor: 'rgba(96, 165, 250, 0.8)', // Blue for net profit
-                                backgroundColor: 'rgba(96, 165, 250, 0.2)',
-                                borderWidth: 2,
-                                fill: true,
-                                tension: 0.4,
-                                pointBackgroundColor: 'rgba(96, 165, 250, 1)',
-                                pointBorderColor: '#000',
-                                pointBorderWidth: 1,
-                                pointRadius: 5,
-                                pointHoverRadius: 7
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                labels: {
-                                    color: '#E0E0E0', // 圖例文字顏色
-                                    font: {
-                                        family: 'Inter',
-                                        size: 14
-                                    }
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                titleColor: '#E0E0E0',
-                                bodyColor: '#E0E0E0',
-                                borderColor: 'rgba(255, 255, 255, 0.5)',
-                                borderWidth: 1,
-                                cornerRadius: 8,
-                                displayColors: true
-                            }
-                        },
-                        scales: {
-                            x: {
-                                grid: {
-                                    color: 'rgba(255, 255, 255, 0.1)', // X軸網格線顏色
-                                    drawBorder: false
-                                },
-                                ticks: {
-                                    color: '#E0E0E0', // X軸標籤顏色
-                                    font: {
-                                        family: 'Inter'
-                                    }
-                                }
-                            },
-                            y: {
-                                grid: {
-                                    color: 'rgba(255, 255, 255, 0.1)', // Y軸網格線顏色
-                                    drawBorder: false
-                                },
-                                ticks: {
-                                    color: '#E0E0E0', // Y軸標籤顏色
-                                    font: {
-                                        family: 'Inter'
-                                    }
-                                },
-                                beginAtZero: true
-                            }
-                        }
-                    }
+                myChart.destroy();
+            }
+
+            const datasets = [
+                {
+                    label: '累積償還利息 (萬)',
+                    data: cumulativeMortgageInterestData,
+                    borderColor: 'rgba(168, 85, 247, 0.8)', // Purple for interest
+                    backgroundColor: 'rgba(168, 85, 247, 0.2)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: 'rgba(168, 85, 247, 1)',
+                    pointBorderColor: '#000',
+                    pointBorderWidth: 1,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                },
+                {
+                    label: '累積償還本金 (萬)',
+                    data: cumulativeMortgagePrincipalData,
+                    borderColor: 'rgba(6, 182, 212, 0.8)', // Cyan for principal
+                    backgroundColor: 'rgba(6, 182, 212, 0.2)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: 'rgba(6, 182, 212, 1)',
+                    pointBorderColor: '#000',
+                    pointBorderWidth: 1,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }
+            ];
+
+            if (!noCashLoanChecked) {
+                datasets.push({
+                    label: '累積 ETF 收益 (萬)',
+                    data: cumulativeEtfIncomeData,
+                    borderColor: 'rgba(74, 222, 128, 0.8)', // Green for income
+                    backgroundColor: 'rgba(74, 222, 128, 0.2)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: 'rgba(74, 222, 128, 1)',
+                    pointBorderColor: '#000',
+                    pointBorderWidth: 1,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                });
+                datasets.push({
+                    label: '累積淨利 (萬)',
+                    data: cumulativeNetProfitData,
+                    borderColor: 'rgba(96, 165, 250, 0.8)', // Blue for net profit
+                    backgroundColor: 'rgba(96, 165, 250, 0.2)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: 'rgba(96, 165, 250, 1)',
+                    pointBorderColor: '#000',
+                    pointBorderWidth: 1,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
                 });
             }
+
+
+            myChart = new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: chartLabels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#E0E0E0', // 圖例文字顏色
+                                font: {
+                                    family: 'Inter',
+                                    size: 14
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#E0E0E0',
+                            bodyColor: '#E0E0E0',
+                            borderColor: 'rgba(255, 255, 255, 0.5)',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            displayColors: true
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)', // X軸網格線顏色
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#E0E0E0', // X軸標籤顏色
+                                font: {
+                                    family: 'Inter'
+                                }
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)', // Y軸網格線顏色
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#E0E0E0', // Y軸標籤顏色
+                                font: {
+                                    family: 'Inter'
+                                }
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
         }
 
         // 滾動動畫邏輯 (保持不變)
@@ -664,14 +824,37 @@
             });
         }, observerOptions);
 
+        // Event listeners for mortgage type radio buttons
+        document.getElementById('mortgageTypeAmortized').addEventListener('change', function() {
+            document.getElementById('mortgageGracePeriodContainer').classList.add('hidden');
+        });
+
+        document.getElementById('mortgageTypeGrace').addEventListener('change', function() {
+            document.getElementById('mortgageGracePeriodContainer').classList.remove('hidden');
+        });
+
+        // Event listener for "No cash loan" checkbox
+        document.getElementById('noCashLoanCheckbox').addEventListener('change', function() {
+            const cashLoanInputsDiv = document.getElementById('cashLoanInputs');
+            const etfAndPeriodSection = document.getElementById('etfAndPeriodSection');
+            if (this.checked) {
+                cashLoanInputsDiv.classList.add('hidden');
+                etfAndPeriodSection.classList.add('hidden');
+            } else {
+                cashLoanInputsDiv.classList.remove('hidden');
+                etfAndPeriodSection.classList.remove('hidden');
+            }
+        });
+
         // Event listener for the calculate button
-        document.getElementById('calculateBtn').addEventListener('click', () => {
+        const calculateButton = document.getElementById('calculateBtn');
+        calculateButton.addEventListener('click', () => {
             updateDashboard(); // 計算並更新數據
 
             // 顯示結果區塊
             document.getElementById('section-overview').classList.remove('hidden');
             document.getElementById('section-details').classList.remove('hidden');
-            document.getElementById('section-net-profit').classList.remove('hidden'); // 顯示淨利預估區塊
+            document.getElementById('section-mortgage-repayment-chart').classList.remove('hidden'); // 顯示房貸還款圖表區塊
             document.getElementById('section-summary').classList.remove('hidden');
 
             // 重新觀察 bento items 以觸發動畫
@@ -688,11 +871,37 @@
             });
         });
 
+        // Add event listener for Enter key on the document
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevent default Enter key behavior (e.g., form submission)
+                calculateButton.click(); // Simulate a click on the calculate button
+            }
+        });
+
+
         // Initial setup on page load: observe bento items for animation, but don't show results yet
         document.addEventListener('DOMContentLoaded', () => {
             bentoItems.forEach(item => {
                 observer.observe(item); // 觀察所有 bento items，包括輸入區塊
             });
+            // Ensure initial state of mortgage grace period input is correct
+            if (document.getElementById('mortgageTypeAmortized').checked) {
+                document.getElementById('mortgageGracePeriodContainer').classList.add('hidden');
+            } else {
+                document.getElementById('mortgageGracePeriodContainer').classList.remove('hidden');
+            }
+            // Ensure initial state of cash loan inputs and ETF section is correct based on checkbox
+            const noCashLoanCheckbox = document.getElementById('noCashLoanCheckbox');
+            const cashLoanInputsDiv = document.getElementById('cashLoanInputs');
+            const etfAndPeriodSection = document.getElementById('etfAndPeriodSection');
+            if (noCashLoanCheckbox.checked) {
+                cashLoanInputsDiv.classList.add('hidden');
+                etfAndPeriodSection.classList.add('hidden');
+            } else {
+                cashLoanInputsDiv.classList.remove('hidden');
+                etfAndPeriodSection.classList.remove('hidden');
+            }
         });
     </script>
 </body>
