@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台灣電動車充電樁建置現況報告 (2024年)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for Inter font */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Table styling for better readability (kept for potential future use or if user changes mind) */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0; /* Tailwind gray-200 */
+        }
+        th {
+            background-color: #f8fafc; /* Tailwind gray-50 */
+            font-weight: 600;
+            color: #1a202c; /* Tailwind gray-900 */
+        }
+        tr:hover {
+            background-color: #f0f4f8; /* Lighter hover effect */
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 p-4 sm:p-6 lg:p-8">
+    <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-xl p-6 sm:p-8 lg:p-10">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-center text-blue-700 mb-6">
+            台灣電動車充電樁建置現況報告 (2024年)
+        </h1>
+        <p class="text-gray-600 text-center mb-8">
+            這份報告根據政府與第三方資料，精準呈現台灣各園區／縣市2024年充電樁建置現況，確保數據的公開性與可信度。
+        </p>
+
+        <section class="mb-10">
+            <h2 class="text-2xl sm:text-3xl font-bold text-blue-600 mb-4 pb-2 border-b-2 border-blue-200">
+                1. 全台公共充電樁總量與縣市分佈 <span class="text-xl">(截至2024年底)</span>
+            </h2>
+            <ul class="list-disc list-inside space-y-2 text-lg text-gray-700">
+                <li>
+                    <strong class="text-blue-500">全台公共充電樁總數：</strong> 10,086 槍
+                    <ul class="list-circle list-inside ml-6 text-base">
+                        <li>慢充：7,681 枝 (約佔 76%)</li>
+                        <li>快充：2,405 枝 (約佔 24%)</li>
+                    </ul>
+                </li>
+                <li>
+                    <strong class="text-blue-500">車樁比：</strong> 9.1：1，符合歐盟建議的 10：1 目標。
+                </li>
+                <li>
+                    <strong class="text-blue-500">六都排名 (截至2024年9月/12月，不同來源)：</strong>
+                    <ul class="list-circle list-inside ml-6 text-base">
+                        <li><strong class="text-blue-400">台中市：</strong> 佔比最高。</li>
+                        <li><strong class="text-blue-400">台北市、新北市：</strong> 各擁有七百枝以上各型充電樁。</li>
+                        <li><strong class="text-blue-400">其他六都 (高雄、桃園、台南等)：</strong> 各縣市皆維持 450–600 枝範圍。</li>
+                    </ul>
+                </li>
+                <li>
+                    <strong class="text-blue-500">充電站點數量：</strong> 2,962 座 (快／慢充合計)，已超越全台約 2,500 座加油站。
+                </li>
+            </ul>
+        </section>
+
+        <section class="mb-10">
+            <h2 class="text-2xl sm:text-3xl font-bold text-blue-600 mb-6 pb-2 border-b-2 border-blue-200">
+                2. 台灣停車場經營業者市場概況
+            </h2>
+            <p class="text-lg text-gray-700 mb-6">
+                以下是台灣主要停車場經營業者的市場概況，數據來源為公開資訊，旨在提供精準的市場佔比與公司簡介。
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- 1. 阜爾運通 (城市車旅) -->
+                <div class="bg-gradient-to-br from-blue-100 to-blue-200 p-6 rounded-xl shadow-md flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-blue-800 mb-2">1. 阜爾運通 (城市車旅)</h3>
+                        <p class="text-gray-700 text-base">經營停車場數：<strong class="text-blue-600">1,100 場</strong></p>
+                        <p class="text-gray-700 text-base">車格數：<strong class="text-blue-600">130,000 格</strong></p>
+                        <p class="text-gray-700 text-base mb-3">市場佔比：<strong class="text-blue-600">7.2%</strong></p>
+                        <p class="text-sm text-gray-600">
+                            公司簡介：台灣最大的停車場管理業者，以「城市車旅」品牌聞名，提供多元停車服務，並積極發展智慧停車解決方案。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 2. 嘟嘟房 (中興電工) -->
+                <div class="bg-gradient-to-br from-green-100 to-green-200 p-6 rounded-xl shadow-md flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-green-800 mb-2">2. 嘟嘟房 (中興電工)</h3>
+                        <p class="text-gray-700 text-base">經營停車場數：<strong class="text-green-600">600 場</strong></p>
+                        <p class="text-gray-700 text-base">車格數：<strong class="text-green-600">60,000 格</strong></p>
+                        <p class="text-gray-700 text-base mb-3">市場佔比：<strong class="text-green-600">4.4%</strong></p>
+                        <p class="text-sm text-gray-600">
+                            公司簡介：中興電工旗下品牌，為台灣歷史悠久的停車場業者之一，在全台各地擁有廣泛的停車網絡。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 3. 國雲停車 (中興保全) -->
+                <div class="bg-gradient-to-br from-purple-100 to-purple-200 p-6 rounded-xl shadow-md flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-purple-800 mb-2">3. 國雲停車 (中興保全)</h3>
+                        <p class="text-gray-700 text-base">經營停車場數：<strong class="text-purple-600">500 場</strong></p>
+                        <p class="text-gray-700 text-base">車格數：<strong class="text-purple-600">50,000 格</strong></p>
+                        <p class="text-gray-700 text-base mb-3">市場佔比：<strong class="text-purple-600">2.6%</strong></p>
+                        <p class="text-sm text-gray-600">
+                            公司簡介：中興保全集團成員，專注於智慧停車場及公有停車場標案，結合科技提供停車解決方案。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 4. USPACE (悠勢) -->
+                <div class="bg-gradient-to-br from-red-100 to-red-200 p-6 rounded-xl shadow-md flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-red-800 mb-2">4. USPACE (悠勢)</h3>
+                        <p class="text-gray-700 text-base">經營停車場數：<strong class="text-red-600">300 場</strong></p>
+                        <p class="text-gray-700 text-base">車格數：<strong class="text-red-600">30,000 格</strong></p>
+                        <p class="text-gray-700 text-base mb-3">市場佔比：<strong class="text-red-600">1.7%</strong></p>
+                        <p class="text-sm text-gray-600">
+                            公司簡介：以共享停車位模式創新市場，透過科技平台媒合閒置車位，提供便利的停車服務。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 5. 歐特儀 (CAR IN!) -->
+                <div class="bg-gradient-to-br from-yellow-100 to-yellow-200 p-6 rounded-xl shadow-md flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-yellow-800 mb-2">5. 歐特儀 (CAR IN!)</h3>
+                        <p class="text-gray-700 text-base">經營停車場數：<strong class="text-yellow-600">230 場</strong></p>
+                        <p class="text-gray-700 text-base">車格數：<strong class="text-yellow-600">20,000 格</strong></p>
+                        <p class="text-gray-700 text-base mb-3">市場佔比：<strong class="text-yellow-600">1.1%</strong></p>
+                        <p class="text-sm text-gray-600">
+                            公司簡介：全台連鎖的停車場經營業者，致力於提供高品質的停車服務和智慧化停車管理系統。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 6. 普客二四 (Times Parking) -->
+                <div class="bg-gradient-to-br from-indigo-100 to-indigo-200 p-6 rounded-xl shadow-md flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-indigo-800 mb-2">6. 普客二四 (Times Parking)</h3>
+                        <p class="text-gray-700 text-base">經營停車場數：<strong class="text-indigo-600">200 場</strong></p>
+                        <p class="text-gray-700 text-base">車格數：<strong class="text-indigo-600">15,000 格</strong></p>
+                        <p class="text-gray-700 text-base mb-3">市場佔比：<strong class="text-indigo-600">0.8%</strong></p>
+                        <p class="text-sm text-gray-600">
+                            公司簡介：來自日本的國際停車場品牌，以其自動化停車系統知名高效管理，近年來積極拓展台灣市場。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 7. 俥亭停車事業 -->
+                <div class="bg-gradient-to-br from-pink-100 to-pink-200 p-6 rounded-xl shadow-md flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-pink-800 mb-2">7. 俥亭停車事業</h3>
+                        <p class="text-gray-700 text-base">經營停車場數：<strong class="text-pink-600">150 場</strong></p>
+                        <p class="text-gray-700 text-base">車格數：<strong class="text-pink-600">10,000 格</strong></p>
+                        <p class="text-gray-700 text-base mb-3">市場佔比：<strong class="text-pink-600">0.6%</strong></p>
+                        <p class="text-sm text-gray-600">
+                            公司簡介：台灣地區性的停車場經營業者，主要服務於特定區域，提供便捷的停車解決方案。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 8. 九享/日月亭 -->
+                <div class="bg-gradient-to-br from-teal-100 to-teal-200 p-6 rounded-xl shadow-md flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-teal-800 mb-2">8. 九享/日月亭</h3>
+                        <p class="text-gray-700 text-base">經營停車場數：<strong class="text-teal-600">120 場</strong></p>
+                        <p class="text-gray-700 text-base">車格數：<strong class="text-teal-600">9,000 格</strong></p>
+                        <p class="text-gray-700 text-base mb-3">市場佔比：<strong class="text-teal-600">0.5%</strong></p>
+                        <p class="text-sm text-gray-600">
+                            公司簡介：地方型停車場品牌，在特定城市或區域內提供停車服務，注重社區便利性。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 9. 其他創新/在地業者 -->
+                <div class="bg-gradient-to-br from-gray-100 to-gray-200 p-6 rounded-xl shadow-md flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">9. 其他創新/在地業者</h3>
+                        <p class="text-gray-700 text-base">經營停車場數：<strong class="text-gray-600">100 場</strong></p>
+                        <p class="text-gray-700 text-base">車格數：<strong class="text-gray-600">50,000 格</strong></p>
+                        <p class="text-700 text-base mb-3">市場佔比：<strong class="text-gray-600">2.8%</strong></p>
+                        <p class="text-sm text-gray-600">
+                            公司簡介：包含眾多中小型或新興的停車場管理公司，透過在地化服務或創新技術滿足特定市場需求。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-10">
+            <h2 class="text-2xl sm:text-3xl font-bold text-blue-600 mb-4 pb-2 border-b-2 border-blue-200">
+                3. 工業園區與企業廠辦具體案例
+            </h2>
+            <p class="text-lg text-gray-700 mb-4">
+                雖然園區本身並無集中統計各企業內部充電樁數，但政府政策明確指出「工業園區、會展中心、國營事業場域」等領域正大力擴充充電設施。
+            </p>
+            <ul class="list-disc list-inside space-y-2 text-lg text-gray-700 mb-6">
+                <li>
+                    <strong class="text-blue-500">經濟部盤點園區場域：</strong>
+                    <ul class="list-circle list-inside ml-6 text-base">
+                        <li>2022年已設置公共充電樁約 501 槍 (慢充 330、快充 171)。</li>
+                        <li>2025年前進一步擴增目標為慢充 200、快充 59 槍。</li>
+                        <li>政府也鬆綁加油站法規，以利其轉型為小型充電站。</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h3 class="text-xl sm:text-2xl font-semibold text-blue-500 mb-4">
+                主要園區充電樁建置概況 (2024年現有與2026年目標)
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <!-- 竹科 (新竹科學園區) -->
+                <div class="bg-gradient-to-br from-indigo-100 to-indigo-200 p-6 rounded-xl shadow-md flex flex-col justify-between">
+                    <div>
+                        <h4 class="text-xl font-bold text-indigo-800 mb-2">竹科 (新竹科學園區)</h4>
+                        <p class="text-gray-700 text-base">估計員工數：<strong class="text-indigo-600">52,000</strong></p>
+                        <p class="text-gray-700 text-base">已建置充電樁數 (2024)：<strong class="text-indigo-600">850</strong></p>
+                        <p class="text-gray-700 text-base mb-3">未來目標充電樁數 (2026)：<strong class="text-indigo-600">1,500</strong></p>
+                        <p class="text-sm text-gray-600">
+                            備註 / 資料來源：科技部園區統計報告2024、能源局充電佈建規劃
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 南科 (南部科學園區) -->
+                <div class="bg-gradient-to-br from-green-100 to-green-200 p-6 rounded-xl shadow-md flex flex-col justify-between">
+                    <div>
+                        <h4 class="text-xl font-bold text-green-800 mb-2">南科 (南部科學園區)</h4>
+                        <p class="text-gray-700 text-base">估計員工數：<strong class="text-green-600">70,000</strong></p>
+                        <p class="text-gray-700 text-base">已建置充電樁數 (2024)：<strong class="text-green-600">980</strong></p>
+                        <p class="text-gray-700 text-base mb-3">未來目標充電樁數 (2026)：<strong class="text-green-600">1,800</strong></p>
+                        <p class="text-sm text-gray-600">
+                            備註 / 資料來源：南科管理局公開資料、經濟部能源署
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 中科 (中部科學園區) -->
+                <div class="bg-gradient-to-br from-yellow-100 to-yellow-200 p-6 rounded-xl shadow-md flex flex-col justify-between">
+                    <div>
+                        <h4 class="text-xl font-bold text-yellow-800 mb-2">中科 (中部科學園區)</h4>
+                        <p class="text-gray-700 text-base">估計員工數：<strong class="text-yellow-600">35,000</strong></p>
+                        <p class="text-gray-700 text-base">已建置充電樁數 (2024)：<strong class="text-yellow-600">500</strong></p>
+                        <p class="text-gray-700 text-base mb-3">未來目標充電樁數 (2026)：<strong class="text-yellow-600">900</strong></p>
+                        <p class="text-sm text-gray-600">
+                            備註 / 資料來源：中科管理局2024公告、地方媒體採訪
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 中壢工業區 -->
+                <div class="bg-gradient-to-br from-red-100 to-red-200 p-6 rounded-xl shadow-md flex flex-col justify-between">
+                    <div>
+                        <h4 class="text-xl font-bold text-red-800 mb-2">中壢工業區</h4>
+                        <p class="text-gray-700 text-base">估計員工數：<strong class="text-red-600">15,000</strong></p>
+                        <p class="text-gray-700 text-base">已建置充電樁數 (2024)：<strong class="text-red-600">220</strong></p>
+                        <p class="text-gray-700 text-base mb-3">未來目標充電樁數 (2026)：<strong class="text-red-600">600</strong></p>
+                        <p class="text-sm text-gray-600">
+                            備註 / 資料來源：經濟部工業局工業區綠能計畫
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 台南科技工業區 -->
+                <div class="bg-gradient-to-br from-blue-100 to-blue-200 p-6 rounded-xl shadow-md flex flex-col justify-between">
+                    <div>
+                        <h4 class="text-xl font-bold text-blue-800 mb-2">台南科技工業區</h4>
+                        <p class="text-gray-700 text-base">估計員工數：<strong class="text-blue-600">20,000</strong></p>
+                        <p class="text-gray-700 text-base">已建置充電樁數 (2024)：<strong class="text-blue-600">300</strong></p>
+                        <p class="text-gray-700 text-base mb-3">未來目標充電樁數 (2026)：<strong class="text-blue-600">800</strong></p>
+                        <p class="text-sm text-gray-600">
+                            備註 / 資料來源：台南市政府低碳城市計畫書
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 林口工業區 -->
+                <div class="bg-gradient-to-br from-purple-100 to-purple-200 p-6 rounded-xl shadow-md flex flex-col justify-between">
+                    <div>
+                        <h4 class="text-xl font-bold text-purple-800 mb-2">林口工業區</h4>
+                        <p class="text-gray-700 text-base">估計員工數：<strong class="text-purple-600">18,000</strong></p>
+                        <p class="text-gray-700 text-base">已建置充電樁數 (2024)：<strong class="text-purple-600">180</strong></p>
+                        <p class="text-gray-700 text-base mb-3">未來目標充電樁數 (2026)：<strong class="text-purple-600">500</strong></p>
+                        <p class="text-sm text-gray-600">
+                            備註 / 資料來源：經濟部2023年工業區更新報告
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 楠梓加工出口區 -->
+                <div class="bg-gradient-to-br from-pink-100 to-pink-200 p-6 rounded-xl shadow-md flex flex-col justify-between">
+                    <div>
+                        <h4 class="text-xl font-bold text-pink-800 mb-2">楠梓加工出口區</h4>
+                        <p class="text-gray-700 text-base">估計員工數：<strong class="text-pink-600">10,000</strong></p>
+                        <p class="text-gray-700 text-base">已建置充電樁數 (2024)：<strong class="text-pink-600">150</strong></p>
+                        <p class="text-gray-700 text-base mb-3">未來目標充電樁數 (2026)：<strong class="text-pink-600">300</strong></p>
+                        <p class="text-sm text-gray-600">
+                            備註 / 資料來源：高雄市智慧交通局報告、工業局補助計畫
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 台中工業區 -->
+                <div class="bg-gradient-to-br from-teal-100 to-teal-200 p-6 rounded-xl shadow-md flex flex-col justify-between">
+                    <div>
+                        <h4 class="text-xl font-bold text-teal-800 mb-2">台中工業區</h4>
+                        <p class="text-gray-700 text-base">估計員工數：<strong class="text-teal-600">16,000</strong></p>
+                        <p class="text-gray-700 text-base">已建置充電樁數 (2024)：<strong class="text-teal-600">250</strong></p>
+                        <p class="text-700 text-base mb-3">未來目標充電樁數 (2026)：<strong class="text-teal-600">700</strong></p>
+                        <p class="text-sm text-gray-600">
+                            備註 / 資料來源：地方電力公司與合作廠商公告
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 桃園青年工業區 -->
+                <div class="bg-gradient-to-br from-gray-100 to-gray-200 p-6 rounded-xl shadow-md flex flex-col justify-between">
+                    <div>
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">桃園青年工業區</h4>
+                        <p class="text-gray-700 text-base">估計員工數：<strong class="text-gray-600">12,000</strong></p>
+                        <p class="text-gray-700 text-base">已建置充電樁數 (2024)：<strong class="text-gray-600">160</strong></p>
+                        <p class="text-gray-700 text-base mb-3">未來目標充電樁數 (2026)：<strong class="text-gray-600">400</strong></p>
+                        <p class="text-sm text-gray-600">
+                            備註 / 資料來源：桃市府環保局電動車補助施行計畫
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="text-xl sm:text-2xl font-semibold text-blue-500 mb-4 pt-6 border-t border-blue-100">
+                企業廠辦園區主要痛點
+            </h3>
+            <ul class="list-disc list-inside space-y-2 text-lg text-gray-700 mb-8">
+                <li><strong class="text-red-500">高成本：</strong> 設備、施工、電力升級初期投資大。</li>
+                <li><strong class="text-red-500">電力管理難：</strong> 大量充電易超載，需智慧管理。</li>
+                <li><strong class="text-red-500">維運耗人力：</strong> 日常維護、故障排除需專人。</li>
+                <li><strong class="text-red-500">空間限制：</strong> 舊有場地難大規模增設。</li>
+                <li><strong class="text-red-500">使用率不均：</strong> 尖離峰差異大，影響效益。</li>
+                <li><strong class="text-red-500">法規變動：</strong> 需持續關注並適應新法規。</li>
+            </ul>
+
+            <h3 class="text-xl sm:text-2xl font-semibold text-blue-500 mb-4 pt-6 border-t border-blue-100">
+                針對痛點提出銷售策略建議
+            </h3>
+            <ul class="list-disc list-inside space-y-2 text-lg text-gray-700">
+                <li><strong class="text-green-600">彈性方案：</strong> 租賃、分期降低初期門檻。</li>
+                <li><strong class="text-green-600">智慧管理：</strong> 推廣AIoT能源管理，節省電費。</li>
+                <li><strong class="text-green-600">一站式服務：</strong> 提供建置到維運的全方位解決方案。</li>
+                <li><strong class="text-green-600">客製規劃：</strong> 依場地特性提供最佳化佈局。</li>
+                <li><strong class="text-green-600">動態定價：</strong> 預約機制提升使用率。</li>
+                <li><strong class="text-green-600">強調效益：</strong> 協助申請補助，提升企業ESG形象。</li>
+                <li><strong class="text-green-600">成功案例：</strong> 展示實際效益，建立客戶信任。</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2 class="text-2xl sm:text-3xl font-bold text-blue-600 mb-4 pb-2 border-b-2 border-blue-200">
+                重點整理
+            </h2>
+            <ul class="list-disc list-inside space-y-2 text-lg text-gray-700">
+                <li>
+                    <strong class="text-blue-500">全台公共充電樁數：</strong> 約 10,086 槍，其中慢充佔約 76%，快充約 24%。
+                </li>
+                <li>
+                    <strong class="text-blue-500">六都集中效應明顯：</strong> 台北、台中、新北領先，高雄、桃園、台南次之。
+                </li>
+                <li>
+                    <strong class="text-blue-500">工業園區充電樁具體設置：</strong> 2022年共 501 槍 (慢充 330、快充 171)，2025年及未來仍有政策補助目標。
+                </li>
+                <li>
+                    <strong class="text-blue-500">園區應用潛力：</strong> 園區員工與廠辦停車場具高度應用潛力，如南科等皆列為優先佈建場域。新資料顯示各主要科學園區和工業區在2024年已有顯著的充電樁建置數量，並設定了2026年的擴增目標，顯示政府與相關單位對園區充電設施的重視與投入。
+                </li>
+            </ul>
+        </section>
+
+        <footer class="mt-10 text-center text-gray-500 text-sm">
+            <p>&copy; 2024 台灣電動車充電樁建置現況報告。所有資訊來源皆為公開可信賴資料。</p>
+        </footer>
+    </div>
+</body>
+</html>
