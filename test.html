@@ -6,6 +6,9 @@
     <title>台灣電動車充電樁建置現況報告 (2024年)</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN and Datalabels Plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <style>
         /* Custom styles for Inter font */
         body {
@@ -29,6 +32,11 @@
         }
         tr:hover {
             background-color: #f0f4f8; /* Lighter hover effect */
+        }
+        /* Ensure canvas is responsive */
+        canvas {
+            max-width: 100%;
+            height: auto;
         }
     </style>
 </head>
@@ -169,10 +177,10 @@
                     </div>
                 </div>
 
-                <!-- 8. 九享/日月亭 -->
+                <!-- 8. 九亭/日月亭 -->
                 <div class="bg-gradient-to-br from-teal-100 to-teal-200 p-6 rounded-xl shadow-md flex flex-col justify-between">
                     <div>
-                        <h3 class="text-xl font-bold text-teal-800 mb-2">8. 九享/日月亭</h3>
+                        <h3 class="text-xl font-bold text-teal-800 mb-2">8. 九亭/日月亭</h3>
                         <p class="text-gray-700 text-base">經營停車場數：<strong class="text-teal-600">120 場</strong></p>
                         <p class="text-gray-700 text-base">車格數：<strong class="text-teal-600">9,000 格</strong></p>
                         <p class="text-gray-700 text-base mb-3">市場佔比：<strong class="text-teal-600">0.5%</strong></p>
@@ -327,7 +335,7 @@
                 <div class="bg-gradient-to-br from-gray-100 to-gray-200 p-6 rounded-xl shadow-md flex flex-col justify-between">
                     <div>
                         <h4 class="text-xl font-bold text-gray-800 mb-2">桃園青年工業區</h4>
-                        <p class="text-gray-700 text-base">估計員工數：<strong class="text-gray-600">12,000</strong></p>
+                        <p class="text-700 text-base">估計員工數：<strong class="text-gray-600">12,000</strong></p>
                         <p class="text-gray-700 text-base">已建置充電樁數 (2024)：<strong class="text-gray-600">160</strong></p>
                         <p class="text-gray-700 text-base mb-3">未來目標充電樁數 (2026)：<strong class="text-gray-600">400</strong></p>
                         <p class="text-sm text-gray-600">
@@ -335,6 +343,13 @@
                         </p>
                     </div>
                 </div>
+            </div>
+
+            <h3 class="text-xl sm:text-2xl font-semibold text-blue-500 mb-4 pt-6 border-t border-blue-100">
+                主要園區充電樁建置概況圖表
+            </h3>
+            <div class="bg-white p-4 rounded-lg shadow-md">
+                <canvas id="evChargingChart"></canvas>
             </div>
 
             <h3 class="text-xl sm:text-2xl font-semibold text-blue-500 mb-4 pt-6 border-t border-blue-100">
@@ -387,5 +402,157 @@
             <p>&copy; 2024 台灣電動車充電樁建置現況報告。所有資訊來源皆為公開可信賴資料。</p>
         </footer>
     </div>
+
+    <script>
+        // Data for the chart
+        const parkData = [
+            { name: '竹科', originalName: '竹科 (新竹科學園區)', current: 850, target: 1500 },
+            { name: '南科', originalName: '南科 (南部科學園區)', current: 980, target: 1800 },
+            { name: '中科', originalName: '中科 (中部科學園區)', current: 500, target: 900 },
+            { name: '中壢工業區', originalName: '中壢工業區', current: 220, target: 600 },
+            { name: '台南科技工業區', originalName: '台南科技工業區', current: 300, target: 800 },
+            { name: '林口工業區', originalName: '林口工業區', current: 180, target: 500 },
+            { name: '楠梓加工出口區', originalName: '楠梓加工出口區', current: 150, target: 300 },
+            { name: '台中工業區', originalName: '台中工業區', current: 250, target: 700 },
+            { name: '桃園青年工業區', originalName: '桃園青年工業區', current: 160, target: 400 }
+        ];
+
+        // Extract labels and data for Chart.js
+        const labels = parkData.map(park => park.name); // Use simplified names for labels
+        const currentChargers = parkData.map(park => park.current);
+        const targetChargers = parkData.map(park => park.target);
+
+        // Register the datalabels plugin globally
+        Chart.register(ChartDataLabels);
+
+        // Get the canvas element
+        const ctx = document.getElementById('evChargingChart').getContext('2d');
+
+        // Create the mixed bar and line chart
+        const evChargingChart = new Chart(ctx, {
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        type: 'bar', // Current data as bar chart
+                        label: '2024年現有充電樁數',
+                        data: currentChargers,
+                        backgroundColor: 'rgba(59, 130, 246, 0.8)', // Tailwind blue-500
+                        borderColor: 'rgba(37, 99, 235, 1)', // Tailwind blue-600
+                        borderWidth: 1,
+                        borderRadius: 5, // Rounded bars
+                        datalabels: { // Datalabels for bar chart
+                            anchor: 'end',
+                            align: 'top',
+                            color: '#4a5568', // Tailwind gray-700
+                            font: {
+                                weight: 'bold',
+                                size: 10 // Smaller font for datalabels
+                            },
+                            formatter: function(value) {
+                                return value + ' 槍'; // Display value with '槍'
+                            }
+                        }
+                    },
+                    {
+                        type: 'line', // Target data as line chart
+                        label: '2026年目標充電樁數',
+                        data: targetChargers,
+                        fill: false, // No fill under the line
+                        borderColor: 'rgba(16, 185, 129, 1)', // Tailwind green-500
+                        backgroundColor: 'rgba(16, 185, 129, 1)', // Point background color
+                        pointRadius: 5, // Make points visible
+                        pointBackgroundColor: 'rgba(16, 185, 129, 1)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        tension: 0.4, // Smooth line
+                        datalabels: {
+                            display: false // No datalabels for the line chart
+                        }
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, // Allow canvas to resize based on container
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '主要園區充電樁建置現有與目標數量比較',
+                        font: {
+                            size: 18,
+                            weight: 'bold'
+                        },
+                        color: '#1a202c' // Tailwind gray-900
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += context.raw + ' 槍';
+                                return label;
+                            }
+                        }
+                    },
+                    datalabels: { // Global datalabels plugin options (overridden by dataset specific options)
+                        display: false // Default to false, enabled per dataset
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: false, // Not stacked, bars side-by-side
+                        title: {
+                            display: false // Remove x-axis title
+                        },
+                        ticks: {
+                            color: '#4a5568', // Tailwind gray-700
+                            maxRotation: 0, // Prevent rotation
+                            minRotation: 0,  // Prevent rotation
+                            autoSkip: false, // Force all labels to display
+                            font: {
+                                size: 10 // Smaller font size for x-axis labels
+                            }
+                        }
+                    },
+                    y: {
+                        stacked: false, // Not stacked
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: '充電樁數量 (槍)',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            color: '#4a5568' // Tailwind gray-700
+                        },
+                        ticks: {
+                            color: '#4a5568' // Tailwind gray-700
+                        }
+                    }
+                }
+            }
+        });
+
+        // Adjust canvas height for better visualization on smaller screens
+        const chartContainer = document.getElementById('evChargingChart').parentNode;
+        const resizeChart = () => {
+            if (window.innerWidth < 640) { // Small screens
+                chartContainer.style.height = '400px'; // Adjust height for mobile
+            } else if (window.innerWidth < 1024) { // Medium screens
+                chartContainer.style.height = '450px';
+            } else { // Large screens
+                chartContainer.style.height = '500px';
+            }
+            evChargingChart.resize(); // Trigger chart resize
+        };
+
+        window.addEventListener('load', resizeChart);
+        window.addEventListener('resize', resizeChart);
+
+    </script>
 </body>
 </html>
