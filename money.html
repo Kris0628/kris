@@ -368,6 +368,27 @@
             </div>
         </section>
 
+        <!-- 現金貸收益圖表區塊 -->
+        <section id="section-cash-loan-chart" class="w-full max-w-6xl mx-auto py-24 min-h-screen flex flex-col justify-center items-center relative z-10 hidden">
+            <h2 class="text-5xl md:text-6xl font-extrabold text-white mb-16 text-center bento-item">
+                <span class="text-green-400">現金貸</span>收益圖表
+            </h2>
+
+            <div class="grid grid-cols-1 w-full">
+                <div class="bento-item bg-gray-900/40 backdrop-blur-sm rounded-3xl p-8 shadow-lg relative overflow-hidden group">
+                    <div class="absolute inset-0 gradient-overlay-green opacity-50 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div class="relative z-10">
+                        <h3 class="text-3xl font-bold mb-6 text-green-400">現金貸投資趨勢 (<span id="cashLoanChartPeriod">3</span> 年期)</h3>
+                        <p class="text-gray-300 text-sm mb-8">Cash Loan Investment Trend (<span id="cashLoanChartPeriodEn">3</span> Years)</p>
+
+                        <div class="mt-8 h-[60vh] md:h-[70vh]">
+                            <canvas id="cashLoanIncomeChart" class="w-full h-full"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- 總結與風險提示區塊 -->
         <section id="section-summary" class="w-full max-w-6xl mx-auto py-24 min-h-screen flex flex-col justify-center items-center relative z-10 hidden">
             <h2 class="text-5xl md:text-6xl font-extrabold text-white mb-16 text-center bento-item">
@@ -430,7 +451,8 @@
     </div>
 
     <script>
-        let myChart; // Global variable to hold the Chart.js instance
+        let myMortgageChart; // Global variable for Mortgage Repayment Chart
+        let myCashLoanChart; // Global variable for Cash Loan Income Chart
 
         /**
          * Calculates cumulative interest and principal paid for a mortgage over a specified period.
@@ -729,184 +751,261 @@
 
 
             const mortgageRepaymentTitleElem = document.getElementById('mortgageRepaymentTitle');
-            if (mortgageRepaymentTitleElem) mortgageRepaymentTitleElem.innerHTML = `<span id="analysisPeriodMortgageRepayment">${analysisPeriod}</span>年期房貸平均本利攤`;
+            const analysisPeriodMortgageRepaymentElem = document.getElementById('analysisPeriodMortgageRepayment');
             const analysisPeriodMortgageRepaymentEnElem = document.getElementById('analysisPeriodMortgageRepaymentEn');
-            if (analysisPeriodMortgageRepaymentEnElem) analysisPeriodMortgageRepaymentEnElem.textContent = analysisPeriod.toFixed(0);
+
+            if (mortgageRepaymentTitleElem && analysisPeriodMortgageRepaymentElem && analysisPeriodMortgageRepaymentEnElem) {
+                let periodForTitle = analysisPeriod;
+                if (noCashLoanChecked) {
+                    periodForTitle = mortgageYears;
+                }
+                mortgageRepaymentTitleElem.innerHTML = `<span id="analysisPeriodMortgageRepayment">${periodForTitle}</span>年期房貸平均本利攤`;
+                analysisPeriodMortgageRepaymentEnElem.textContent = periodForTitle.toFixed(0);
+            }
 
 
-            // --- Update Mortgage Repayment Chart ---
-            const chartLabels = [];
-            const cumulativeMortgageInterestData = [];
-            const cumulativeMortgagePrincipalData = [];
-            const cumulativeEtfIncomeData = [];
-            const cumulativeNetProfitData = [];
+            // --- Chart Logic ---
+            const mortgageChartSection = document.getElementById('section-mortgage-repayment-chart');
+            const cashLoanChartSection = document.getElementById('section-cash-loan-chart');
+
+            if (noCashLoanChecked) {
+                // Show Mortgage Chart, Hide Cash Loan Chart
+                if (mortgageChartSection) mortgageChartSection.classList.remove('hidden');
+                if (cashLoanChartSection) cashLoanChartSection.classList.add('hidden');
+
+                // Destroy Cash Loan Chart if it exists
+                if (myCashLoanChart) {
+                    myCashLoanChart.destroy();
+                    myCashLoanChart = null;
+                }
+
+                // Prepare and render Mortgage Repayment Chart
+                const chartLabels = [];
+                const cumulativeMortgageInterestData = [];
+                const cumulativeMortgagePrincipalData = [];
+
+                for (let i = 1; i <= mortgageYears; i++) {
+                    chartLabels.push(`第${i}年`);
+                    const mortgagePaymentsForChart = calculateMortgagePayments(
+                        mortgageAmount * 10000,
+                        mortgageRate,
+                        mortgageYears,
+                        mortgageGracePeriod,
+                        i,
+                        isMortgageGracePeriodSelected
+                    );
+                    cumulativeMortgageInterestData.push((mortgagePaymentsForChart.totalInterest / 10000).toFixed(1));
+                    cumulativeMortgagePrincipalData.push((mortgagePaymentsForChart.totalPrincipal / 10000).toFixed(1));
+                }
+
+                const ctxMortgage = document.getElementById('mortgageRepaymentChart');
+                if (ctxMortgage) {
+                    if (myMortgageChart) {
+                        myMortgageChart.destroy();
+                    }
+                    myMortgageChart = new Chart(ctxMortgage.getContext('2d'), {
+                        type: 'line',
+                        data: {
+                            labels: chartLabels,
+                            datasets: [
+                                {
+                                    label: '累積償還利息 (萬)',
+                                    data: cumulativeMortgageInterestData,
+                                    borderColor: 'rgba(168, 85, 247, 0.8)', // Purple for interest
+                                    backgroundColor: 'rgba(168, 85, 247, 0.2)',
+                                    borderWidth: 2,
+                                    fill: true,
+                                    tension: 0.4,
+                                    pointBackgroundColor: 'rgba(168, 85, 247, 1)',
+                                    pointBorderColor: '#000',
+                                    pointBorderWidth: 1,
+                                    pointRadius: 5,
+                                    pointHoverRadius: 7
+                                },
+                                {
+                                    label: '累積償還本金 (萬)',
+                                    data: cumulativeMortgagePrincipalData,
+                                    borderColor: 'rgba(6, 182, 212, 0.8)', // Cyan for principal
+                                    backgroundColor: 'rgba(6, 182, 212, 0.2)',
+                                    borderWidth: 2,
+                                    fill: true,
+                                    tension: 0.4,
+                                    pointBackgroundColor: 'rgba(6, 182, 212, 1)',
+                                    pointBorderColor: '#000',
+                                    pointBorderWidth: 1,
+                                    pointRadius: 5,
+                                    pointHoverRadius: 7
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    labels: {
+                                        color: '#E0E0E0',
+                                        font: { family: 'Inter', size: 14 }
+                                    }
+                                },
+                                tooltip: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    titleColor: '#E0E0E0',
+                                    bodyColor: '#E0E0E0',
+                                    borderColor: 'rgba(255, 255, 255, 0.5)',
+                                    borderWidth: 1,
+                                    cornerRadius: 8,
+                                    displayColors: true
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: { color: 'rgba(255, 255, 255, 0.1)', drawBorder: false },
+                                    ticks: { color: '#E0E0E0', font: { family: 'Inter' } }
+                                },
+                                y: {
+                                    grid: { color: 'rgba(255, 255, 255, 0.1)', drawBorder: false },
+                                    ticks: { color: '#E0E0E0', font: { family: 'Inter' }, stepSize: 50 },
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                }
+            } else {
+                // Show Cash Loan Chart, Hide Mortgage Chart
+                if (mortgageChartSection) mortgageChartSection.classList.add('hidden');
+                if (cashLoanChartSection) cashLoanChartSection.classList.remove('hidden');
+
+                // Destroy Mortgage Chart if it exists
+                if (myMortgageChart) {
+                    myMortgageChart.destroy();
+                    myMortgageChart = null;
+                }
+
+                // Prepare and render Cash Loan Income Chart
+                const cashLoanChartLabels = [];
+                const cumulativeCashLoanInterestData = [];
+                const cumulativeEtfIncomeData = [];
+                const cumulativeNetProfitData = [];
+
+                // Update chart period display
+                const cashLoanChartPeriodElem = document.getElementById('cashLoanChartPeriod');
+                if (cashLoanChartPeriodElem) cashLoanChartPeriodElem.textContent = analysisPeriod.toFixed(0);
+                const cashLoanChartPeriodEnElem = document.getElementById('cashLoanChartPeriodEn');
+                if (cashLoanChartPeriodEnElem) cashLoanChartPeriodEnElem.textContent = analysisPeriod.toFixed(0);
 
 
-            for (let i = 1; i <= mortgageYears; i++) { // Chart spans full mortgage loan term
-                chartLabels.push(`第${i}年`);
+                for (let i = 1; i <= analysisPeriod; i++) { // Chart spans analysis period
+                    cashLoanChartLabels.push(`第${i}年`);
 
-                // Mortgage payments up to current year 'i'
-                const mortgagePaymentsForChart = calculateMortgagePayments(
-                    mortgageAmount * 10000,
-                    mortgageRate,
-                    mortgageYears,
-                    mortgageGracePeriod,
-                    i, // Calculate for current year 'i'
-                    isMortgageGracePeriodSelected
-                );
-                cumulativeMortgageInterestData.push((mortgagePaymentsForChart.totalInterest / 10000).toFixed(1));
-                cumulativeMortgagePrincipalData.push((mortgagePaymentsForChart.totalPrincipal / 10000).toFixed(1));
+                    let currentCashLoanInterestCumulative = 0;
+                    let currentEtfIncomeCumulative = 0;
 
-                // Cash Loan and ETF data (only if not "no cash loan")
-                let currentCashLoanInterestCumulative = 0;
-                let currentEtfIncomeCumulative = 0;
-
-                if (!noCashLoanChecked) {
                     if (i <= cashLoanGracePeriod) {
                         currentCashLoanInterestCumulative = (cashLoanAmount * (cashLoanRate / 100) * i);
                     } else {
                         currentCashLoanInterestCumulative = (cashLoanAmount * (cashLoanRate / 100) * i);
                     }
                     currentEtfIncomeCumulative = (cashLoanAmount * (etfYield / 100) * i);
+
+                    const currentTotalCostCumulative = currentCashLoanInterestCumulative; // Only cash loan interest for this chart's "cost"
+                    const currentNetProfitCumulative = currentEtfIncomeCumulative - currentTotalCostCumulative;
+
+                    cumulativeCashLoanInterestData.push(currentCashLoanInterestCumulative.toFixed(1));
+                    cumulativeEtfIncomeData.push(currentEtfIncomeCumulative.toFixed(1));
+                    cumulativeNetProfitData.push(currentNetProfitCumulative.toFixed(1));
                 }
 
-                const currentTotalCostCumulative = (mortgagePaymentsForChart.totalInterest / 10000) + currentCashLoanInterestCumulative;
-                const currentNetProfitCumulative = currentEtfIncomeCumulative - currentTotalCostCumulative;
-
-                cumulativeEtfIncomeData.push(currentEtfIncomeCumulative.toFixed(1));
-                cumulativeNetProfitData.push(currentNetProfitCumulative.toFixed(1));
-            }
-
-            const ctx = document.getElementById('mortgageRepaymentChart');
-            if (!ctx) return;
-
-            // Destroy existing chart instance if it exists
-            if (myChart) {
-                myChart.destroy();
-            }
-
-            const datasets = [
-                {
-                    label: '累積償還利息 (萬)',
-                    data: cumulativeMortgageInterestData,
-                    borderColor: 'rgba(168, 85, 247, 0.8)', // Purple for interest
-                    backgroundColor: 'rgba(168, 85, 247, 0.2)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.4,
-                    pointBackgroundColor: 'rgba(168, 85, 247, 1)',
-                    pointBorderColor: '#000',
-                    pointBorderWidth: 1,
-                    pointRadius: 5,
-                    pointHoverRadius: 7
-                },
-                {
-                    label: '累積償還本金 (萬)',
-                    data: cumulativeMortgagePrincipalData,
-                    borderColor: 'rgba(6, 182, 212, 0.8)', // Cyan for principal
-                    backgroundColor: 'rgba(6, 182, 212, 0.2)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.4,
-                    pointBackgroundColor: 'rgba(6, 182, 212, 1)',
-                    pointBorderColor: '#000',
-                    pointBorderWidth: 1,
-                    pointRadius: 5,
-                    pointHoverRadius: 7
-                }
-            ];
-
-            if (!noCashLoanChecked) {
-                datasets.push({
-                    label: '累積 ETF 收益 (萬)',
-                    data: cumulativeEtfIncomeData,
-                    borderColor: 'rgba(74, 222, 128, 0.8)', // Green for income
-                    backgroundColor: 'rgba(74, 222, 128, 0.2)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.4,
-                    pointBackgroundColor: 'rgba(74, 222, 128, 1)',
-                    pointBorderColor: '#000',
-                    pointBorderWidth: 1,
-                    pointRadius: 5,
-                    pointHoverRadius: 7
-                });
-                datasets.push({
-                    label: '累積淨利 (萬)',
-                    data: cumulativeNetProfitData,
-                    borderColor: 'rgba(96, 165, 250, 0.8)', // Blue for net profit
-                    backgroundColor: 'rgba(96, 165, 250, 0.2)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.4,
-                    pointBackgroundColor: 'rgba(96, 165, 250, 1)',
-                    pointBorderColor: '#000',
-                    pointBorderWidth: 1,
-                    pointRadius: 5,
-                    pointHoverRadius: 7
-                });
-            }
-
-
-            myChart = new Chart(ctx.getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: chartLabels,
-                    datasets: datasets
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: '#E0E0E0', // 圖例文字顏色
-                                font: {
-                                    family: 'Inter',
-                                    size: 14
-                                }
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            titleColor: '#E0E0E0',
-                            bodyColor: '#E0E0E0',
-                            borderColor: 'rgba(255, 255, 255, 0.5)',
-                            borderWidth: 1,
-                            cornerRadius: 8,
-                            displayColors: true
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)', // X軸網格線顏色
-                                drawBorder: false
-                            },
-                            ticks: {
-                                color: '#E0E0E0', // X軸標籤顏色
-                                font: {
-                                    family: 'Inter'
-                                }
-                            }
-                        },
-                        y: {
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)', // Y軸網格線顏色
-                                drawBorder: false
-                            },
-                            ticks: {
-                                color: '#E0E0E0', // Y軸標籤顏色
-                                font: {
-                                    family: 'Inter'
-                                },
-                                stepSize: 50 // 設定Y軸刻度為50萬 (因為數據單位是萬)
-                            },
-                            beginAtZero: true
-                        }
+                const ctxCashLoan = document.getElementById('cashLoanIncomeChart');
+                if (ctxCashLoan) {
+                    if (myCashLoanChart) {
+                        myCashLoanChart.destroy();
                     }
+                    myCashLoanChart = new Chart(ctxCashLoan.getContext('2d'), {
+                        type: 'line',
+                        data: {
+                            labels: cashLoanChartLabels,
+                            datasets: [
+                                {
+                                    label: '累積償還利息 (萬)',
+                                    data: cumulativeCashLoanInterestData,
+                                    borderColor: 'rgba(168, 85, 247, 0.8)', // Purple for interest
+                                    backgroundColor: 'rgba(168, 85, 247, 0.2)',
+                                    borderWidth: 2,
+                                    fill: true,
+                                    tension: 0.4,
+                                    pointBackgroundColor: 'rgba(168, 85, 247, 1)',
+                                    pointBorderColor: '#000',
+                                    pointBorderWidth: 1,
+                                    pointRadius: 5,
+                                    pointHoverRadius: 7
+                                },
+                                {
+                                    label: '累積 ETF 收益 (萬)',
+                                    data: cumulativeEtfIncomeData,
+                                    borderColor: 'rgba(74, 222, 128, 0.8)', // Green for income
+                                    backgroundColor: 'rgba(74, 222, 128, 0.2)',
+                                    borderWidth: 2,
+                                    fill: true,
+                                    tension: 0.4,
+                                    pointBackgroundColor: 'rgba(74, 222, 128, 1)',
+                                    pointBorderColor: '#000',
+                                    pointBorderWidth: 1,
+                                    pointRadius: 5,
+                                    pointHoverRadius: 7
+                                },
+                                {
+                                    label: '累積淨利 (萬)',
+                                    data: cumulativeNetProfitData,
+                                    borderColor: 'rgba(96, 165, 250, 0.8)', // Blue for net profit
+                                    backgroundColor: 'rgba(96, 165, 250, 0.2)',
+                                    borderWidth: 2,
+                                    fill: true,
+                                    tension: 0.4,
+                                    pointBackgroundColor: 'rgba(96, 165, 250, 1)',
+                                    pointBorderColor: '#000',
+                                    pointBorderWidth: 1,
+                                    pointRadius: 5,
+                                    pointHoverRadius: 7
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    labels: {
+                                        color: '#E0E0E0',
+                                        font: { family: 'Inter', size: 14 }
+                                    }
+                                },
+                                tooltip: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    titleColor: '#E0E0E0',
+                                    bodyColor: '#E0E0E0',
+                                    borderColor: 'rgba(255, 255, 255, 0.5)',
+                                    borderWidth: 1,
+                                    cornerRadius: 8,
+                                    displayColors: true
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: { color: 'rgba(255, 255, 255, 0.1)', drawBorder: false },
+                                    ticks: { color: '#E0E0E0', font: { family: 'Inter' } }
+                                },
+                                y: {
+                                    grid: { color: 'rgba(255, 255, 255, 0.1)', drawBorder: false },
+                                    ticks: { color: '#E0E0E0', font: { family: 'Inter' }, stepSize: 50 },
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
                 }
-            });
+            }
         }
 
         // 滾動動畫邏輯 (保持不變)
@@ -958,7 +1057,7 @@
             // 顯示結果區塊
             document.getElementById('section-overview').classList.remove('hidden');
             document.getElementById('section-details').classList.remove('hidden');
-            document.getElementById('section-mortgage-repayment-chart').classList.remove('hidden'); // 顯示房貸還款圖表區塊
+            // Chart visibility is handled within updateDashboard based on checkbox state
             document.getElementById('section-summary').classList.remove('hidden');
 
             // 重新觀察 bento items 以觸發動畫
