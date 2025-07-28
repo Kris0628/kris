@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注音中打練習</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden; /* Prevent scrolling */
+        }
+        .game-container {
+            background-color: #ffffff;
+            border-radius: 1rem; /* Rounded corners */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 600px;
+            box-sizing: border-box;
+            position: relative; /* For overlays and admin button positioning */
+        }
+        canvas {
+            background-color: #e2e8f0; /* Lighter blue-gray for canvas */
+            border-radius: 0.75rem; /* Rounded corners for canvas */
+            border: 2px solid #cbd5e1; /* Subtle border */
+            display: block;
+            width: 100%; /* Make canvas responsive */
+            height: 400px;
+            margin-bottom: 1rem;
+        }
+        .input-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        #typingInput {
+            padding: 0.75rem 1rem;
+            border: 2px solid #94a3b8; /* Slate border */
+            border-radius: 0.5rem; /* Rounded corners */
+            font-size: 1.25rem;
+            text-align: center;
+            width: 80%; /* Input width */
+            max-width: 300px;
+            outline: none;
+            transition: border-color 0.2s ease-in-out;
+        }
+        #typingInput:focus {
+            border-color: #3b82f6; /* Blue focus border */
+        }
+        .score-level-display {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1e293b; /* Darker text */
+        }
+        .missed-display {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ef4444; /* Red color for missed characters */
+            margin-top: -0.5rem; /* Adjust position */
+            margin-bottom: 0.5rem;
+            text-align: center;
+            width: 100%;
+        }
+
+        /* Overlay styles (Start, Game Over, Admin) */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 2rem;
+            text-align: center;
+            border-radius: 1rem;
+            z-index: 10;
+        }
+        .overlay button {
+            background-color: #22c55e; /* Green button */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1.25rem;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+        }
+        .overlay button:hover {
+            background-color: #16a34a; /* Darker green on hover */
+            transform: translateY(-2px);
+        }
+        .overlay button:active {
+            transform: translateY(0);
+        }
+        .overlay p {
+            margin-bottom: 0.5rem;
+            font-size: inherit;
+        }
+        .overlay h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Admin Panel Specific Styles */
+        .admin-panel {
+            background-color: #ffffff;
+            color: #1e293b;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .admin-panel h3 {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            color: #1e293b;
+        }
+        .admin-panel input[type="password"],
+        .admin-panel input[type="text"],
+        .admin-panel input[type="number"] { /* Added number type */
+            padding: 0.75rem 1rem;
+            border: 2px solid #94a3b8;
+            border-radius: 0.5rem;
+            font-size: 1.1rem;
+            text-align: center;
+            width: 90%;
+            margin-bottom: 1rem;
+            outline: none;
+        }
+        .admin-panel button {
+            background-color: #3b82f6; /* Blue button for admin actions */
+            margin-top: 0.5rem;
+        }
+        .admin-panel button:hover {
+            background-color: #2563eb;
+        }
+        .admin-panel .message {
+            color: #ef4444; /* Red for error messages */
+            font-size: 1rem;
+            margin-top: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .admin-panel .success-message {
+            color: #22c55e; /* Green for success messages */
+        }
+        .admin-setting-group {
+            width: 90%;
+            margin-bottom: 1rem;
+            text-align: left;
+        }
+        .admin-setting-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            color: #334155;
+        }
+
+
+        /* Admin Button at Bottom Right */
+        #adminButton {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            background-color: #64748b; /* Slate 500 */
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            z-index: 5; /* Below overlays but above game content */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+        }
+        #adminButton:hover {
+            background-color: #475569; /* Slate 700 */
+            transform: translateY(-1px);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 1rem;
+            }
+            canvas {
+                height: 300px;
+            }
+            .score-level-display {
+                font-size: 1.25rem;
+            }
+            #typingInput {
+                font-size: 1rem;
+                padding: 0.6rem 0.8rem;
+            }
+            .overlay {
+                font-size: 1.5rem;
+            }
+            .overlay h2 {
+                font-size: 2rem;
+            }
+            .overlay button {
+                font-size: 1rem;
+                padding: 0.6rem 1.2rem;
+            }
+            .admin-panel {
+                padding: 1.5rem;
+            }
+            .admin-panel h3 {
+                font-size: 1.5rem;
+            }
+            .admin-panel input {
+                font-size: 1rem;
+            }
+            #adminButton {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
+                bottom: 0.5rem;
+                right: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="text-3xl font-bold text-gray-800 mb-4">注音中打練習</h1>
+        <div class="score-level-display">
+            <div>分數: <span id="score">0</span></div>
+            <div>關卡: <span id="level">1</span></div>
+        </div>
+        <div class="missed-display">漏掉: <span id="missedCount">0</span> / <span id="maxMissedCountDisplay">5</span></div>
+        <canvas id="gameCanvas"></canvas>
+        <div class="input-area">
+            <input type="text" id="typingInput" placeholder="請輸入中文字" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        </div>
+
+        <!-- Admin Button -->
+        <button id="adminButton">管理</button>
+
+        <!-- Start Screen Overlay -->
+        <div id="startOverlay" class="overlay">
+            <h2>注音中打練習</h2>
+            <p>輸入掉落的中文字來消除它們。</p>
+            <p>如果字碰到地面，遊戲就結束了！</p>
+            <p>分數達到目標即可進入下一關。</p>
+            <button id="startButton">開始遊戲</button>
+        </div>
+
+        <!-- Game Over Overlay (Hidden by default) -->
+        <div id="gameOverOverlay" class="overlay hidden">
+            <h2>遊戲結束！</h2>
+            <p>您的分數: <span id="finalScore">0</span></p>
+            <p>您達到了關卡: <span id="finalLevel">1</span></p>
+            <p id="gameOverReason"></p> <!-- New element for game over reason -->
+            <button id="restartButton">重新開始</button>
+        </div>
+
+        <!-- Admin Panel Overlay (Hidden by default) -->
+        <div id="adminOverlay" class="overlay hidden">
+            <div class="admin-panel">
+                <h3 id="adminPanelTitle">管理介面</h3>
+                <div id="loginSection">
+                    <input type="password" id="adminPasswordInput" placeholder="請輸入密碼">
+                    <p id="loginMessage" class="message"></p>
+                    <button id="loginButton">登入</button>
+                </div>
+                <div id="settingsSection" class="hidden"> <!-- New section for settings -->
+                    <div class="admin-setting-group">
+                        <label for="newPasswordInput">更改密碼:</label>
+                        <input type="password" id="newPasswordInput" placeholder="輸入新密碼">
+                        <input type="password" id="confirmNewPasswordInput" placeholder="確認新密碼">
+                        <p id="changePasswordMessage" class="message"></p>
+                        <button id="changePasswordButton">更改密碼</button>
+                    </div>
+
+                    <div class="admin-setting-group mt-4">
+                        <label for="missedLimitInput">設定漏掉文字上限:</label>
+                        <input type="number" id="missedLimitInput" min="1" value="5">
+                        <p id="missedLimitMessage" class="message"></p>
+                        <button id="saveMissedLimitButton">儲存設定</button>
+                    </div>
+                </div>
+                <button id="backToGameButton" class="mt-4">返回遊戲</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('score');
+        const levelDisplay = document.getElementById('level');
+        const missedCountDisplay = document.getElementById('missedCount');
+        const maxMissedCountDisplay = document.getElementById('maxMissedCountDisplay');
+        const typingInput = document.getElementById('typingInput');
+        const startOverlay = document.getElementById('startOverlay');
+        const startButton = document.getElementById('startButton');
+        const gameOverOverlay = document.getElementById('gameOverOverlay');
+        const finalScoreDisplay = document.getElementById('finalScore');
+        const finalLevelDisplay = document.getElementById('finalLevel');
+        const gameOverReasonDisplay = document.getElementById('gameOverReason');
+        const restartButton = document.getElementById('restartButton');
+        const adminButton = document.getElementById('adminButton');
+        const adminOverlay = document.getElementById('adminOverlay');
+        const adminPasswordInput = document.getElementById('adminPasswordInput');
+        const loginMessage = document.getElementById('loginMessage');
+        const loginButton = document.getElementById('loginButton');
+        const settingsSection = document.getElementById('settingsSection');
+        const newPasswordInput = document.getElementById('newPasswordInput');
+        const confirmNewPasswordInput = document.getElementById('confirmNewPasswordInput');
+        const changePasswordMessage = document.getElementById('changePasswordMessage');
+        const changePasswordButton = document.getElementById('changePasswordButton');
+        const missedLimitInput = document.getElementById('missedLimitInput');
+        const missedLimitMessage = document.getElementById('missedLimitMessage');
+        const saveMissedLimitButton = document.getElementById('saveMissedLimitButton');
+        const backToGameButton = document.getElementById('backToGameButton');
+
+        let characters = [];
+        let score = 0;
+        let currentLevel = 1;
+        let missedCharacters = 0;
+        let maxMissedCharacters = 5;
+        let gameOver = false;
+        let gameRunning = false;
+        let animationFrameId;
+        let lastSpawnTime = 0;
+        let explosions = [];
+        let cracks = []; // New array to store crack segments
+
+        // Admin password (for demonstration purposes, stored client-side)
+        let adminPassword = "0000";
+
+        // Traditional Chinese characters (simplified list for demonstration, can be expanded)
+        const chineseCharacters = [
+            '我', '你', '他', '是', '的', '了', '在', '有', '不', '人',
+            '們', '大', '小', '上', '下', '中', '國', '文', '學', '生',
+            '好', '吃', '飯', '水', '電', '視', '看', '說', '話', '來',
+            '去', '家', '裡', '外', '前', '後', '左', '右', '東', '西',
+            '南', '北', '天', '地', '山', '海', '風', '雨', '雪', '日',
+            '月', '星', '光', '明', '暗', '新', '舊', '長', '短', '高',
+            '低', '多', '少', '冷', '熱', '快', '慢', '開', '關', '走',
+            '跑', '跳', '坐', '站', '睡', '醒', '哭', '笑', '唱', '跳',
+            '玩', '學', '習', '教', '師', '朋', '友', '家', '庭', '父',
+            '母', '兄', '弟', '姐', '妹', '兒', '子', '女', '愛', '心',
+            '情', '感', '想', '念', '意', '思', '問', '答', '題', '方',
+            '法', '解', '決', '做', '為', '何', '怎', '麼', '樣', '哪',
+            '裡', '誰', '什', '麼', '時', '候', '現', '在', '過', '去',
+            '未', '來', '年', '月', '日', '星', '期', '點', '分', '秒',
+            '鐘', '刻', '度', '量', '尺', '寸', '米', '公', '斤', '兩',
+            '錢', '分', '角', '元', '塊', '毛', '錢', '數', '字', '一',
+            '二', '三', '四', '五', '六', '七', '八', '九', '十', '百',
+            '千', '萬', '億', '零', '點'
+        ];
+
+        // Game settings
+        const charSize = 24; // Font size for Chinese characters
+        const floorTolerance = 10; // How close to the bottom before game over
+
+        // Level configurations: speed and spawn interval
+        const levelConfigs = [
+            { speedMin: 0.1, speedMax: 0.5, spawnInterval: 2000, scoreThreshold: 80 },   // Level 1 (Very Slow, longer interval)
+            { speedMin: 0.3, speedMax: 0.9, spawnInterval: 1800, scoreThreshold: 200 },  // Level 2
+            { speedMin: 0.5, speedMax: 1.3, spawnInterval: 1600, scoreThreshold: 350 },  // Level 3
+            { speedMin: 0.7, speedMax: 1.7, spawnInterval: 1400, scoreThreshold: 550 },  // Level 4
+            { speedMin: 0.9, speedMax: 2.1, spawnInterval: 1200, scoreThreshold: 800 },  // Level 5
+            { speedMin: 1.1, speedMax: 2.5, spawnInterval: 1000, scoreThreshold: 1100 }, // Level 6
+            { speedMin: 1.3, speedMax: 2.9, spawnInterval: 900, scoreThreshold: 1450 },  // Level 7
+            { speedMin: 1.5, speedMax: 3.3, spawnInterval: 800, scoreThreshold: 1850 },  // Level 8
+            { speedMin: 1.7, speedMax: 3.7, spawnInterval: 700, scoreThreshold: 2300 },  // Level 9
+            { speedMin: 1.9, speedMax: 4.0, spawnInterval: 600, scoreThreshold: Infinity } // Level 10 (and beyond)
+        ];
+
+        // Particle class for explosion effect
+        class Particle {
+            constructor(x, y, color, vx, vy, radius, alphaDecay, gravity, friction) {
+                this.x = x;
+                this.y = y;
+                this.radius = radius || (Math.random() * 3 + 1); // Small particles
+                this.color = color;
+                this.alpha = 1;
+                this.vx = vx || (Math.random() - 0.5) * 5; // Random horizontal velocity
+                this.vy = vy || (Math.random() - 0.5) * 5; // Random vertical velocity
+                this.gravity = gravity || 0.1; // Make particles fall slightly
+                this.friction = friction || 0.98; // Slow down particles over time
+                this.alphaDecay = alphaDecay || 0.02; // How fast particles fade out
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.restore();
+            }
+
+            update() {
+                this.vx *= this.friction;
+                this.vy *= this.friction;
+                this.vy += this.gravity; // Apply gravity
+                this.x += this.vx;
+                this.y += this.vy;
+                this.alpha -= this.alphaDecay; // Fade out
+            }
+        }
+
+        // Explosion class (manages a group of particles)
+        class Explosion {
+            constructor(x, y, type = 'small') {
+                this.x = x;
+                this.y = y;
+                this.particles = [];
+                let particleCount;
+                let colors;
+                let velocitySpread;
+                let radiusRange;
+                let alphaDecay;
+                let gravity;
+                let friction;
+
+                if (type === 'large') {
+                    particleCount = 150; // More particles for a big explosion
+                    colors = ['#FF0000', '#FF4500', '#FFD700', '#FFFFFF']; // More vibrant colors for a large explosion
+                    velocitySpread = 10; // Wider spread for particles
+                    radiusRange = { min: 2, max: 5 }; // Larger particles
+                    alphaDecay = 0.01; // Slower fade out for a longer effect
+                    gravity = 0.05; // Less gravity for a more 'floating' explosion
+                    friction = 0.97;
+                } else { // 'small' type (default)
+                    particleCount = 20;
+                    colors = ['#FFD700', '#FFA500', '#FF4500']; // Gold, Orange, OrangeRed
+                    velocitySpread = 5;
+                    radiusRange = { min: 1, max: 3 };
+                    alphaDecay = 0.02;
+                    gravity = 0.1;
+                    friction = 0.98;
+                }
+
+                for (let i = 0; i < particleCount; i++) {
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    const vx = (Math.random() - 0.5) * velocitySpread;
+                    const vy = (Math.random() - 0.5) * velocitySpread;
+                    const radius = Math.random() * (radiusRange.max - radiusRange.min) + radiusRange.min;
+                    this.particles.push(new Particle(this.x, this.y, color, vx, vy, radius, alphaDecay, gravity, friction));
+                }
+            }
+
+            draw(ctx) {
+                this.particles.forEach(particle => particle.draw(ctx));
+            }
+
+            update() {
+                this.particles.forEach(particle => particle.update());
+                // Remove particles that have faded out
+                this.particles = this.particles.filter(particle => particle.alpha > 0);
+            }
+
+            isFinished() {
+                return this.particles.length === 0;
+            }
+        }
+
+        // Character class
+        class FallingChar {
+            constructor() {
+                this.char = chineseCharacters[Math.floor(Math.random() * chineseCharacters.length)];
+                this.x = Math.random() * (canvas.width - charSize);
+                this.y = -charSize; // Start above the canvas
+
+                // Get current level's speed settings
+                const currentConfig = levelConfigs[currentLevel - 1] || levelConfigs[levelConfigs.length - 1];
+                this.speed = currentConfig.speedMin + Math.random() * (currentConfig.speedMax - currentConfig.speedMin);
+            }
+
+            draw() {
+                ctx.font = `${charSize}px "Inter", sans-serif`;
+                ctx.fillStyle = '#334155'; /* Slate 700 */
+                ctx.fillText(this.char, this.x, this.y);
+            }
+
+            update() {
+                this.y += this.speed;
+            }
+        }
+
+        // Function to generate a single crack segment recursively
+        function generateCrackSegment(startX, startY, length, angle, depth, maxDepth) {
+            if (depth > maxDepth) return;
+
+            const endX = startX + length * Math.cos(angle);
+            const endY = startY + length * Math.sin(angle);
+
+            cracks.push({ x1: startX, y1: startY, x2: endX, y2: endY });
+
+            // Recursively generate branches
+            const numBranches = Math.random() < 0.7 ? 1 : 2; // Most cracks have 1 branch, some have 2
+            for (let i = 0; i < numBranches; i++) {
+                const branchAngle = angle + (Math.random() - 0.5) * (Math.PI / 4); // +/- 45 degrees
+                const branchLength = length * (0.5 + Math.random() * 0.5); // Shorter branches
+                generateCrackSegment(endX, endY, branchLength, branchAngle, depth + 1, maxDepth);
+            }
+        }
+
+        // Function to draw all crack segments
+        function drawCracks() {
+            ctx.save();
+            ctx.strokeStyle = '#555'; // Dark gray for cracks
+            ctx.lineWidth = 2; // Crack thickness
+            ctx.lineCap = 'round';
+
+            cracks.forEach(crack => {
+                ctx.beginPath();
+                ctx.moveTo(crack.x1, crack.y1);
+                ctx.lineTo(crack.x2, crack.y2);
+                ctx.stroke();
+            });
+            ctx.restore();
+        }
+
+
+        // Initialize game state (before starting)
+        function resetGame() {
+            characters = [];
+            explosions = []; // Clear any existing explosions
+            cracks = []; // Clear any existing cracks
+            score = 0;
+            currentLevel = 1;
+            missedCharacters = 0; // Reset missed characters
+            gameOver = false;
+            gameRunning = false;
+            scoreDisplay.textContent = score;
+            levelDisplay.textContent = currentLevel;
+            maxMissedCountDisplay.textContent = maxMissedCharacters; // Update max missed display
+            missedCountDisplay.textContent = missedCharacters; // Update current missed display
+            typingInput.value = '';
+            typingInput.disabled = true; // Disable input until game starts
+            typingInput.style.borderColor = '#94a3b8'; // Reset border color
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId); // Stop any previous animation loop
+            }
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+            gameOverOverlay.classList.add('hidden'); // Hide game over screen
+            adminOverlay.classList.add('hidden'); // Ensure admin overlay is hidden
+            startOverlay.classList.remove('hidden'); // Show start screen
+        }
+
+        // Start game function
+        function startGame() {
+            startOverlay.classList.add('hidden'); // Hide start screen
+            gameOverOverlay.classList.add('hidden'); // Ensure game over screen is hidden
+            adminOverlay.classList.add('hidden'); // Ensure admin overlay is hidden
+            gameRunning = true;
+            typingInput.disabled = false; // Enable input
+            typingInput.focus();
+            lastSpawnTime = performance.now(); // Reset spawn timer
+            gameLoop(); // Start the game loop
+        }
+
+        // Game loop
+        function gameLoop(currentTime) {
+            if (!gameRunning) { // Only run if game is active
+                return;
+            }
+
+            // Get current level's spawn interval
+            const currentConfig = levelConfigs[currentLevel - 1] || levelConfigs[levelConfigs.length - 1];
+            const currentSpawnInterval = currentConfig.spawnInterval;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw cracks (if any) - should be drawn first, as a background effect
+            drawCracks();
+
+            // Spawn new character
+            if (currentTime - lastSpawnTime > currentSpawnInterval) {
+                characters.push(new FallingChar());
+                lastSpawnTime = currentTime;
+            }
+
+            // Update and draw characters
+            for (let i = characters.length - 1; i >= 0; i--) {
+                const char = characters[i];
+                char.update();
+                char.draw();
+
+                // Check for collision with ground
+                if (char.y + charSize > canvas.height - floorTolerance) {
+                    // Create small explosion when character hits the ground
+                    explosions.push(new Explosion(char.x + charSize / 2, char.y + charSize / 2, 'small'));
+
+                    missedCharacters++; // Increment missed count
+                    missedCountDisplay.textContent = missedCharacters; // Update display
+                    characters.splice(i, 1); // Remove the character
+                    if (missedCharacters >= maxMissedCharacters) {
+                        endGame("missed"); // End game due to missed characters
+                        return; // Stop the loop immediately
+                    }
+                }
+            }
+
+            // Update and draw explosions
+            for (let i = explosions.length - 1; i >= 0; i--) {
+                explosions[i].update();
+                explosions[i].draw(ctx);
+                if (explosions[i].isFinished()) {
+                    explosions.splice(i, 1); // Remove finished explosions
+                }
+            }
+
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        // Handle typing input
+        typingInput.addEventListener('input', (e) => {
+            if (!gameRunning) { // Do nothing if game is not running
+                e.target.value = '';
+                return;
+            }
+
+            const typedChar = e.target.value; // Get the typed Chinese character
+
+            let foundMatch = false;
+            for (let i = 0; i < characters.length; i++) {
+                // Match: check if the typed character exactly matches the falling Chinese character
+                if (characters[i].char === typedChar) {
+                    // Create small explosion at the character's position (center of the character)
+                    explosions.push(new Explosion(characters[i].x + charSize / 2, characters[i].y + charSize / 2, 'small'));
+                    characters.splice(i, 1); // Remove the character immediately
+                    score += 10; // Increase score
+                    scoreDisplay.textContent = score;
+                    foundMatch = true;
+
+                    // Clear the input field only on successful match
+                    e.target.value = '';
+
+                    // Check for level up
+                    const nextLevelConfig = levelConfigs[currentLevel]; // Check if next level exists
+                    if (nextLevelConfig && score >= nextLevelConfig.scoreThreshold) {
+                        currentLevel++;
+                        levelDisplay.textContent = currentLevel;
+                    }
+                    break; // Only remove one character per input
+                }
+            }
+
+            // If no match, and the input is not empty, provide visual feedback
+            // Do NOT clear the input if no match, allowing continuous typing.
+            if (!foundMatch && typedChar !== '') {
+                typingInput.style.borderColor = '#ef4444'; // Red for incorrect
+                setTimeout(() => {
+                    typingInput.style.borderColor = '#94a3b8'; // Back to normal
+                }, 200);
+            }
+        });
+
+        // End game function
+        function endGame(reason = "hit_ground") {
+            gameOver = true;
+            gameRunning = false; // Stop game loop
+            cancelAnimationFrame(animationFrameId); // Stop the animation loop
+            typingInput.disabled = true; // Disable input
+            typingInput.value = ''; // Clear any remaining input
+
+            finalScoreDisplay.textContent = score;
+            finalLevelDisplay.textContent = currentLevel;
+            if (reason === "missed") {
+                gameOverReasonDisplay.textContent = `您漏掉了 ${maxMissedCharacters} 個字！`;
+                // Trigger a large, screen-wide explosion
+                explosions.push(new Explosion(canvas.width / 2, canvas.height / 2, 'large'));
+
+                // Generate cracks when game ends due to missed characters
+                cracks = []; // Clear any old cracks
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const initialCrackLength = 50;
+                const maxCrackDepth = 3;
+                const numInitialCracks = 5 + Math.floor(Math.random() * 5); // 5 to 9 initial cracks
+
+                for (let i = 0; i < numInitialCracks; i++) {
+                    const angle = Math.random() * Math.PI * 2; // Full circle
+                    generateCrackSegment(centerX, centerY, initialCrackLength, angle, 0, maxCrackDepth);
+                }
+
+            } else {
+                gameOverReasonDisplay.textContent = `字碰到地面了！`;
+                // Trigger a small explosion at the specific character that hit the ground (already handled in gameLoop)
+            }
+            gameOverOverlay.classList.remove('hidden'); // Show game over screen
+        }
+
+        // Admin Panel Functions
+        function showAdminPanel() {
+            gameRunning = false; // Pause game
+            cancelAnimationFrame(animationFrameId); // Stop game loop
+            typingInput.disabled = true; // Disable game input
+            startOverlay.classList.add('hidden');
+            gameOverOverlay.classList.add('hidden');
+            adminOverlay.classList.remove('hidden');
+            adminPasswordInput.value = ''; // Clear password input
+            loginMessage.textContent = ''; // Clear login message
+            changePasswordMessage.textContent = ''; // Clear change password message
+            missedLimitMessage.textContent = ''; // Clear missed limit message
+            settingsSection.classList.add('hidden'); // Hide settings section initially
+            document.getElementById('loginSection').classList.remove('hidden'); // Show login section
+            adminPasswordInput.focus();
+        }
+
+        function hideAdminPanel() {
+            adminOverlay.classList.add('hidden');
+            // Resume game only if it was running before opening admin panel
+            if (!gameOver) { // Only resume if game wasn't already over
+                gameRunning = true;
+                typingInput.disabled = false;
+                typingInput.focus();
+                gameLoop();
+            } else {
+                // If game was over, show game over screen again
+                gameOverOverlay.classList.remove('hidden');
+            }
+        }
+
+        loginButton.addEventListener('click', () => {
+            if (adminPasswordInput.value === adminPassword) {
+                loginMessage.textContent = '登入成功！';
+                loginMessage.classList.remove('text-red-500');
+                loginMessage.classList.add('text-green-500');
+                document.getElementById('loginSection').classList.add('hidden');
+                settingsSection.classList.remove('hidden'); // Show settings section
+                // Initialize settings input fields
+                newPasswordInput.value = '';
+                confirmNewPasswordInput.value = '';
+                missedLimitInput.value = maxMissedCharacters; // Load current value
+                newPasswordInput.focus();
+            } else {
+                loginMessage.textContent = '密碼錯誤，請重試。';
+                loginMessage.classList.remove('text-green-500');
+                loginMessage.classList.add('text-red-500');
+            }
+        });
+
+        changePasswordButton.addEventListener('click', () => {
+            const newPass = newPasswordInput.value;
+            const confirmNewPass = confirmNewPasswordInput.value;
+
+            if (newPass === '' || confirmNewPass === '') {
+                changePasswordMessage.textContent = '新密碼和確認密碼不能為空。';
+                changePasswordMessage.classList.remove('text-green-500');
+                changePasswordMessage.classList.add('text-red-500');
+            } else if (newPass !== confirmNewPass) {
+                changePasswordMessage.textContent = '新密碼與確認密碼不符。';
+                changePasswordMessage.classList.remove('text-green-500');
+                changePasswordMessage.classList.add('text-red-500');
+            } else {
+                adminPassword = newPass;
+                changePasswordMessage.textContent = '密碼已成功更改！';
+                changePasswordMessage.classList.remove('text-red-500');
+                changePasswordMessage.classList.add('text-green-500');
+                newPasswordInput.value = '';
+                confirmNewPasswordInput.value = '';
+            }
+        });
+
+        saveMissedLimitButton.addEventListener('click', () => {
+            const newLimit = parseInt(missedLimitInput.value, 10);
+            if (isNaN(newLimit) || newLimit < 1) {
+                missedLimitMessage.textContent = '請輸入一個有效的數字 (至少為 1)。';
+                missedLimitMessage.classList.remove('text-green-500');
+                missedLimitMessage.classList.add('text-red-500');
+            } else {
+                maxMissedCharacters = newLimit;
+                missedLimitMessage.textContent = '漏掉文字上限已儲存！';
+                missedLimitMessage.classList.remove('text-red-500');
+                missedLimitMessage.classList.add('text-green-500');
+                maxMissedCountDisplay.textContent = maxMissedCharacters; // Update display
+            }
+        });
+
+        // Ensure canvas dimensions are set correctly on load and resize
+        function setCanvasDimensions() {
+            const container = document.querySelector('.game-container');
+            canvas.width = container.clientWidth - 3 * 16;
+            canvas.height = 400;
+        }
+
+        // Event Listeners for buttons
+        startButton.addEventListener('click', startGame);
+        restartButton.addEventListener('click', resetGame);
+        adminButton.addEventListener('click', showAdminPanel);
+        backToGameButton.addEventListener('click', hideAdminPanel);
+
+        // Initial setup
+        window.addEventListener('load', () => {
+            setCanvasDimensions();
+            resetGame(); // Initialize game state to show start screen
+        });
+
+        // Adjust canvas on window resize
+        window.addEventListener('resize', setCanvasDimensions);
+
+    </script>
+</body>
+</html>
