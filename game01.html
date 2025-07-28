@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>注音中打練習</title>
+    <title>中打練習</title> <!-- Changed title -->
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
-            font-family: "Inter", sans-serif;
+            /* Changed font-family to BiaoKaiTi with fallbacks */
+            font-family: "標楷體", "BiaoKaiTi", "DFKai-SB", "PMingLiU", "MingLiU", sans-serif;
             background-color: #f0f4f8; /* Light blue-gray background */
             display: flex;
             justify-content: center;
@@ -29,6 +30,29 @@
             max-width: 600px;
             box-sizing: border-box;
             position: relative; /* For overlays and admin button positioning */
+            transition: background-color 0.1s ease-in-out; /* Smooth transition for background color changes */
+        }
+        /* Rainbow Flash Animation */
+        @keyframes rainbow-flash {
+            0% { background-color: #ff0000; } /* Red */
+            14% { background-color: #ff7f00; } /* Orange */
+            28% { background-color: #ffff00; } /* Yellow */
+            42% { background-color: #00ff00; } /* Green */
+            56% { background-color: #0000ff; } /* Blue */
+            70% { background-color: #4b0082; } /* Indigo */
+            84% { background-color: #9400d3; } /* Violet */
+            100% { background-color: #ff0000; } /* Back to Red */
+        }
+
+        .game-container.rainbow-bg {
+            animation: rainbow-flash 0.5s infinite alternate; /* Fast, repeating flash */
+        }
+
+        h1 { /* Targeting the main title */
+            max-width: 300px; /* Make title narrower */
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
         }
         canvas {
             background-color: #e2e8f0; /* Lighter blue-gray for canvas */
@@ -52,7 +76,7 @@
             font-size: 1.25rem;
             text-align: center;
             width: 80%; /* Input width */
-            max-width: 300px;
+            max-width: none; /* Removed max-width to allow it to fit parent's 80% */
             outline: none;
             transition: border-color 0.2s ease-in-out;
         }
@@ -63,21 +87,24 @@
             display: flex;
             justify-content: space-between;
             width: 100%;
-            max-width: 300px;
-            margin-bottom: 1rem;
+            max-width: 250px; /* Reduced max-width for score/level display */
+            margin-bottom: 0.5rem; /* Reduced margin to fit new element */
             font-size: 1.5rem;
             font-weight: bold;
             color: #1e293b; /* Darker text */
+            margin-left: auto; /* Center the element */
+            margin-right: auto; /* Center the element */
         }
         .missed-display {
             font-size: 1.2rem;
             font-weight: bold;
             color: #ef4444; /* Red color for missed characters */
-            margin-top: -0.5rem; /* Adjust position */
-            margin-bottom: 0.5rem;
+            margin-top: 0; /* Adjusted position */
+            margin-bottom: 1rem; /* Adjusted margin to compensate for removed element */
             text-align: center;
             width: 100%;
         }
+        /* Removed .level-effect-display style as it's no longer needed */
 
         /* Overlay styles (Start, Game Over, Admin) */
         .overlay {
@@ -124,63 +151,90 @@
             margin-bottom: 1rem;
         }
 
+        /* Game Over Overlay Animation */
+        #gameOverOverlay {
+            opacity: 0; /* Initially hidden */
+            transform: translateY(100%); /* Start from bottom */
+            transition: opacity 1.5s ease-out, transform 1.5s ease-out; /* Smooth transition */
+        }
+
+        #gameOverOverlay.show-overlay {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
         /* Admin Panel Specific Styles */
         .admin-panel {
             background-color: #ffffff;
             color: #1e293b;
-            padding: 2rem;
+            padding: 0.8rem; /* Further reduced padding */
             border-radius: 1rem;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-            width: 90%;
-            max-width: 400px;
+            width: 98%; /* Take almost full width of parent */
+            max-width: 280px; /* Even smaller max-width */
             display: flex;
             flex-direction: column;
             align-items: center;
+            overflow-y: auto; /* Allow scrolling if content is too tall */
+            max-height: 90vh; /* Limit height to viewport height */
         }
         .admin-panel h3 {
-            font-size: 1.8rem;
+            font-size: 1.5rem; /* Slightly smaller heading */
             font-weight: bold;
-            margin-bottom: 1.5rem;
+            margin-bottom: 0.8rem; /* Reduced margin */
             color: #1e293b;
         }
         .admin-panel input[type="password"],
         .admin-panel input[type="text"],
         .admin-panel input[type="number"] { /* Added number type */
-            padding: 0.75rem 1rem;
+            padding: 0.5rem 0.7rem; /* Reduced input padding */
             border: 2px solid #94a3b8;
             border-radius: 0.5rem;
-            font-size: 1.1rem;
+            font-size: 0.95rem; /* Slightly smaller font size for inputs */
             text-align: center;
-            width: 90%;
-            margin-bottom: 1rem;
+            width: 95%; /* Make inputs slightly wider within their group */
+            margin-bottom: 0.6rem; /* Reduced margin */
             outline: none;
         }
         .admin-panel button {
             background-color: #3b82f6; /* Blue button for admin actions */
-            margin-top: 0.5rem;
+            color: white;
+            padding: 0.5rem 1rem; /* Reduced button padding */
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.95rem; /* Slightly smaller button font size */
+            cursor: pointer;
+            margin-top: 0.3rem; /* Reduced margin */
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
         }
         .admin-panel button:hover {
             background-color: #2563eb;
         }
         .admin-panel .message {
             color: #ef4444; /* Red for error messages */
-            font-size: 1rem;
-            margin-top: 0.5rem;
-            margin-bottom: 1rem;
+            font-size: 0.85rem; /* Slightly smaller message font size */
+            margin-top: 0.3rem; /* Reduced margin */
+            margin-bottom: 0.6rem; /* Reduced margin */
         }
         .admin-panel .success-message {
             color: #22c55e; /* Green for success messages */
         }
         .admin-setting-group {
-            width: 90%;
-            margin-bottom: 1rem;
+            width: 100%; /* Ensure settings group takes full width of panel */
+            margin-bottom: 0.8rem; /* Reduced margin */
             text-align: left;
+            padding: 0.5rem; /* Add some padding to the group itself */
+            border: 1px solid #e2e8f0; /* Subtle border for groups */
+            border-radius: 0.5rem;
         }
         .admin-setting-group label {
             display: block;
-            margin-bottom: 0.5rem;
-            font-size: 1.1rem;
+            margin-bottom: 0.3rem; /* Reduced margin */
+            font-size: 0.95rem; /* Slightly smaller label font size */
             color: #334155;
+        }
+        .admin-setting-group label.text-sm { /* For specific smaller labels */
+            font-size: 0.85rem;
         }
 
 
@@ -215,6 +269,7 @@
             }
             .score-level-display {
                 font-size: 1.25rem;
+                max-width: 200px; /* Further reduce on mobile */
             }
             #typingInput {
                 font-size: 1rem;
@@ -231,13 +286,26 @@
                 padding: 0.6rem 1.2rem;
             }
             .admin-panel {
-                padding: 1.5rem;
+                padding: 0.6rem; /* Even less padding on mobile */
+                max-width: 95%; /* Allow it to take more width on very small screens */
             }
             .admin-panel h3 {
-                font-size: 1.5rem;
+                font-size: 1.3rem; /* Smaller heading on mobile */
             }
             .admin-panel input {
-                font-size: 1rem;
+                font-size: 0.85rem; /* Smaller input font on mobile */
+                padding: 0.4rem 0.6rem;
+            }
+            .admin-panel button {
+                font-size: 0.85rem; /* Smaller button font on mobile */
+                padding: 0.4rem 0.8rem;
+            }
+            .admin-panel .message,
+            .admin-setting-group label {
+                font-size: 0.75rem; /* Smaller text on mobile */
+            }
+            .admin-setting-group {
+                padding: 0.4rem; /* Smaller padding for groups on mobile */
             }
             #adminButton {
                 padding: 0.4rem 0.8rem;
@@ -250,12 +318,13 @@
 </head>
 <body>
     <div class="game-container">
-        <h1 class="text-3xl font-bold text-gray-800 mb-4">注音中打練習</h1>
+        <h1 class="text-3xl font-bold text-gray-800 mb-4">中打練習</h1> <!-- Changed title -->
         <div class="score-level-display">
             <div>分數: <span id="score">0</span></div>
             <div>關卡: <span id="level">1</span></div>
         </div>
         <div class="missed-display">漏掉: <span id="missedCount">0</span> / <span id="maxMissedCountDisplay">5</span></div>
+        <!-- Removed the level effect display div -->
         <canvas id="gameCanvas"></canvas>
         <div class="input-area">
             <input type="text" id="typingInput" placeholder="請輸入中文字" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
@@ -266,7 +335,7 @@
 
         <!-- Start Screen Overlay -->
         <div id="startOverlay" class="overlay">
-            <h2>注音中打練習</h2>
+            <h2>中打練習</h2> <!-- Changed title -->
             <p>輸入掉落的中文字來消除它們。</p>
             <p>如果字碰到地面，遊戲就結束了！</p>
             <p>分數達到目標即可進入下一關。</p>
@@ -306,6 +375,18 @@
                         <p id="missedLimitMessage" class="message"></p>
                         <button id="saveMissedLimitButton">儲存設定</button>
                     </div>
+
+                    <div class="admin-setting-group mt-4"> <!-- New section for game rules -->
+                        <label>遊戲細項規則 (當前關卡):</label>
+                        <label for="currentLevelSpeedMinInput" class="text-sm text-gray-600">最小速度:</label>
+                        <input type="number" id="currentLevelSpeedMinInput" step="0.1" min="0.1" value="0.1">
+                        <label for="currentLevelSpeedMaxInput" class="text-sm text-gray-600">最大速度:</label>
+                        <input type="number" id="currentLevelSpeedMaxInput" step="0.1" min="0.1" value="0.5">
+                        <label for="currentLevelSpawnIntervalInput" class="text-sm text-gray-600">生成間隔 (毫秒):</label>
+                        <input type="number" id="currentLevelSpawnIntervalInput" min="100" value="2000">
+                        <p id="gameSettingsMessage" class="message"></p>
+                        <button id="saveGameSettingsButton">儲存遊戲設定</button>
+                    </div>
                 </div>
                 <button id="backToGameButton" class="mt-4">返回遊戲</button>
             </div>
@@ -313,6 +394,7 @@
     </div>
 
     <script>
+        const gameContainer = document.querySelector('.game-container'); // Get game container reference
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const scoreDisplay = document.getElementById('score');
@@ -340,6 +422,11 @@
         const missedLimitInput = document.getElementById('missedLimitInput');
         const missedLimitMessage = document.getElementById('missedLimitMessage');
         const saveMissedLimitButton = document.getElementById('saveMissedLimitButton');
+        const currentLevelSpeedMinInput = document.getElementById('currentLevelSpeedMinInput'); // New input
+        const currentLevelSpeedMaxInput = document.getElementById('currentLevelSpeedMaxInput'); // New input
+        const currentLevelSpawnIntervalInput = document.getElementById('currentLevelSpawnIntervalInput'); // New input
+        const gameSettingsMessage = document.getElementById('gameSettingsMessage'); // New message
+        const saveGameSettingsButton = document.getElementById('saveGameSettingsButton'); // New button
         const backToGameButton = document.getElementById('backToGameButton');
 
         let characters = [];
@@ -383,9 +470,10 @@
         const charSize = 24; // Font size for Chinese characters
         const floorTolerance = 10; // How close to the bottom before game over
 
-        // Level configurations: speed and spawn interval
+        // Level configurations: speed and spawn interval (Adjusted to be slower initially)
+        // These can now be modified via the admin panel for the current level
         const levelConfigs = [
-            { speedMin: 0.1, speedMax: 0.5, spawnInterval: 2000, scoreThreshold: 80 },   // Level 1 (Very Slow, longer interval)
+            { speedMin: 0.1, speedMax: 0.5, spawnInterval: 2000, scoreThreshold: 80 },   // Level 1
             { speedMin: 0.3, speedMax: 0.9, spawnInterval: 1800, scoreThreshold: 200 },  // Level 2
             { speedMin: 0.5, speedMax: 1.3, spawnInterval: 1600, scoreThreshold: 350 },  // Level 3
             { speedMin: 0.7, speedMax: 1.7, spawnInterval: 1400, scoreThreshold: 550 },  // Level 4
@@ -501,7 +589,7 @@
             }
 
             draw() {
-                ctx.font = `${charSize}px "Inter", sans-serif`;
+                ctx.font = `${charSize}px "標楷體", "BiaoKaiTi", "DFKai-SB", "PMingLiU", "MingLiU", sans-serif`; /* Changed font-family */
                 ctx.fillStyle = '#334155'; /* Slate 700 */
                 ctx.fillText(this.char, this.x, this.y);
             }
@@ -568,14 +656,17 @@
             }
             ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
             gameOverOverlay.classList.add('hidden'); // Hide game over screen
+            gameOverOverlay.classList.remove('show-overlay'); // Ensure animation class is removed
             adminOverlay.classList.add('hidden'); // Ensure admin overlay is hidden
             startOverlay.classList.remove('hidden'); // Show start screen
+            gameContainer.classList.remove('rainbow-bg'); // Ensure rainbow effect is off
         }
 
         // Start game function
         function startGame() {
             startOverlay.classList.add('hidden'); // Hide start screen
             gameOverOverlay.classList.add('hidden'); // Ensure game over screen is hidden
+            gameOverOverlay.classList.remove('show-overlay'); // Ensure animation class is removed
             adminOverlay.classList.add('hidden'); // Ensure admin overlay is hidden
             gameRunning = true;
             typingInput.disabled = false; // Enable input
@@ -692,12 +783,11 @@
 
             finalScoreDisplay.textContent = score;
             finalLevelDisplay.textContent = currentLevel;
+
             if (reason === "missed") {
                 gameOverReasonDisplay.textContent = `您漏掉了 ${maxMissedCharacters} 個字！`;
-                // Trigger a large, screen-wide explosion
-                explosions.push(new Explosion(canvas.width / 2, canvas.height / 2, 'large'));
-
-                // Generate cracks when game ends due to missed characters
+                
+                // 1. Generate cracks immediately
                 cracks = []; // Clear any old cracks
                 const centerX = canvas.width / 2;
                 const centerY = canvas.height / 2;
@@ -710,11 +800,27 @@
                     generateCrackSegment(centerX, centerY, initialCrackLength, angle, 0, maxCrackDepth);
                 }
 
-            } else {
+                // 2. Start rainbow flash animation
+                gameContainer.classList.add('rainbow-bg');
+
+                // 3. Delay for cracks to appear, then trigger large explosion
+                setTimeout(() => {
+                    explosions.push(new Explosion(canvas.width / 2, canvas.height / 2, 'large'));
+                    
+                    // 4. Delay for explosion to play out, then stop rainbow flash and show overlay with animation
+                    setTimeout(() => {
+                        gameContainer.classList.remove('rainbow-bg'); // Stop rainbow flash
+                        gameOverOverlay.classList.remove('hidden');
+                        gameOverOverlay.classList.add('show-overlay'); // Add class to trigger animation
+                    }, 1000); // Delay for explosion animation
+                }, 500); // Delay for cracks to appear
+                
+            } else { // If game ends because a single character hit the ground
                 gameOverReasonDisplay.textContent = `字碰到地面了！`;
-                // Trigger a small explosion at the specific character that hit the ground (already handled in gameLoop)
+                // No full-screen crack or large explosion for single hit
+                gameOverOverlay.classList.remove('hidden');
+                gameOverOverlay.classList.add('show-overlay'); // Still animate for hit_ground
             }
-            gameOverOverlay.classList.remove('hidden'); // Show game over screen
         }
 
         // Admin Panel Functions
@@ -724,11 +830,13 @@
             typingInput.disabled = true; // Disable game input
             startOverlay.classList.add('hidden');
             gameOverOverlay.classList.add('hidden');
+            gameOverOverlay.classList.remove('show-overlay'); // Ensure animation class is removed
             adminOverlay.classList.remove('hidden');
             adminPasswordInput.value = ''; // Clear password input
             loginMessage.textContent = ''; // Clear login message
             changePasswordMessage.textContent = ''; // Clear change password message
             missedLimitMessage.textContent = ''; // Clear missed limit message
+            gameSettingsMessage.textContent = ''; // Clear game settings message
             settingsSection.classList.add('hidden'); // Hide settings section initially
             document.getElementById('loginSection').classList.remove('hidden'); // Show login section
             adminPasswordInput.focus();
@@ -745,6 +853,7 @@
             } else {
                 // If game was over, show game over screen again
                 gameOverOverlay.classList.remove('hidden');
+                gameOverOverlay.classList.add('show-overlay'); // Ensure animation is applied if returning to game over screen
             }
         }
 
@@ -759,6 +868,13 @@
                 newPasswordInput.value = '';
                 confirmNewPasswordInput.value = '';
                 missedLimitInput.value = maxMissedCharacters; // Load current value
+                
+                // Load current level's game settings
+                const currentConfig = levelConfigs[currentLevel - 1] || levelConfigs[levelConfigs.length - 1];
+                currentLevelSpeedMinInput.value = currentConfig.speedMin;
+                currentLevelSpeedMaxInput.value = currentConfig.speedMax;
+                currentLevelSpawnIntervalInput.value = currentConfig.spawnInterval;
+
                 newPasswordInput.focus();
             } else {
                 loginMessage.textContent = '密碼錯誤，請重試。';
@@ -803,6 +919,54 @@
                 maxMissedCountDisplay.textContent = maxMissedCharacters; // Update display
             }
         });
+
+        saveGameSettingsButton.addEventListener('click', () => {
+            const newSpeedMin = parseFloat(currentLevelSpeedMinInput.value);
+            const newSpeedMax = parseFloat(currentLevelSpeedMaxInput.value);
+            const newSpawnInterval = parseInt(currentLevelSpawnIntervalInput.value, 10);
+
+            let isValid = true;
+            let message = '';
+
+            if (isNaN(newSpeedMin) || newSpeedMin <= 0) {
+                isValid = false;
+                message += '最小速度必須是正數。';
+            }
+            if (isNaN(newSpeedMax) || newSpeedMax <= 0) {
+                isValid = false;
+                message += '最大速度必須是正數。';
+            }
+            if (newSpeedMin >= newSpeedMax) {
+                isValid = false;
+                message += '最小速度必須小於最大速度。';
+            }
+            if (isNaN(newSpawnInterval) || newSpawnInterval <= 0) {
+                isValid = false;
+                message += '生成間隔必須是正數。';
+            }
+
+            if (isValid) {
+                // Update the current level's configuration
+                const configToUpdate = levelConfigs[currentLevel - 1] || levelConfigs[levelConfigs.length - 1];
+                configToUpdate.speedMin = newSpeedMin;
+                configToUpdate.speedMax = newSpeedMax;
+                configToUpdate.spawnInterval = newSpawnInterval;
+
+                gameSettingsMessage.textContent = '遊戲設定已儲存！';
+                gameSettingsMessage.classList.remove('text-red-500');
+                gameSettingsMessage.classList.add('text-green-500');
+
+                // Reset the game to apply the new settings
+                resetGame();
+                // Optionally, hide admin panel after saving and resetting
+                // hideAdminPanel();
+            } else {
+                gameSettingsMessage.textContent = message;
+                gameSettingsMessage.classList.remove('text-green-500');
+                gameSettingsMessage.classList.add('text-red-500');
+            }
+        });
+
 
         // Ensure canvas dimensions are set correctly on load and resize
         function setCanvasDimensions() {
