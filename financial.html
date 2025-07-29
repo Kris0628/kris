@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>充電站投資效益分析 (專業版 v2.5)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', 'Inter', sans-serif;
+            background-color: #f1f5f9;
+        }
+        .input-field {
+            background-color: white; 
+            color: #1f2937; 
+            border: 1px solid #d1d5db; 
+            border-radius: 0.5rem; 
+            padding: 0.65rem 0.85rem; 
+            text-align: center;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); 
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #3b82f6; 
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25); 
+        }
+        .input-field.readonly {
+            background-color: #e5e7eb; 
+            color: #6b7280; 
+            cursor: not-allowed;
+        }
+        .label-text {
+            font-weight: 600; 
+            color: #374151; 
+        }
+        .card {
+            background-color: white;
+            border-radius: 1rem; 
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.07);
+            padding: 2rem; 
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .summary-card {
+            background: linear-gradient(135deg, #4f46e5, #3b82f6); 
+            color: white;
+            border-radius: 1rem; 
+            padding: 2rem; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .summary-value {
+            font-size: 1.75rem; 
+            font-weight: 800;
+            line-height: 1.2;
+            margin-top: 0.25rem; 
+        }
+        .summary-label {
+            font-size: 2.25rem; 
+            opacity: 0.9;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            font-weight: 700; 
+            margin-bottom: 0.25rem; 
+        }
+        .table-header { 
+            background-color: #f3f4f6; 
+            color: #374151; 
+            font-weight: 700; 
+        }
+        .table-cell { 
+            padding: 0.9rem 1.2rem; 
+            text-align: right; 
+            border-bottom: 1px solid #e5e7eb; 
+        }
+        .table-cell-year { 
+            font-weight: 700; 
+            color: #1f2937; 
+            text-align: left; 
+        }
+        #pnlTableBody tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        #pnlTableBody tr:hover {
+            background-color: #eff6ff; 
+            transition: background-color 0.2s ease;
+        }
+
+        .radio-label { 
+            display: inline-flex; 
+            align-items: center; 
+            cursor: pointer; 
+            margin-right: 1.25rem; 
+            user-select: none; 
+        }
+        .radio-label input { display: none; }
+        .radio-label span { 
+            padding: 0.4rem 1rem; 
+            border-radius: 9999px; 
+            background-color: #e5e7eb; 
+            color: #4b5563; 
+            transition: all 0.2s ease; 
+            font-weight: 500;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        }
+        .radio-label input:checked + span { 
+            background-color: #4f46e5; 
+            color: white; 
+            font-weight: 600; 
+            box-shadow: 0 2px 5px 0 rgba(79, 70, 229, 0.3); 
+        }
+        .hidden-section { display: none; }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.6); 
+            display: none; justify-content: center; align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-out forwards; 
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2.5rem; 
+            border-radius: 1rem; 
+            width: 90%;
+            max-width: 900px; 
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            animation: slideIn 0.3s ease-out forwards; 
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .modal-title { font-size: 1.8rem; font-weight: 700; color: #1f2937; }
+        .modal-close-btn { 
+            background: none; border: none; 
+            font-size: 1.5rem;
+            cursor: pointer; 
+            color: #6b7280; transition: color 0.2s ease;
+            line-height: 1;
+        }
+        .modal-close-btn:hover { color: #374151; }
+        .modal-table-input { 
+            width: 100%; text-align: right; padding: 0.4rem; 
+            border: 1px solid #d1d5db; border-radius: 0.375rem;
+            background-color: #f9fafb; 
+        }
+        .modal-table-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+        .modal-content button {
+            background-color: #4f46e5; 
+            color: white;
+            padding: 0.75rem 1.75rem; 
+            border-radius: 0.6rem; 
+            font-weight: 600;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+        .modal-content button:hover {
+            background-color: #4338ca; 
+            transform: translateY(-1px); 
+        }
+        .modal-content button:active {
+            transform: translateY(0);
+        }
+        .modal-message {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            text-align: center;
+            display: none; 
+        }
+        .modal-message.error {
+            background-color: #fee2e2;
+            color: #ef4444;
+        }
+        .modal-message.success {
+            background-color: #d1fae5;
+            color: #10b981;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* New styles for formula management modal */
+        .formula-item {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 1rem;
+            align-items: start;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .formula-item-label {
+            grid-column: 2;
+            font-weight: 600;
+            color: #374151;
+        }
+        .formula-item-description {
+            grid-column: 2;
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-left: 0.5rem;
+        }
+        .formula-item-input-group {
+            grid-column: 2;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.25rem;
+        }
+        .formula-item-checkbox {
+            margin-top: 0.25rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 0.25rem;
+            border-color: #d1d5db;
+            color: #4f46e5;
+            cursor: pointer;
+        }
+        .formula-item-checkbox:focus {
+            ring: #4f46e5;
+        }
+
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-7xl mx-auto">
+        <header class="text-center mb-10">
+            <h1 class="text-5xl font-extrabold text-gray-800 leading-tight">充電站投資效益分析</h1>
+            <p class="text-xl text-gray-600 mt-3">互動式損益評估工具 (專業版 v2.5)</p>
+        </header>
+
+        <!-- Main Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left Column: Inputs -->
+            <div class="lg:col-span-1 flex flex-col gap-6">
+                <div class="card">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-5 pb-3 border-b border-gray-200">設置參數(輸入區)</h2>
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-3 items-center gap-2">
+                            <span class="label-text col-span-1">設備功率</span>
+                            <select id="devicePowerSelect" class="input-field col-span-2"></select>
+                        </div>
+                        <div id="pileCountGroup" class="grid grid-cols-2 items-center gap-4">
+                            <span id="pileCountLabel" class="label-text">樁數</span><input type="number" id="pileCount" class="input-field" value="1" min="1">
+                        </div>
+                        <div class="grid grid-cols-2 items-center gap-4">
+                            <span class="label-text">車格數值</span>
+                            <input type="number" id="parkingSpaces" class="input-field readonly" readonly>
+                        </div>
+                        <div class="flex justify-end">
+                            <button id="openSpecsModalBtn" class="text-sm bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-all duration-200 ease-in-out shadow-sm">
+                                ⚙️ 規格設定
+                            </button>
+                        </div>
+                        <hr class="border-gray-200"/>
+                        <div>
+                            <span class="label-text mb-3 block">收費方式</span>
+                            <div class="flex flex-wrap gap-3">
+                                <label class="radio-label"><input type="radio" name="billingMethod" value="fixed" checked><span>固定費率</span></label>
+                                <label class="radio-label"><input type="radio" name="billingMethod" value="tou"><span>尖離峰</span></label>
+                            </div>
+                        </div>
+                        <div id="fixedRateSection" class="grid grid-cols-2 items-center gap-4">
+                            <span class="label-text">每度電收費 (元)</span>
+                            <input type="number" id="chargeFeePerKwh" class="input-field" value="10">
+                        </div>
+                        <div id="touRateSection" class="hidden-section space-y-4">
+                             <div class="grid grid-cols-2 items-center gap-4">
+                               <span class="label-text font-bold text-indigo-600">尖離峰均價</span>
+                               <input type="text" id="avgTouRate" class="input-field readonly font-bold text-indigo-600" readonly>
+                            </div>
+                            <div class="grid grid-cols-2 items-center gap-4">
+                               <span class="label-text">尖峰費率 (元)</span><input type="number" id="peakRate" class="input-field" value="12">
+                            </div>
+                            <div class="grid grid-cols-2 items-center gap-4">
+                               <span class="label-text">離峰費率 (元)</span><input type="number" id="offPeakRate" class="input-field" value="8">
+                            </div>
+                            <div class="grid grid-cols-2 items-center gap-4">
+                               <span class="label-text">假日費率 (元)</span><input type="number" id="holidayRate" class="input-field" value="10">
+                            </div>
+                            <div class="flex items-center gap-4 mt-2">
+                                <div id="touPieChartContainer" class="w-24 h-24 flex-shrink-0">
+                                    <canvas id="touPieChart"></canvas>
+                                </div>
+                                <div class="flex-grow space-y-2">
+                                    <div class="grid grid-cols-3 items-center gap-2">
+                                        <label for="peakUsageRatio" class="text-sm font-medium">尖峰 %</label>
+                                        <input type="number" id="peakUsageRatio" data-tou="peak" class="input-field col-span-2 tou-ratio-input" value="10" min="0" max="100">
+                                    </div>
+                                    <div class="grid grid-cols-3 items-center gap-2">
+                                        <label for="offPeakUsageRatio" class="text-sm font-medium">離峰 %</label>
+                                        <input type="number" id="offPeakUsageRatio" data-tou="offpeak" class="input-field col-span-2 tou-ratio-input" value="80" min="0" max="100">
+                                    </div>
+                                    <div class="grid grid-cols-3 items-center gap-2">
+                                        <label for="holidayUsageRatio" class="text-sm font-medium">假日 %</label>
+                                        <input type="number" id="holidayUsageRatio" data-tou="holiday" class="input-field col-span-2 tou-ratio-input" value="10" min="0" max="100">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="border-gray-200"/>
+                        <div>
+                            <span class="label-text mb-3 block">營收估算方式</span>
+                            <div class="flex flex-wrap gap-3">
+                                <label class="radio-label"><input type="radio" name="revenueMethod" value="byCars" checked><span>依車次</span></label>
+                                <label class="radio-label"><input type="radio" name="revenueMethod" value="byKwh"><span>依度數</span></label>
+                            </div>
+                        </div>
+                        <div id="carsPerDaySection" class="grid grid-cols-2 items-center gap-4">
+                            <span class="label-text">每日車次/槍</span><input type="number" id="carsPerGunPerDay" class="input-field" value="3">
+                        </div>
+                        <div id="kwhPerMonthSection" class="hidden-section grid grid-cols-2 items-center gap-4">
+                           <span class="label-text">每月度數/槍</span><input type="number" id="kwhPerGunPerMonth" class="input-field" value="2700">
+                        </div>
+                        <div id="avgKwhPerCarSection" class="grid grid-cols-2 items-center gap-4">
+                            <span class="label-text">每車平均充電度數 (kWh)</span>
+                            <input type="number" id="avgKwhPerCar" class="input-field" value="30">
+                        </div>
+                        <hr class="border-gray-200"/>
+                        <div class="grid grid-cols-2 items-center gap-4">
+                            <span class="label-text">需求年增率 (%)</span><input type="number" id="demandGrowthRate" class="input-field" value="20">
+                        </div>
+                           <div class="grid grid-cols-2 items-center gap-4">
+                            <span class="label-text">預計營運期 (年)</span><input type="number" id="operationYears" class="input-field" value="15">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-5 pb-3 border-b border-gray-200">預估成本 (設備&請電)</h2>
+                    <div class="space-y-4">
+                           <div id="deviceCostGroup" class="grid grid-cols-2 items-center gap-4">
+                            <span class="label-text">設備成本/樁</span><input type="number" id="deviceCostPerPile" class="input-field readonly" readonly>
+                        </div>
+                        <div class="grid grid-cols-2 items-center gap-4">
+                            <span class="label-text">台電平均電費</span><input type="number" id="taipowerFee" class="input-field" value="4">
+                        </div>
+                        <div id="salvageValueGroup" class="grid grid-cols-2 items-center gap-4">
+                            <span class="label-text">設備殘值/樁</span><input type="number" id="salvageValuePerPile" class="input-field readonly" readonly>
+                        </div>
+                        <div class="grid grid-cols-2 items-center gap-4">
+                            <span class="label-text">折舊年期</span><input type="number" id="depreciationYears" class="input-field" value="5">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-5 pb-3 border-b border-gray-200">站點相關成本 (其它)</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <span class="label-text mb-3 block">租金成本</span>
+                            <div class="flex flex-wrap gap-3 mb-3">
+                                <label class="radio-label"><input type="radio" name="rentMethod" value="bySpace" checked><span>依車格</span></label>
+                                <label class="radio-label"><input type="radio" name="rentMethod" value="byLand"><span>依土地</span></label>
+                                <label class="radio-label"><input type="radio" name="rentMethod" value="none"><span>無</span></label>
+                            </div>
+                            <div id="rentBySpaceSection" class="grid grid-cols-2 items-center gap-4">
+                                <span class="label-text">車格租金/月</span><input type="number" id="rentPerSpace" class="input-field" value="3000">
+                            </div>
+                            <div id="rentByLandSection" class="hidden-section grid grid-cols-2 items-center gap-4">
+                               <span class="label-text">土地租金/月</span><input type="number" id="rentPerLand" class="input-field" value="15000">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="lg:col-span-2 flex flex-col gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="summary-card">
+                        <div class="summary-label">總投資額</div>
+                        <div id="totalInvestment" class="summary-value">NT$ 0</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">預計回收年限</div>
+                        <div id="paybackPeriod" class="summary-value">N/A</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-5" id="pnlChartTitle">充電淨利圖表</h2>
+                    <div class="flex-grow h-80">
+                        <canvas id="pnlChart"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-5">累積損益與回收年限</h2>
+                    <div class="flex-grow h-80">
+                        <canvas id="cumulativePnlChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8">
+            <div class="card">
+                <h2 class="text-2xl font-bold text-gray-800 mb-5">充電收支/年</h2>
+                <div class="overflow-x-auto rounded-lg border border-gray-200">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="table-header">
+                            <tr>
+                                <th class="table-cell text-left">年度</th>
+                                <th class="table-cell">總營收</th>
+                                <th class="table-cell">總成本</th>
+                                <th class="table-cell">充電淨利</th>
+                                <th class="table-cell">累積稅前淨利</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pnlTableBody" class="bg-white divide-y divide-gray-100">
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Calculation Explanation Section -->
+                <div class="mt-8 pt-5 border-t border-gray-200">
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">計算方式說明</h3>
+                    <ul class="list-disc list-inside text-gray-700 space-y-2">
+                        <li>**總投資額：** 包含線路補助費、技師費、配電盤費、電錶費用(僅DC樁)以及含稅設備總成本。</li>
+                        <li>**總營收：** 依選擇的營收估算方式（依車次或依度數）計算，並考慮需求年增率。</li>
+                        <li>**總成本：** 包含台電電費(含電損)、金流手續費、維運客服、租金、保險、勞務、網路、電子發票、維修備品、延保、TDX上傳費及設備折舊等。 (可於管理公式中勾選調整)</li>
+                        <li>**充電淨利：** 總營收減去總成本。</li>
+                        <li>**累積稅前淨利：** 每年充電淨利的累加，從初始投資額開始計算。</li>
+                        <li>**預計回收年限：** 累積稅前淨利首次轉為正值的年度。</li>
+                    </ul>
+                    <div class="mt-4 text-right">
+                        <button id="openManagementModalBtn" class="text-sm bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-all duration-200 ease-in-out shadow-sm">
+                            🔑 管理計算公式
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Specs Modal -->
+    <div id="specsModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">設備規格與價格設定</h3>
+                <button id="closeSpecsModalBtn" class="modal-close-btn">&times;</button>
+            </div>
+            
+            <div id="specsPasswordInputSection" class="space-y-4">
+                <div class="grid grid-cols-2 items-center gap-4">
+                    <span class="label-text">輸入密碼</span>
+                    <input type="password" id="specsPassword" class="input-field" placeholder="預設密碼: 0000">
+                </div>
+                <div class="text-center">
+                    <button id="specsLoginBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">登入</button>
+                </div>
+                <div id="specsMessage" class="modal-message"></div>
+            </div>
+
+            <div id="specsContentSection" class="hidden-section">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm border-collapse">
+                        <thead class="table-header">
+                            <tr>
+                                <th class="p-3 text-left w-[20%]">規格名稱</th>
+                                <th class="p-3 text-left w-[15%]">組件</th>
+                                <th class="p-3 text-right w-[20%]">設備成本(未稅)</th>
+                                <th class="p-3 text-right w-[20%]">設備成本 (含稅)</th>
+                                <th class="p-3 text-right w-[20%]">預估殘值</th>
+                            </tr>
+                        </thead>
+                        <tbody id="specsModalTableBody">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-8 text-right">
+                    <button id="saveSpecsBtn">儲存並關閉</button>
+                </div>
+
+                <hr class="my-6 border-gray-200"/>
+
+                <h4 class="text-xl font-bold text-gray-800 mb-3 mt-6">修改規格設定密碼</h4>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 items-center gap-4">
+                        <span class="label-text">舊密碼</span>
+                        <input type="password" id="oldSpecsPassword" class="input-field">
+                    </div>
+                    <div class="grid grid-cols-2 items-center gap-4">
+                        <span class="label-text">新密碼</span>
+                        <input type="password" id="newSpecsPassword" class="input-field">
+                    </div>
+                    <div class="grid grid-cols-2 items-center gap-4">
+                        <span class="label-text">確認新密碼</span>
+                        <input type="password" id="confirmNewSpecsPassword" class="input-field">
+                    </div>
+                    <div class="text-center">
+                        <button id="changeSpecsPasswordBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">確認儲存新密碼</button>
+                    </div>
+                    <div id="specsPasswordChangeMessage" class="modal-message"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Management Modal -->
+    <div id="managementModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">管理計算公式</h3>
+                <button id="closeManagementModalBtn" class="modal-close-btn">&times;</button>
+            </div>
+            <div id="passwordInputSection" class="space-y-4">
+                <div class="grid grid-cols-2 items-center gap-4">
+                    <span class="label-text">輸入密碼</span>
+                    <input type="password" id="managementPassword" class="input-field" placeholder="預設密碼: 0000">
+                </div>
+                <div class="text-center">
+                    <button id="loginManagementBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">登入</button>
+                </div>
+                <div id="managementMessage" class="modal-message"></div>
+            </div>
+
+            <div id="formulasSection" class="hidden-section space-y-6 mt-6">
+                <h4 class="text-xl font-bold text-gray-800 mb-3">詳細計算參數</h4>
+                <div id="formulaContainer" class="space-y-4">
+                    <!-- All rows will be generated here by JS -->
+                </div>
+                <div class="mt-6 text-center">
+                    <button id="saveFormulasBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">儲存計算參數</button>
+                </div>
+
+                <hr class="my-6 border-gray-200"/>
+
+                <h4 class="text-xl font-bold text-gray-800 mb-3">修改密碼</h4>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 items-center gap-4">
+                        <span class="label-text">舊密碼</span>
+                        <input type="password" id="oldPassword" class="input-field">
+                    </div>
+                    <div class="grid grid-cols-2 items-center gap-4">
+                        <span class="label-text">新密碼</span>
+                        <input type="password" id="newPassword" class="input-field">
+                    </div>
+                    <div class="grid grid-cols-2 items-center gap-4">
+                        <span class="label-text">確認新密碼</span>
+                        <input type="password" id="confirmNewPassword" class="input-field">
+                    </div>
+                    <div class="text-center">
+                        <button id="changePasswordBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">確認儲存新密碼</button>
+                    </div>
+                    <div id="passwordChangeMessage" class="modal-message"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Data Definitions ---
+        let deviceSpecs = {
+            '7': { name: 'AC 7kW Smart', cost: 31395, power: 7, salvage: 5000, type: 'AC' },
+            '30': { name: 'DC 30kW', cost: 325500, power: 30, salvage: 50000, type: 'DC' },
+            '120': { name: 'DC 120kW', cost: 850500, power: 120, salvage: 150000, type: 'DC' },
+            '180': { name: 'DC 180kW', cost: 997500, power: 180, salvage: 200000, type: 'DC' },
+            '360': { 
+                name: 'DC 360kW', 
+                power: 360, // Power per cabinet
+                cabinetCost: 1575000, 
+                terminalCost: 504000, 
+                cabinetSalvage: 300000, 
+                terminalSalvage: 50000, 
+                type: 'DC_360' 
+            }
+        };
+
+        let pnlChart = null;
+        let cumulativePnlChart = null;
+        let touPieChart = null;
+        let DOMElements = {}; 
+        let currentManagementPassword = '0000';
+        let currentSpecsPassword = '0000';
+        let isAdjustingTou = false; // Flag to prevent recursion in TOU adjustment
+
+        let calculationParams = {
+            // Initial Investment
+            lineSubsidyPerKw: { value: 550, label: '線路補助費/kW', unit: '元', description: '台電線補費，每kW收取的一次性費用。', enabled: true },
+            technicianFee: { value: 150000, label: '技師費', unit: '元', description: '台電外包技師費用(一次性)。', enabled: true },
+            distributionPanelFee: { value: 300000, label: '配電盤費', unit: '元', description: '高壓或低壓配電盤費用(一次性)。', enabled: true },
+            meterFeeBase: { value: 12000, label: '電錶費用(基本)', unit: '元', description: '台電電表基本費用(僅DC樁, 一次性)。', enabled: true },
+            meterFeePerGun: { value: 1400, label: '電錶費用/槍', unit: '元', description: '每增加一槍的電表費用(僅DC樁, 一次性)。', enabled: true },
+            taxRate: { value: 0.05, label: '營業稅率', unit: '%', description: '設備購買及相關服務的營業稅率。', enabled: true },
+            
+            // Annual Costs
+            maintenanceFee: { value: 37000, label: '維運&客服/年', unit: '元', description: '年度場域維護與線上客服費用。', enabled: true },
+            transactionFeeRate: { value: 0.03, label: '金流費率', unit: '%', description: '支付給金流服務商的每筆交易手續費率。', enabled: true },
+            insuranceFee: { value: 8500, label: '意外保險費/年', unit: '元', description: '場域年度意外險費用。', enabled: true },
+            electronicInvoiceFee: { value: 2, label: '電子發票(元/張)', unit: '元', description: '每筆充電交易(每張發票)的成本。', enabled: true },
+            repairPartsRate: { value: 0.01, label: '維修備品(資本支出%)/年', unit: '%', description: '年度維修備品費用，為設備含稅總成本的百分比。', enabled: true },
+            extendedWarrantyPerPile: { value: 1000, label: '保固延保(樁)/年', unit: '元', description: '每支充電樁的年度延長保固費用。', enabled: true },
+            laborCost: { value: 60000, label: '勞務成本/年', unit: '元', description: '年度人力、巡檢等相關勞務成本。', enabled: true },
+            internetFee: { value: 500, label: '網路費/月', unit: '元', description: '場域每月的網路通訊費用。', enabled: true },
+            tdxUploadFee: { value: 100, label: 'TDX上傳費(槍/月)', unit: '元', description: '每支槍每月上傳資料至交通部TDX平台的費用。', enabled: true },
+            powerLossRate: { value: 0.05, label: '電損%', unit: '%', description: '電力在傳輸和轉換過程中的損耗率。', enabled: true },
+        };
+        
+        // Separate object for TOU ratios to manage them easily
+        let touRatios = {
+            peak: { value: 0.1, label: '尖峰用電比例' },
+            offpeak: { value: 0.8, label: '離峰用電比例' },
+            holiday: { value: 0.1, label: '假日用電比例' }
+        };
+
+        /**
+         * Caches all necessary DOM elements for quick access.
+         */
+        function cacheDOMElements() {
+            const ids = [
+                'devicePowerSelect', 'pileCount', 'pileCountLabel', 'parkingSpaces', 'openSpecsModalBtn',
+                'chargeFeePerKwh', 'peakRate', 'offPeakRate', 'holidayRate', 'carsPerGunPerDay', 'kwhPerGunPerMonth',
+                'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'deviceCostPerPile', 'taipowerFee',
+                'salvageValuePerPile', 'depreciationYears', 'deviceCostGroup', 'salvageValueGroup',
+                'fixedRateSection', 'touRateSection', 'carsPerDaySection', 'kwhPerMonthSection', 'avgKwhPerCarSection',
+                'totalInvestment', 'paybackPeriod', 'pnlChartTitle', 'pnlChart', 'cumulativePnlChart', 'pnlTableBody',
+                'openManagementModalBtn',
+                // Rent costs
+                'rentBySpaceSection', 'rentByLandSection', 'rentPerSpace', 'rentPerLand',
+                // TOU Ratio elements
+                'touPieChart', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'avgTouRate',
+                // Specs Modal
+                'specsModal', 'closeSpecsModalBtn', 'specsPasswordInputSection', 'specsPassword', 'specsLoginBtn', 'specsMessage',
+                'specsContentSection', 'specsModalTableBody', 'saveSpecsBtn', 'oldSpecsPassword', 'newSpecsPassword',
+                'confirmNewSpecsPassword', 'changeSpecsPasswordBtn', 'specsPasswordChangeMessage',
+                // Management Modal
+                'managementModal', 'closeManagementModalBtn', 'passwordInputSection', 'managementPassword', 'loginManagementBtn',
+                'managementMessage', 'formulasSection', 'formulaContainer', 'saveFormulasBtn', 'oldPassword',
+                'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage'
+            ];
+            ids.forEach(id => {
+                DOMElements[id] = document.getElementById(id);
+            });
+        }
+
+        /**
+         * Gathers all input values from the form.
+         * @returns {object} An object containing all parsed input values.
+         */
+        function getInputs() {
+            return {
+                selectedKey: DOMElements.devicePowerSelect.value,
+                billingMethod: document.querySelector('input[name="billingMethod"]:checked').value,
+                revenueMethod: document.querySelector('input[name="revenueMethod"]:checked').value,
+                rentMethod: document.querySelector('input[name="rentMethod"]:checked').value,
+                chargeFeePerKwh: parseFloat(DOMElements.chargeFeePerKwh.value) || 0,
+                peakRate: parseFloat(DOMElements.peakRate.value) || 0,
+                offPeakRate: parseFloat(DOMElements.offPeakRate.value) || 0,
+                holidayRate: parseFloat(DOMElements.holidayRate.value) || 0,
+                carsPerGunPerDay: parseFloat(DOMElements.carsPerGunPerDay.value) || 0,
+                kwhPerGunPerMonth: parseFloat(DOMElements.kwhPerGunPerMonth.value) || 0,
+                avgKwhPerCar: parseFloat(DOMElements.avgKwhPerCar.value) || 0,
+                demandGrowthRate: parseFloat(DOMElements.demandGrowthRate.value) / 100 || 0,
+                operationYears: parseInt(DOMElements.operationYears.value) || 15,
+                pileCount: parseInt(DOMElements.pileCount.value) || 1,
+                taipowerFee: parseFloat(DOMElements.taipowerFee.value) || 0,
+                depreciationYears: parseInt(DOMElements.depreciationYears.value) || 5,
+                rentPerSpace: parseFloat(DOMElements.rentPerSpace.value) || 0,
+                rentPerLand: parseFloat(DOMElements.rentPerLand.value) || 0,
+            };
+        }
+        
+        /**
+         * Helper function to get a parameter's value if it's enabled.
+         */
+        function getParamValue(key) {
+            const param = calculationParams[key];
+            return param && param.enabled ? param.value : 0;
+        }
+
+
+        /**
+         * Performs all financial calculations.
+         */
+        function calculate() {
+            const inputs = getInputs();
+            const selectedSpec = deviceSpecs[inputs.selectedKey];
+
+            // --- Initial Investment Calculation ---
+            let totalDeviceCostUntaxed = 0;
+            let totalPower = 0;
+            let totalSalvage = 0;
+            let meterFee = 0;
+
+            if (selectedSpec.type === 'DC_360') {
+                const numTerminals = inputs.pileCount;
+                const numCabinets = Math.ceil(numTerminals / 6);
+                totalDeviceCostUntaxed = (selectedSpec.terminalCost * numTerminals) + (selectedSpec.cabinetCost * numCabinets);
+                totalPower = selectedSpec.power * numCabinets;
+                totalSalvage = (selectedSpec.terminalSalvage * numTerminals) + (selectedSpec.cabinetSalvage * numCabinets);
+                meterFee = getParamValue('meterFeeBase') + (getParamValue('meterFeePerGun') * numTerminals);
+            } else {
+                totalDeviceCostUntaxed = selectedSpec.cost * inputs.pileCount;
+                totalPower = selectedSpec.power * inputs.pileCount;
+                totalSalvage = selectedSpec.salvage * inputs.pileCount;
+                if (selectedSpec.type === 'DC') {
+                     meterFee = getParamValue('meterFeeBase') + (getParamValue('meterFeePerGun') * inputs.pileCount);
+                }
+            }
+
+            const totalDeviceCostTaxed = totalDeviceCostUntaxed * (1 + getParamValue('taxRate'));
+            
+            const totalInvestment = totalDeviceCostTaxed +
+                                    (getParamValue('lineSubsidyPerKw') * totalPower) +
+                                    getParamValue('technicianFee') +
+                                    getParamValue('distributionPanelFee') +
+                                    meterFee;
+
+            // --- Annual Calculations ---
+            const results = [];
+            let cumulativePnl = -totalInvestment;
+            let paybackPeriod = "無法回收";
+            let foundPayback = false;
+
+            for (let year = 1; year <= inputs.operationYears; year++) {
+                const demandMultiplier = Math.pow(1 + inputs.demandGrowthRate, year - 1);
+                
+                // --- Revenue ---
+                let totalKwhPerYear;
+                if (inputs.revenueMethod === 'byCars') {
+                    const carsPerYear = inputs.carsPerGunPerDay * inputs.pileCount * 365 * demandMultiplier;
+                    totalKwhPerYear = carsPerYear * inputs.avgKwhPerCar;
+                } else { // byKwh
+                    totalKwhPerYear = inputs.kwhPerGunPerMonth * inputs.pileCount * 12 * demandMultiplier;
+                }
+
+                let totalRevenue;
+                if (inputs.billingMethod === 'fixed') {
+                    totalRevenue = totalKwhPerYear * inputs.chargeFeePerKwh;
+                } else { // tou
+                    const peakKwh = totalKwhPerYear * touRatios.peak.value;
+                    const offPeakKwh = totalKwhPerYear * touRatios.offpeak.value;
+                    const holidayKwh = totalKwhPerYear * touRatios.holiday.value;
+                    totalRevenue = (peakKwh * inputs.peakRate) + (offPeakKwh * inputs.offPeakRate) + (holidayKwh * inputs.holidayRate);
+                }
+
+                // --- Costs ---
+                const electricityCost = totalKwhPerYear * inputs.taipowerFee * (1 + getParamValue('powerLossRate'));
+                const transactionFee = totalRevenue * getParamValue('transactionFeeRate');
+                
+                let rentCost = 0;
+                if (inputs.rentMethod === 'bySpace') {
+                    const parkingSpaces = DOMElements.parkingSpaces.value;
+                    rentCost = inputs.rentPerSpace * parkingSpaces * 12;
+                } else if (inputs.rentMethod === 'byLand') {
+                    rentCost = inputs.rentPerLand * 12;
+                }
+
+                const totalTransactions = (inputs.revenueMethod === 'byCars') 
+                    ? inputs.carsPerGunPerDay * inputs.pileCount * 365 * demandMultiplier
+                    : (inputs.avgKwhPerCar > 0 ? totalKwhPerYear / inputs.avgKwhPerCar : 0);
+                
+                const electronicInvoiceCost = totalTransactions * getParamValue('electronicInvoiceFee');
+
+                const annualDepreciation = (year <= inputs.depreciationYears) 
+                    ? (totalDeviceCostTaxed - totalSalvage) / inputs.depreciationYears
+                    : 0;
+
+                const annualCosts = electricityCost +
+                                    transactionFee +
+                                    getParamValue('maintenanceFee') +
+                                    rentCost +
+                                    getParamValue('insuranceFee') +
+                                    getParamValue('laborCost') +
+                                    (getParamValue('internetFee') * 12) +
+                                    (getParamValue('tdxUploadFee') * inputs.pileCount * 12) +
+                                    electronicInvoiceCost +
+                                    (totalDeviceCostTaxed * getParamValue('repairPartsRate')) +
+                                    (getParamValue('extendedWarrantyPerPile') * inputs.pileCount) +
+                                    annualDepreciation;
+
+                // --- P&L ---
+                const annualPnl = totalRevenue - annualCosts;
+                cumulativePnl += annualPnl;
+
+                if (cumulativePnl > 0 && !foundPayback) {
+                    const prevCumulativePnl = cumulativePnl - annualPnl;
+                    if (annualPnl > 0) {
+                        const fractionalYear = (0 - prevCumulativePnl) / annualPnl;
+                        paybackPeriod = `${(year - 1 + fractionalYear).toFixed(1)} 年`;
+                    }
+                    foundPayback = true;
+                }
+
+                results.push({
+                    year,
+                    revenue: Math.round(totalRevenue),
+                    cost: Math.round(annualCosts),
+                    pnl: Math.round(annualPnl),
+                    cumulativePnl: Math.round(cumulativePnl)
+                });
+            }
+
+            return {
+                totalInvestment,
+                paybackPeriod,
+                annualData: results
+            };
+        }
+
+        /**
+         * Updates the entire UI with new calculation results.
+         */
+        function updateUI(results) {
+            DOMElements.totalInvestment.textContent = formatCurrency(results.totalInvestment);
+            DOMElements.paybackPeriod.textContent = results.paybackPeriod;
+
+            // Update table
+            const tableBody = DOMElements.pnlTableBody;
+            tableBody.innerHTML = ''; // Clear previous results
+            results.annualData.forEach(data => {
+                const row = `
+                    <tr class="text-right">
+                        <td class="table-cell table-cell-year">第 ${data.year} 年</td>
+                        <td class="table-cell">${formatCurrency(data.revenue)}</td>
+                        <td class="table-cell text-red-600">${formatCurrency(data.cost)}</td>
+                        <td class="table-cell ${data.pnl >= 0 ? 'text-green-600' : 'text-red-600'} font-semibold">${formatCurrency(data.pnl)}</td>
+                        <td class="table-cell ${data.cumulativePnl >= 0 ? 'text-blue-600' : 'text-orange-600'} font-bold">${formatCurrency(data.cumulativePnl)}</td>
+                    </tr>
+                `;
+                tableBody.insertAdjacentHTML('beforeend', row);
+            });
+
+            // Update charts
+            const labels = results.annualData.map(d => `第 ${d.year} 年`);
+            const pnlData = results.annualData.map(d => d.pnl);
+            const cumulativePnlData = results.annualData.map(d => d.cumulativePnl);
+            
+            updatePnlChart(labels, pnlData);
+            updateCumulativePnlChart(labels, cumulativePnlData, results.totalInvestment);
+            updateTouPieChart();
+            calculateAndDisplayAverageTouPrice();
+        }
+
+        /**
+         * Creates or updates the annual profit/loss chart.
+         */
+        function updatePnlChart(labels, pnlData) {
+            const ctx = DOMElements.pnlChart.getContext('2d');
+            if (pnlChart) {
+                pnlChart.data.labels = labels;
+                pnlChart.data.datasets[0].data = pnlData;
+                pnlChart.data.datasets[0].backgroundColor = pnlData.map(p => p >= 0 ? 'rgba(22, 163, 74, 0.6)' : 'rgba(220, 38, 38, 0.6)');
+                pnlChart.data.datasets[0].borderColor = pnlData.map(p => p >= 0 ? 'rgba(22, 163, 74, 1)' : 'rgba(220, 38, 38, 1)');
+                pnlChart.update();
+            } else {
+                pnlChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: '年度淨利',
+                            data: pnlData,
+                            backgroundColor: pnlData.map(p => p >= 0 ? 'rgba(22, 163, 74, 0.6)' : 'rgba(220, 38, 38, 0.6)'),
+                            borderColor: pnlData.map(p => p >= 0 ? 'rgba(22, 163, 74, 1)' : 'rgba(220, 38, 38, 1)'),
+                            borderWidth: 1,
+                            borderRadius: 4,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { y: { ticks: { callback: value => formatCurrency(value, 0) } } },
+                        plugins: { tooltip: { callbacks: { label: context => `${context.dataset.label}: ${formatCurrency(context.raw)}` } } }
+                    }
+                });
+            }
+        }
+
+        /**
+         * Creates or updates the cumulative profit/loss chart.
+         */
+        function updateCumulativePnlChart(labels, cumulativePnlData, totalInvestment) {
+            const ctx = DOMElements.cumulativePnlChart.getContext('2d');
+            const dataWithInitial = [-totalInvestment, ...cumulativePnlData];
+            const labelsWithInitial = ['初始投資', ...labels];
+
+            if (cumulativePnlChart) {
+                cumulativePnlChart.data.labels = labelsWithInitial;
+                cumulativePnlChart.data.datasets[0].data = dataWithInitial;
+                cumulativePnlChart.update();
+            } else {
+                cumulativePnlChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labelsWithInitial,
+                        datasets: [{
+                            label: '累積稅前淨利',
+                            data: dataWithInitial,
+                            fill: true,
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            tension: 0.1,
+                            pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                            pointRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { y: { ticks: { callback: value => formatCurrency(value, 0) } } },
+                        plugins: { tooltip: { callbacks: { label: context => `${context.dataset.label}: ${formatCurrency(context.raw)}` } } }
+                    }
+                });
+            }
+        }
+        
+        /**
+         * Creates or updates the TOU ratio pie chart.
+         */
+        function updateTouPieChart() {
+            const ctx = DOMElements.touPieChart.getContext('2d');
+            const data = [touRatios.peak.value, touRatios.offpeak.value, touRatios.holiday.value];
+
+            if (touPieChart) {
+                touPieChart.data.datasets[0].data = data;
+                touPieChart.update();
+            } else {
+                touPieChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['尖峰', '離峰', '假日'],
+                        datasets: [{
+                            data: data,
+                            backgroundColor: ['#ef4444', '#3b82f6', '#10b981'],
+                            borderWidth: 2,
+                            borderColor: '#f1f5f9'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: context => `${context.label}: ${(context.raw * 100).toFixed(0)}%`
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        /**
+         * Calculates and displays the weighted average TOU price.
+         */
+        function calculateAndDisplayAverageTouPrice() {
+            const inputs = getInputs();
+            const avgPrice = (inputs.peakRate * touRatios.peak.value) +
+                             (inputs.offPeakRate * touRatios.offpeak.value) +
+                             (inputs.holidayRate * touRatios.holiday.value);
+            DOMElements.avgTouRate.value = formatCurrency(avgPrice, 2);
+        }
+
+        /**
+         * Populates the device power selection dropdown.
+         */
+        function populateDeviceSelect() {
+            const select = DOMElements.devicePowerSelect;
+            select.innerHTML = '';
+            for (const key in deviceSpecs) {
+                const spec = deviceSpecs[key];
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = spec.type === 'DC_360' ? spec.name : `${spec.name} (${spec.power} kW)`;
+                select.appendChild(option);
+            }
+        }
+        
+        /**
+         * Updates read-only fields based on the selected device.
+         */
+        function updateDeviceDependentFields() {
+            const selectedKey = DOMElements.devicePowerSelect.value;
+            const pileCount = parseInt(DOMElements.pileCount.value) || 1;
+            const spec = deviceSpecs[selectedKey];
+
+            if (!spec) return;
+            
+            DOMElements.deviceCostGroup.style.display = 'grid';
+            DOMElements.salvageValueGroup.style.display = 'grid';
+
+            if (spec.type === 'DC_360') {
+                DOMElements.pileCountLabel.textContent = '終端機數';
+                DOMElements.parkingSpaces.value = pileCount;
+                // For 360, cost is complex, so we hide the per-pile display fields
+                DOMElements.deviceCostGroup.style.display = 'none';
+                DOMElements.salvageValueGroup.style.display = 'none';
+            } else {
+                DOMElements.pileCountLabel.textContent = '樁數';
+                DOMElements.parkingSpaces.value = pileCount;
+                const costWithTax = spec.cost * (1 + (getParamValue('taxRate') || 0));
+                DOMElements.deviceCostPerPile.value = Math.round(costWithTax);
+                DOMElements.salvageValuePerPile.value = spec.salvage;
+            }
+        }
+
+        /**
+         * Toggles visibility of input sections based on radio button selections.
+         */
+        function toggleInputSections() {
+            const billingMethod = document.querySelector('input[name="billingMethod"]:checked').value;
+            DOMElements.fixedRateSection.style.display = billingMethod === 'fixed' ? 'grid' : 'none';
+            DOMElements.touRateSection.style.display = billingMethod === 'tou' ? 'block' : 'none';
+
+            const revenueMethod = document.querySelector('input[name="revenueMethod"]:checked').value;
+            DOMElements.carsPerDaySection.style.display = revenueMethod === 'byCars' ? 'grid' : 'none';
+            DOMElements.kwhPerMonthSection.style.display = revenueMethod === 'byKwh' ? 'grid' : 'none';
+            DOMElements.avgKwhPerCarSection.style.display = revenueMethod === 'byCars' ? 'grid' : 'none';
+
+            const rentMethod = document.querySelector('input[name="rentMethod"]:checked').value;
+            DOMElements.rentBySpaceSection.style.display = rentMethod === 'bySpace' ? 'grid' : 'none';
+            DOMElements.rentByLandSection.style.display = rentMethod === 'byLand' ? 'grid' : 'none';
+        }
+
+        /**
+         * Formats a number into a currency string (NT$).
+         */
+        function formatCurrency(num, digits = 0) {
+            if (isNaN(num)) return 'N/A';
+            return new Intl.NumberFormat('zh-TW', {
+                style: 'currency',
+                currency: 'TWD',
+                minimumFractionDigits: digits,
+                maximumFractionDigits: digits
+            }).format(num);
+        }
+
+        /**
+         * Saves data to localStorage.
+         */
+        function saveToLocalStorage(key, data) {
+            try {
+                localStorage.setItem(key, JSON.stringify(data));
+            } catch (e) {
+                console.error("Failed to save to localStorage", e);
+            }
+        }
+
+        /**
+         * Loads data from localStorage.
+         */
+        function loadFromLocalStorage(key, defaultValue) {
+            try {
+                const item = localStorage.getItem(key);
+                return item ? JSON.parse(item) : defaultValue;
+            } catch (e) {
+                console.error("Failed to load from localStorage", e);
+                return defaultValue;
+            }
+        }
+
+        /**
+         * Sets up all modal-related event listeners and logic.
+         */
+        function setupModals() {
+            const toggleModal = (modal, show) => {
+                modal.style.display = show ? 'flex' : 'none';
+                if (show) {
+                    modal.querySelectorAll('input[type="password"]').forEach(p => p.value = '');
+                    modal.querySelectorAll('.modal-message').forEach(m => { m.style.display = 'none'; m.textContent = ''; });
+                    const passwordSection = modal.querySelector('[id$="PasswordInputSection"]');
+                    const contentSection = modal.querySelector('[id$="ContentSection"], [id$="formulasSection"]');
+                    if(passwordSection && contentSection) {
+                        passwordSection.style.display = 'block';
+                        contentSection.style.display = 'none';
+                    }
+                }
+            };
+            
+            DOMElements.openSpecsModalBtn.addEventListener('click', () => toggleModal(DOMElements.specsModal, true));
+            DOMElements.closeSpecsModalBtn.addEventListener('click', () => toggleModal(DOMElements.specsModal, false));
+            DOMElements.specsLoginBtn.addEventListener('click', () => {
+                if (DOMElements.specsPassword.value === currentSpecsPassword) {
+                    DOMElements.specsPasswordInputSection.style.display = 'none';
+                    DOMElements.specsContentSection.style.display = 'block';
+                    populateSpecsModalTable();
+                    DOMElements.specsMessage.style.display = 'none';
+                } else {
+                    DOMElements.specsMessage.textContent = '密碼錯誤！';
+                    DOMElements.specsMessage.className = 'modal-message error';
+                    DOMElements.specsMessage.style.display = 'block';
+                }
+            });
+            DOMElements.saveSpecsBtn.addEventListener('click', () => {
+                saveSpecsFromModal();
+                toggleModal(DOMElements.specsModal, false);
+            });
+            DOMElements.changeSpecsPasswordBtn.addEventListener('click', changeSpecsPassword);
+
+            DOMElements.openManagementModalBtn.addEventListener('click', () => toggleModal(DOMElements.managementModal, true));
+            DOMElements.closeManagementModalBtn.addEventListener('click', () => toggleModal(DOMElements.managementModal, false));
+            DOMElements.loginManagementBtn.addEventListener('click', () => {
+                if (DOMElements.managementPassword.value === currentManagementPassword) {
+                    DOMElements.passwordInputSection.style.display = 'none';
+                    DOMElements.formulasSection.style.display = 'block';
+                    populateFormulasModal();
+                    DOMElements.managementMessage.style.display = 'none';
+                } else {
+                    DOMElements.managementMessage.textContent = '密碼錯誤！';
+                    DOMElements.managementMessage.className = 'modal-message error';
+                    DOMElements.managementMessage.style.display = 'block';
+                }
+            });
+            DOMElements.saveFormulasBtn.addEventListener('click', () => {
+                saveFormulasFromModal();
+                toggleModal(DOMElements.managementModal, false);
+            });
+            DOMElements.changePasswordBtn.addEventListener('click', changeManagementPassword);
+        }
+
+        function populateSpecsModalTable() {
+            const tbody = DOMElements.specsModalTableBody;
+            tbody.innerHTML = '';
+            const taxRate = getParamValue('taxRate');
+            for (const key in deviceSpecs) {
+                const spec = deviceSpecs[key];
+                let rowHtml = '';
+                if (spec.type === 'DC_360') {
+                    const cabinetCostTaxed = spec.cabinetCost * (1 + taxRate);
+                    const terminalCostTaxed = spec.terminalCost * (1 + taxRate);
+                    rowHtml = `
+                        <tr class="border-b border-gray-200 bg-indigo-50">
+                            <td class="p-3 text-left font-medium text-gray-800 align-top" rowspan="2">${spec.name}</td>
+                            <td class="p-3 text-left">能源櫃</td>
+                            <td class="p-3 text-right"><input type="number" data-key="${key}" data-field="cabinetCost" value="${spec.cabinetCost}" class="modal-table-input"></td>
+                            <td class="p-3 text-right text-gray-600">${formatCurrency(cabinetCostTaxed, 0)}</td>
+                            <td class="p-3 text-right"><input type="number" data-key="${key}" data-field="cabinetSalvage" value="${spec.cabinetSalvage}" class="modal-table-input"></td>
+                        </tr>
+                        <tr class="border-b border-gray-200 bg-indigo-50">
+                            <td class="p-3 text-left">終端機</td>
+                            <td class="p-3 text-right"><input type="number" data-key="${key}" data-field="terminalCost" value="${spec.terminalCost}" class="modal-table-input"></td>
+                            <td class="p-3 text-right text-gray-600">${formatCurrency(terminalCostTaxed, 0)}</td>
+                            <td class="p-3 text-right"><input type="number" data-key="${key}" data-field="terminalSalvage" value="${spec.terminalSalvage}" class="modal-table-input"></td>
+                        </tr>
+                    `;
+                } else {
+                    const costWithTax = spec.cost * (1 + taxRate);
+                    rowHtml = `
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="p-3 text-left font-medium text-gray-800">${spec.name} (${spec.power} kW)</td>
+                            <td class="p-3 text-left">-</td>
+                            <td class="p-3 text-right"><input type="number" data-key="${key}" data-field="cost" value="${spec.cost}" class="modal-table-input"></td>
+                            <td class="p-3 text-right text-gray-600">${formatCurrency(costWithTax, 0)}</td>
+                            <td class="p-3 text-right"><input type="number" data-key="${key}" data-field="salvage" value="${spec.salvage}" class="modal-table-input"></td>
+                        </tr>
+                    `;
+                }
+                tbody.insertAdjacentHTML('beforeend', rowHtml);
+            }
+        }
+        
+        function saveSpecsFromModal() {
+            const inputs = DOMElements.specsModalTableBody.querySelectorAll('input[data-key]');
+            inputs.forEach(input => {
+                const { key, field } = input.dataset;
+                if (deviceSpecs[key]) {
+                    deviceSpecs[key][field] = parseFloat(input.value) || 0;
+                }
+            });
+            saveToLocalStorage('deviceSpecs', deviceSpecs);
+            populateDeviceSelect();
+            runAnalysis();
+        }
+
+        function changeSpecsPassword() {
+            const oldPass = DOMElements.oldSpecsPassword.value;
+            const newPass = DOMElements.newSpecsPassword.value;
+            const confirmPass = DOMElements.confirmNewSpecsPassword.value;
+            const messageEl = DOMElements.specsPasswordChangeMessage;
+
+            if (oldPass !== currentSpecsPassword) {
+                messageEl.textContent = '舊密碼不正確！';
+                messageEl.className = 'modal-message error';
+            } else if (!newPass || newPass.length < 4) {
+                messageEl.textContent = '新密碼長度至少需要4個字元！';
+                messageEl.className = 'modal-message error';
+            } else if (newPass !== confirmPass) {
+                messageEl.textContent = '新密碼與確認密碼不符！';
+                messageEl.className = 'modal-message error';
+            } else {
+                currentSpecsPassword = newPass;
+                saveToLocalStorage('specsPassword', currentSpecsPassword);
+                messageEl.textContent = '規格設定密碼已成功更新！';
+                messageEl.className = 'modal-message success';
+            }
+            messageEl.style.display = 'block';
+            setTimeout(() => messageEl.style.display = 'none', 3000);
+        }
+
+        function populateFormulasModal() {
+            const container = DOMElements.formulaContainer;
+            container.innerHTML = '';
+            for (const key in calculationParams) {
+                const param = calculationParams[key];
+                const value = param.unit === '%' ? param.value * 100 : param.value;
+                const row = `
+                    <div class="formula-item">
+                        <input type="checkbox" id="check-${key}" data-key="${key}" class="formula-item-checkbox" ${param.enabled ? 'checked' : ''}>
+                        <label for="param-${key}" class="formula-item-label">${param.label}</label>
+                        <div class="formula-item-input-group">
+                           <input type="number" id="param-${key}" data-key="${key}" value="${value}" class="input-field w-full">
+                           <span class="text-gray-500 font-mono text-sm w-20 text-left">${param.unit}</span>
+                        </div>
+                        <p class="formula-item-description">${param.description}</p>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', row);
+            }
+        }
+        
+        function saveFormulasFromModal() {
+            const inputs = DOMElements.formulaContainer.querySelectorAll('input[type="number"][data-key]');
+            const checkboxes = DOMElements.formulaContainer.querySelectorAll('input[type="checkbox"][data-key]');
+
+            checkboxes.forEach(checkbox => {
+                const { key } = checkbox.dataset;
+                if (calculationParams[key]) {
+                    calculationParams[key].enabled = checkbox.checked;
+                }
+            });
+
+            inputs.forEach(input => {
+                const { key } = input.dataset;
+                if (calculationParams[key]) {
+                    let value = parseFloat(input.value) || 0;
+                    if (calculationParams[key].unit === '%') {
+                        value /= 100;
+                    }
+                    calculationParams[key].value = value;
+                }
+            });
+            saveToLocalStorage('calculationParams', calculationParams);
+            runAnalysis();
+        }
+
+        function changeManagementPassword() {
+            const oldPass = DOMElements.oldPassword.value;
+            const newPass = DOMElements.newPassword.value;
+            const confirmPass = DOMElements.confirmNewPassword.value;
+            const messageEl = DOMElements.passwordChangeMessage;
+
+            if (oldPass !== currentManagementPassword) {
+                messageEl.textContent = '舊密碼不正確！';
+                messageEl.className = 'modal-message error';
+            } else if (!newPass || newPass.length < 4) {
+                messageEl.textContent = '新密碼長度至少需要4個字元！';
+                messageEl.className = 'modal-message error';
+            } else if (newPass !== confirmPass) {
+                messageEl.textContent = '新密碼與確認密碼不符！';
+                messageEl.className = 'modal-message error';
+            } else {
+                currentManagementPassword = newPass;
+                saveToLocalStorage('managementPassword', currentManagementPassword);
+                messageEl.textContent = '管理密碼已成功更新！';
+                messageEl.className = 'modal-message success';
+            }
+            messageEl.style.display = 'block';
+            setTimeout(() => messageEl.style.display = 'none', 3000);
+        }
+        
+        function adjustTouRatios(changedInput) {
+            if (isAdjustingTou) return; 
+            isAdjustingTou = true;
+
+            const changedKey = changedInput.dataset.tou;
+            let newValue = parseFloat(changedInput.value) / 100;
+            newValue = Math.max(0, Math.min(1, newValue));
+
+            const oldValue = touRatios[changedKey].value;
+            const delta = newValue - oldValue;
+            touRatios[changedKey].value = newValue;
+
+            const otherKeys = Object.keys(touRatios).filter(k => k !== changedKey);
+            let otherTotal = otherKeys.reduce((sum, k) => sum + touRatios[k].value, 0);
+
+            if (otherTotal > 0) {
+                for (const key of otherKeys) {
+                    const proportion = touRatios[key].value / otherTotal;
+                    touRatios[key].value -= delta * proportion;
+                }
+            } else {
+                 for (const key of otherKeys) {
+                    touRatios[key].value -= delta / otherKeys.length;
+                }
+            }
+            
+            let currentSum = 0;
+            for (const key in touRatios) {
+                touRatios[key].value = Math.max(0, touRatios[key].value);
+                currentSum += touRatios[key].value;
+            }
+            if (currentSum > 0) {
+                 for (const key in touRatios) {
+                    touRatios[key].value /= currentSum;
+                }
+            }
+
+            DOMElements.peakUsageRatio.value = (touRatios.peak.value * 100).toFixed(0);
+            DOMElements.offPeakUsageRatio.value = (touRatios.offpeak.value * 100).toFixed(0);
+            DOMElements.holidayUsageRatio.value = (touRatios.holiday.value * 100).toFixed(0);
+
+            saveToLocalStorage('touRatios', touRatios);
+            runAnalysis();
+            
+            isAdjustingTou = false;
+        }
+
+        /**
+         * Main function to run the analysis and update the UI.
+         */
+        function runAnalysis() {
+            updateDeviceDependentFields();
+            const results = calculate();
+            updateUI(results);
+        }
+
+        /**
+         * Adds all event listeners to the page.
+         */
+        function addEventListeners() {
+            const inputs = document.querySelectorAll('.input-field, input[type="radio"]');
+            inputs.forEach(input => {
+                if (!input.classList.contains('tou-ratio-input')) {
+                    input.addEventListener('change', runAnalysis);
+                    if(input.type === 'number') {
+                        input.addEventListener('input', runAnalysis);
+                    }
+                }
+            });
+            
+            document.querySelectorAll('input[name="billingMethod"], input[name="revenueMethod"], input[name="rentMethod"]').forEach(radio => {
+                radio.addEventListener('change', () => {
+                    toggleInputSections();
+                    runAnalysis();
+                });
+            });
+            
+            document.querySelectorAll('.tou-ratio-input').forEach(input => {
+                input.addEventListener('change', (e) => adjustTouRatios(e.target));
+            });
+        }
+        
+        /**
+         * Initializes the application.
+         */
+        function init() {
+            cacheDOMElements();
+            
+            deviceSpecs = loadFromLocalStorage('deviceSpecs', deviceSpecs);
+            calculationParams = loadFromLocalStorage('calculationParams', calculationParams);
+            touRatios = loadFromLocalStorage('touRatios', touRatios);
+            currentManagementPassword = loadFromLocalStorage('managementPassword', '0000');
+            currentSpecsPassword = loadFromLocalStorage('specsPassword', '0000');
+
+            DOMElements.peakUsageRatio.value = (touRatios.peak.value * 100).toFixed(0);
+            DOMElements.offPeakUsageRatio.value = (touRatios.offpeak.value * 100).toFixed(0);
+            DOMElements.holidayUsageRatio.value = (touRatios.holiday.value * 100).toFixed(0);
+
+            populateDeviceSelect();
+            addEventListeners();
+            setupModals();
+            toggleInputSections();
+            runAnalysis();
+        }
+
+        // --- Run Application ---
+        document.addEventListener('DOMContentLoaded', init);
+
+    </script>
+</body>
+</html>
