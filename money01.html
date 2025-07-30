@@ -332,7 +332,7 @@
 
         <!-- Chart Section -->
         <div class="chart-container">
-            <h3 class="text-xl font-bold text-gray-700 mb-4 text-center">投資成長圖表</h3>
+            <h3 class="text-xl font-bold text-gray-700 mb-4 text-center">投資成長與借款還款圖表</h3>
             <canvas id="investmentChart"></canvas>
         </div>
     </div>
@@ -759,14 +759,68 @@
 
 
                 // --- Chart Data Preparation ---
-                const labels = [];
-                const investmentGrowthData = [];
+                const chartLabels = [];
+                const chartInvestmentGrowthData = [];
+                const chartAnnualLoanBalanceData = []; // New dataset for annual loan balance
 
-                for (let i = 0; i <= expectedInvestmentTermMonths; i += 12) { // Plot yearly points up to investment term
-                    labels.push(`${i / 12}年`);
-                    const fvAtPoint = (loanAmount - handlingFee) * Math.pow(1 + expectedMonthlyReturn, i); // Use original initial investment for chart
-                    investmentGrowthData.push(fvAtPoint);
+                const initialInvestmentForChart = loanAmount - handlingFee;
+                const totalYearsForChart = Math.max(
+                    Math.ceil(loanTermMonths / 12),
+                    Math.ceil(expectedInvestmentTermMonths / 12)
+                );
+
+                let currentPrincipalBalanceAtStartOfYear = loanAmount; // For loan balance tracking
+
+                for (let year = 0; year <= totalYearsForChart; year++) {
+                    const currentMonthEnd = year * 12;
+                    chartLabels.push(`${year}年`);
+
+                    // Investment Growth Data (Line)
+                    if (year === 0) {
+                        chartInvestmentGrowthData.push(initialInvestmentForChart);
+                    } else if (currentMonthEnd <= expectedInvestmentTermMonths) {
+                        const fvAtYearEnd = initialInvestmentForChart * Math.pow(1 + expectedMonthlyReturn, currentMonthEnd);
+                        chartInvestmentGrowthData.push(fvAtYearEnd);
+                    } else {
+                        // If investment term ended, maintain the last value
+                        chartInvestmentGrowthData.push(chartInvestmentGrowthData[chartInvestmentGrowthData.length - 1]);
+                    }
+
+                    // Annual Loan Balance Data (Bars)
+                    if (year === 0) {
+                        chartAnnualLoanBalanceData.push(loanAmount); // Initial loan amount at year 0
+                    } else {
+                        let principalRepaidInThisYear = 0;
+                        const startMonth = (year - 1) * 12 + 1;
+                        const endMonth = year * 12;
+
+                        let tempPrincipalBalance = currentPrincipalBalanceAtStartOfYear; // Use a temp variable for monthly calculations within the year
+
+                        for (let month = startMonth; month <= endMonth; month++) {
+                            if (month <= loanTermMonths) {
+                                if (month <= gracePeriodMonths) {
+                                    // No principal repayment during grace period
+                                } else {
+                                    // Amortization period
+                                    const interestThisMonth = tempPrincipalBalance * monthlyLoanRate;
+                                    const principalPaidThisMonth = amortizationMonthlyPayment - interestThisMonth;
+                                    principalRepaidInThisYear += principalPaidThisMonth;
+                                    tempPrincipalBalance -= principalPaidThisMonth; // Update temp balance for next month's calculation
+                                }
+                            } else {
+                                break; // Loan term ended before this month
+                            }
+                        }
+                        currentPrincipalBalanceAtStartOfYear = Math.max(0, currentPrincipalBalanceAtStartOfYear - principalRepaidInThisYear); // Update for next year's start, ensure non-negative
+                        chartAnnualLoanBalanceData.push(currentPrincipalBalanceAtStartOfYear);
+                    }
                 }
+
+                // Ensure the first data point for investment is accurate if loanAmount - handlingFee is 0 or negative.
+                if (initialInvestmentForChart <= 0 && chartInvestmentGrowthData.length > 0) {
+                    chartInvestmentGrowthData[0] = 0;
+                }
+
 
                 const ctx = document.getElementById('investmentChart').getContext('2d');
 
@@ -775,16 +829,27 @@
                 }
 
                 investmentChart = new Chart(ctx, {
-                    type: 'line',
+                    type: 'bar', // Set default type to bar
                     data: {
-                        labels: labels,
+                        labels: chartLabels,
                         datasets: [
                             {
-                                label: '借錢後一次投入 (FV of Initial Investment)',
-                                data: investmentGrowthData,
+                                label: '逐年借款餘額 (Annual Loan Balance)', // New dataset label
+                                data: chartAnnualLoanBalanceData,
+                                backgroundColor: 'rgba(54, 162, 235, 0.6)', // Blue for loan balance
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1,
+                                type: 'bar', // Explicitly define as bar
+                                order: 2 // Render after line
+                            },
+                            {
+                                label: '投資成長曲線 (Investment Growth)',
+                                data: chartInvestmentGrowthData,
                                 borderColor: 'rgb(75, 192, 192)',
                                 tension: 0.1,
-                                fill: false
+                                fill: false,
+                                type: 'line', // Explicitly define as line
+                                order: 1 // Render first (behind bars)
                             }
                         ]
                     },
@@ -793,7 +858,7 @@
                         plugins: {
                             title: {
                                 display: true,
-                                text: '投資成長曲線',
+                                text: '投資成長與借款還款圖表', // Updated chart title
                                 font: {
                                     size: 16
                                 }
