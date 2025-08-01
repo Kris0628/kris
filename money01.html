@@ -29,6 +29,7 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
+            position: relative; /* Added for positioning children absolutely */
         }
         .section-title {
             font-size: 1.5rem;
@@ -138,17 +139,20 @@
             display: flex;
             align-items: center;
             margin-bottom: 10px;
+            flex-wrap: wrap; /* Allow the label and radio-options to wrap */
         }
-        .radio-group label {
-            flex: 0 0 150px;
+        .radio-group label:first-child { /* Target the "分期選項" label */
             font-weight: 600;
             color: #34495e;
-            padding-right: 15px;
+            padding-right: 15px; /* Keep some padding */
             text-align: left;
+            margin-right: 10px; /* Add space after the label */
         }
         .radio-options {
             display: flex;
-            gap: 20px;
+            gap: 10px; /* Reduced gap for tighter fit */
+            flex-wrap: wrap; /* Ensure radio buttons themselves wrap if needed */
+            /* No flex-basis or flex-grow needed here, let it flow */
         }
         .converted-display {
             margin-left: 0; /* Align with the start of the number field */
@@ -206,6 +210,12 @@
             width: 100%;
             box-sizing: border-box;
         }
+        /* New style for smaller unit symbols within bento-value */
+        .bento-unit {
+            font-size: 0.9rem; /* Smaller font size for units */
+            font-weight: normal; /* Less bold for units */
+            margin-right: 4px; /* Small space between unit and number */
+        }
         .calculation-source-bento {
             font-size: 0.8rem;
             color: #718096;
@@ -227,10 +237,37 @@
             max-width: 200px; /* Made smaller */
             margin: 20px auto 0 auto; /* Center the pie chart */
         }
+        /* User Count Display */
+        .user-count-display {
+            position: absolute; /* Changed from fixed to absolute */
+            top: 15px; /* Adjusted position */
+            right: 15px; /* Adjusted position */
+            background-color: #3b82f6; /* Blue-600 */
+            color: white;
+            padding: 8px 12px; /* Slightly smaller padding */
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            font-weight: bold;
+            font-size: 0.85rem; /* Smaller font size */
+            z-index: 1000; /* Ensure it's on top */
+            text-align: right; /* Align text to the right within its box */
+            line-height: 1.4; /* Adjust line height for stacked text */
+        }
+        .user-count-display .text-xs {
+            font-size: 0.75rem; /* Even smaller for cumulative */
+            font-weight: normal;
+            color: rgba(255, 255, 255, 0.8); /* Slightly faded for secondary info */
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- User Count Display -->
+        <div class="user-count-display">
+            線上使用者: <span id="onlineUsersCount">0</span><br>
+            <span class="text-xs">累積使用者: <span id="cumulativeUsersCount">0</span></span>
+        </div>
+
         <h1 class="text-3xl font-extrabold text-center text-gray-800 mb-6">貸款投資分析表</h1>
 
         <div class="grid-container">
@@ -391,7 +428,12 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        // Firebase imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
         // Register the datalabels plugin globally
         Chart.register(ChartDataLabels);
 
@@ -399,10 +441,137 @@
         let principalInterestPieChart; // Declare pie chart variable globally
         let investmentOutcomePieChart; // Declare new pie chart variable globally
 
+        // Firebase variables
+        let app;
+        let db;
+        let auth;
+        let userId = null;
+        let userPresenceRef = null; // Reference to the current user's presence document
+
+        // User presence constants
+        const USER_PRESENCE_TIMEOUT_MS = 60 * 1000; // 60 seconds for active user
+        const USER_PRESENCE_UPDATE_INTERVAL_MS = 30 * 1000; // Update every 30 seconds
+
+        // Initialize Firebase
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        if (Object.keys(firebaseConfig).length > 0) {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+
+            // Sign in using __initial_auth_token if available, else anonymously
+            async function authenticateFirebase() {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    try {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                        console.log("Signed in with custom token.");
+                    } catch (error) {
+                        console.error("Custom token authentication failed, falling back to anonymous:", error);
+                        await signInAnonymously(auth);
+                    }
+                } else {
+                    await signInAnonymously(auth);
+                    console.log("Signed in anonymously.");
+                }
+            }
+
+            // Call authentication function immediately
+            authenticateFirebase();
+
+            // Set up auth state listener
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    userId = user.uid;
+                    console.log("Firebase authenticated. User ID:", userId);
+                    // Corrected Firestore path for user presence
+                    userPresenceRef = doc(db, 'artifacts', appId, 'public', 'data', 'users_online', userId);
+                    const cumulativeUserRef = doc(db, 'artifacts', appId, 'public', 'data', 'cumulative_users', userId);
+
+                    // Set initial presence and start updating
+                    await setDoc(userPresenceRef, {
+                        lastSeen: serverTimestamp(),
+                        userId: userId
+                    }, { merge: true });
+
+                    // Add user to cumulative users collection (if not already there)
+                    await setDoc(cumulativeUserRef, { firstSeen: serverTimestamp() }, { merge: true });
+
+
+                    // Periodically update presence
+                    setInterval(async () => {
+                        if (userPresenceRef) {
+                            await setDoc(userPresenceRef, { lastSeen: serverTimestamp() }, { merge: true });
+                        }
+                    }, USER_PRESENCE_UPDATE_INTERVAL_MS);
+
+                    // Listen for online users
+                    listenForOnlineUsers();
+                    // Listen for cumulative users
+                    listenForCumulativeUsers();
+
+                    // Attempt to remove presence on unload (best effort)
+                    window.addEventListener('beforeunload', async () => {
+                        if (userPresenceRef) {
+                            await deleteDoc(userPresenceRef);
+                        }
+                    });
+
+                } else {
+                    // This else block might be hit if initial anonymous sign-in fails,
+                    // but the primary authentication is now handled by authenticateFirebase()
+                    console.log("No user authenticated (yet or failed).");
+                }
+            });
+
+            function listenForOnlineUsers() {
+                // Corrected Firestore path for online users collection
+                const onlineUsersCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'users_online');
+                // Query for users whose lastSeen is within the timeout period
+                // Note: Firestore queries on timestamps require an index for range filters
+                // For a simple client-side app, we'll fetch all and filter in memory for simplicity,
+                // but for large scale, server-side filtering or more complex presence systems are needed.
+                onSnapshot(onlineUsersCollectionRef, (snapshot) => {
+                    const now = Date.now();
+                    let activeUsers = 0;
+                    snapshot.docs.forEach(doc => {
+                        const data = doc.data();
+                        // Check if lastSeen exists and is within the timeout period
+                        if (data.lastSeen && data.lastSeen.toDate && (now - data.lastSeen.toDate().getTime()) < USER_PRESENCE_TIMEOUT_MS) {
+                            activeUsers++;
+                        }
+                    });
+                    document.getElementById('onlineUsersCount').textContent = activeUsers;
+                }, (error) => {
+                    console.error("Error listening to online users:", error);
+                });
+            }
+
+            function listenForCumulativeUsers() {
+                const cumulativeUsersCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'cumulative_users');
+                onSnapshot(cumulativeUsersCollectionRef, (snapshot) => {
+                    document.getElementById('cumulativeUsersCount').textContent = snapshot.size; // snapshot.size gives the number of documents
+                }, (error) => {
+                    console.error("Error listening to cumulative users:", error);
+                });
+            }
+
+        } else {
+            console.warn("Firebase config not found. User count feature disabled.");
+        }
+
+
         // Helper function to format currency with thousand separators
         function formatCurrency(amount) {
             if (isNaN(amount)) return 'N/A';
             return `NT$ ${Math.round(amount).toLocaleString('en-US')}`;
+        }
+
+        // Helper function to format currency as HTML with smaller unit symbol
+        function formatCurrencyHtml(amount) {
+            if (isNaN(amount)) return 'N/A';
+            return `<span class="bento-unit">NT$</span> ${Math.round(amount).toLocaleString('en-US')}`;
         }
 
         // Helper function to parse currency input (removes non-numeric characters except dot)
@@ -719,6 +888,9 @@
                     cashFlows.push(0);
                 }
 
+                // Define initialInvestmentForChart here, before its first use
+                const initialInvestmentForChart = loanAmount - handlingFee;
+
                 // Initial outflow (t=0)
                 cashFlows[0] = -handlingFee; 
 
@@ -796,7 +968,7 @@
                 document.getElementById('totalInterestPaidDisplay').textContent = formatCurrency(totalInterestPaidCalculated);
 
                 // 計算 fvOfInitialInvestedAmount (投資所得的總價值)
-                const fvOfInitialInvestedAmount = (loanAmount - handlingFee) * Math.pow(1 + expectedMonthlyReturn, expectedInvestmentTermMonths);
+                const fvOfInitialInvestedAmount = initialInvestmentForChart * Math.pow(1 + expectedMonthlyReturn, expectedInvestmentTermMonths);
                 
                 // 投資總報酬 (Total Investment Return) - 扣除借貸本利攤後的淨利，再扣除開辦費
                 const totalInvestmentReturn = fvOfInitialInvestedAmount - totalPrincipalAndInterestCalculated - handlingFee;
@@ -805,13 +977,13 @@
                 // --- Bento Box Calculations ---
                 // 獲利總額 (Total Profit) - 最終淨利潤，與投資總報酬相同
                 const totalProfit = totalInvestmentReturn; // This is now the same as totalInvestmentReturn
-                document.getElementById('totalProfitDisplay').textContent = formatCurrency(totalProfit);
+                document.getElementById('totalProfitDisplay').innerHTML = formatCurrencyHtml(totalProfit); // Use formatCurrencyHtml
 
                 // ROI calculation
-                const initialInvestedCapital = loanAmount - handlingFee; // The capital actually put into investment
+                // Use initialInvestmentForChart directly as it represents (loanAmount - handlingFee)
                 let roi = 0;
-                if (initialInvestedCapital > 0) {
-                    roi = (totalProfit / initialInvestedCapital) * 100;
+                if (initialInvestmentForChart > 0) {
+                    roi = (totalProfit / initialInvestmentForChart) * 100;
                 } else if (totalProfit > 0) {
                     roi = Infinity; // Infinite return if no initial invested capital and profit
                 } else if (totalProfit === 0) {
@@ -819,7 +991,7 @@
                 } else {
                     roi = NaN; // Negative profit with zero initial invested capital
                 }
-                document.getElementById('roiDisplay').textContent = `${roi.toFixed(2)}%`;
+                document.getElementById('roiDisplay').innerHTML = `${roi.toFixed(2)}<span class="bento-unit">%</span>`; // Format percentage with smaller unit
 
                 // Add final investment value to the last cash flow for IRR
                 // This is the liquidation of the investment at the end of the investment term.
@@ -830,7 +1002,7 @@
                 if (!isNaN(irrMonthly)) {
                     irrAnnual = (Math.pow(1 + irrMonthly, 12) - 1) * 100; // Annualize the monthly IRR
                 }
-                document.getElementById('irrDisplay').textContent = isNaN(irrAnnual) ? 'N/A' : `${irrAnnual.toFixed(2)}%`;
+                document.getElementById('irrDisplay').innerHTML = isNaN(irrAnnual) ? 'N/A' : `${irrAnnual.toFixed(2)}<span class="bento-unit">%</span>`; // Format percentage with smaller unit
 
 
                 // --- Chart Data Preparation ---
@@ -838,7 +1010,9 @@
                 const chartInvestmentGrowthData = [];
                 const chartAnnualLoanBalanceData = []; // New dataset for annual loan balance
 
-                const initialInvestmentForChart = loanAmount - handlingFee;
+                // initialInvestmentForChart is already defined at the top of calculate()
+                // const initialInvestmentForChart = loanAmount - handlingFee; // This line is now redundant
+
                 const totalYearsForChart = Math.max(
                     Math.ceil(loanTermMonths / 12),
                     Math.ceil(expectedInvestmentTermMonths / 12)
@@ -1111,7 +1285,7 @@
                                     formatter: (value, context) => {
                                         const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
                                         const percentage = total > 0 ? ((value / total) * 100).toFixed(0) : 0; // Changed to toFixed(0)
-                                        return `${percentage}%`; // Only percentage inside
+                                    return `${percentage}%`; // Only percentage inside
                                     }
                                 }
                             }
