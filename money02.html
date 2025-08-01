@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>貸款投資分析表</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN for drawing charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js Datalabels Plugin CDN for displaying labels on slices -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <style>
+        /* Base styles for dark theme */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000; /* Pure black background */
+            color: #e2e8f0; /* Light grey for general text */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden; /* Prevent horizontal scroll from animations */
+        }
+        .container {
+            background-color: #1a202c; /* Very dark grey for container */
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5); /* Stronger shadow for dark theme */
+            border: 1px solid #2d3748; /* Subtle border */
+            max-width: 1000px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+        }
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #a0aec0; /* Lighter grey for titles */
+            margin-bottom: 15px;
+            border-bottom: 2px solid #2d3748; /* Darker border for separation */
+            padding-bottom: 5px;
+        }
+        .input-group, .output-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .input-group label {
+            flex: 0 0 150px;
+            font-weight: 600;
+            color: #cbd5e0; /* Lighter grey for labels */
+            padding-right: 15px;
+            text-align: left;
+        }
+        .input-group input {
+            flex: 1;
+            max-width: 180px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #4a5568; /* Darker border for inputs */
+            background-color: #2d3748; /* Dark background for inputs */
+            color: #e2e8f0; /* Light text in inputs */
+            font-size: 1rem;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+            text-align: left;
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: #63b3ed; /* Vibrant blue on focus */
+            box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.5);
+        }
+        .input-group input.bg-yellow-100 {
+            background-color: #4a4a2a; /* Darker yellow for highlight input */
+            color: #f6e05e; /* Brighter yellow text */
+        }
+        /* Output group styling */
+        .output-group .highlight-result {
+            flex: 0 0 180px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #4a5568;
+            background-color: #2a4365; /* Darker blue */
+            color: #90cdf4; /* Lighter blue for result */
+            font-weight: bold;
+            font-size: 1.1rem;
+            text-align: left;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        .output-group .result-label {
+            flex: 1;
+            font-weight: 600;
+            color: #cbd5e0;
+            padding-left: 15px;
+            text-align: left;
+        }
+        .output-group .calculation-source {
+            font-size: 0.8rem;
+            color: #a0aec0; /* Medium grey for source */
+            margin-left: 5px;
+        }
+        /* Custom style for disabled output fields */
+        .output-group .disabled-output {
+            background-color: #2d3748; /* Darker grey background */
+            color: #718096; /* Greyer text color */
+            cursor: not-allowed;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+        @media (min-width: 768px) {
+            .grid-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        .note {
+            font-size: 0.9rem;
+            color: #a0aec0;
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #2d3748; /* Darker background */
+            border-left: 4px solid #63b3ed; /* Highlight blue border */
+            border-radius: 8px;
+        }
+        .chart-container {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #1a202c; /* Same as container background */
+            border-radius: 10px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        .chart-container h3 {
+            color: #e2e8f0; /* Light text for chart title */
+        }
+
+        /* Custom styling for radio buttons and converted value display */
+        .radio-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .radio-group label:first-child {
+            font-weight: 600;
+            color: #cbd5e0;
+            padding-right: 15px;
+            text-align: left;
+            margin-right: 1.5rem;
+            flex-shrink: 0;
+        }
+        .radio-options {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .radio-options label {
+            margin-right: 0;
+            flex-shrink: 0;
+            color: #cbd5e0; /* Light text for radio labels */
+        }
+        .radio-options input[type="radio"] {
+            accent-color: #63b3ed; /* Highlight color for radio button itself */
+        }
+        .converted-display {
+            margin-left: 0;
+            margin-top: -5px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: #a0aec0; /* Medium grey */
+            font-weight: 500;
+            padding-left: 165px;
+        }
+        .converted-display span {
+            font-weight: bold;
+            color: #63b3ed; /* Highlight blue */
+        }
+
+        /* Bento Box Styling */
+        .bento-box-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            gap: 20px;
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #1a202c; /* Same as container background */
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            border: 1px solid #2d3748;
+        }
+        .bento-item {
+            flex: 1 1 calc(33.33% - 20px);
+            min-width: 280px;
+            background-color: #2d3748; /* Darker grey for bento item background */
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            text-align: center;
+            border: 1px solid #4a5568; /* Darker border */
+        }
+        .bento-label {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #cbd5e0; /* Light text */
+            margin-bottom: 10px;
+        }
+        .bento-value {
+            font-size: 2.2rem; /* Even larger for emphasis */
+            font-weight: bold;
+            color: #63b3ed; /* Vibrant blue highlight */
+            background: linear-gradient(45deg, rgba(99, 179, 237, 0.1), rgba(99, 179, 237, 0.05)); /* Subtle transparent gradient */
+            padding: 8px 15px;
+            border-radius: 8px;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid rgba(99, 179, 237, 0.3); /* Subtle highlight border */
+            text-shadow: 0 0 8px rgba(99, 179, 237, 0.4); /* Subtle glow */
+        }
+        /* Specific highlight colors for bento values */
+        #totalProfitDisplay { color: #81e6d9; border-color: rgba(129, 230, 217, 0.3); background: linear-gradient(45deg, rgba(129, 230, 217, 0.1), rgba(129, 230, 217, 0.05)); text-shadow: 0 0 8px rgba(129, 230, 217, 0.4); } /* Teal */
+        #roiDisplay { color: #b794f4; border-color: rgba(183, 148, 244, 0.3); background: linear-gradient(45deg, rgba(183, 148, 244, 0.1), rgba(183, 148, 244, 0.05)); text-shadow: 0 0 8px rgba(183, 148, 244, 0.4); } /* Purple */
+        #irrDisplay { color: #f6ad55; border-color: rgba(246, 173, 85, 0.3); background: linear-gradient(45deg, rgba(246, 173, 85, 0.1), rgba(246, 173, 85, 0.05)); text-shadow: 0 0 8px rgba(246, 173, 85, 0.4); } /* Orange */
+
+        .bento-unit {
+            font-size: 1rem; /* Slightly larger unit font */
+            font-weight: normal;
+            margin-right: 4px;
+        }
+        .calculation-source-bento {
+            font-size: 0.8rem;
+            color: #a0aec0;
+            margin-top: 5px;
+        }
+
+        /* New styles for colored output groups */
+        .output-group-section {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            border: 1px solid #2d3748;
+        }
+        .output-group-section:last-child {
+            margin-bottom: 0;
+        }
+        /* Specific section colors */
+        .output-group-section.bg-blue-50 { background-color: #2a4365; border-color: #4a5568; }
+        .output-group-section.bg-green-50 { background-color: #2c5282; border-color: #4a5568; } /* Using a darker blue for green section */
+        .output-group-section.bg-purple-50 { background-color: #3f365a; border-color: #4a5568; }
+        .output-group-section.bg-orange-50 { background-color: #5a320a; border-color: #4a5568; }
+
+        /* Pie Chart Container with Flexbox for layout */
+        .pie-chart-container {
+            width: 100%;
+            max-width: 450px;
+            margin: 20px auto 0 auto;
+            display: flex;
+            flex-direction: column; /* Default to column for small screens */
+            align-items: center;
+            gap: 15px;
+            padding: 10px; /* Added padding to container */
+            background-color: #1a202c; /* Dark background for chart area */
+            border-radius: 10px;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.3);
+        }
+        @media (min-width: 640px) {
+            .pie-chart-container {
+                flex-direction: row; /* Row for larger screens */
+                justify-content: center;
+                align-items: flex-start;
+            }
+        }
+        .pie-chart-canvas {
+            width: 100%;
+            max-width: 200px; /* Keep canvas itself small */
+            height: auto;
+            min-width: 150px;
+            min-height: 150px;
+        }
+        .chart-description {
+            flex-grow: 1;
+            padding: 10px;
+            background-color: #2d3748; /* Darker background for description */
+            border-radius: 8px;
+            border: 1px solid #4a5568;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+            min-width: 180px;
+            color: #cbd5e0; /* Light text */
+        }
+        .chart-description ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .chart-description li {
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+        }
+        .user-count-display {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: #3b82f6;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            font-weight: bold;
+            font-size: 0.85rem;
+            z-index: 1000;
+            text-align: right;
+            line-height: 1.4;
+        }
+        .user-count-display .text-xs {
+            font-size: 0.75rem;
+            font-weight: normal;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Apple-like Scroll Animation */
+        .scroll-animate {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .scroll-animate.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- User Count Display -->
+        <div class="user-count-display">
+            線上使用者: <span id="onlineUsersCount">0</span><br>
+            <span class="text-xs">累積使用者: <span id="cumulativeUsersCount">0</span></span>
+        </div>
+
+        <h1 class="text-3xl font-extrabold text-center text-gray-100 mb-6">貸款投資分析表</h1>
+
+        <div class="grid-container scroll-animate">
+            <!-- Left Column: Input Fields -->
+            <div>
+                <div class="section-title">參數輸入區</div>
+                <div class="input-group">
+                    <label for="expectedAnnualReturn">預計年報酬 (%)</label>
+                    <input type="text" id="expectedAnnualReturn" value="5" class="bg-yellow-100">
+                </div>
+                <div class="input-group">
+                    <label for="expectedInvestmentTermYears">預計投資年期 (年)</label>
+                    <input type="number" id="expectedInvestmentTermYears" value="30" class="bg-yellow-100" step="1" min="1">
+                </div>
+                <div class="input-group">
+                    <label for="loanAmount">借多少錢 (NT$)</label>
+                    <input type="text" id="loanAmount" value="1,000,000" class="bg-yellow-100">
+                </div>
+                <div class="input-group">
+                    <label for="handlingFee">開辦費 (NT$)</label>
+                    <input type="text" id="handlingFee" value="399" class="bg-yellow-100">
+                </div>
+                <div class="input-group">
+                    <label for="loanInterestRate">借款利率 (%)</label>
+                    <input type="text" id="loanInterestRate" value="2.40" class="bg-yellow-100">
+                </div>
+                <div class="input-group">
+                    <label for="gracePeriodYears">寬限期 (年)</label>
+                    <input type="number" id="gracePeriodYears" value="0" class="bg-yellow-100" step="1" min="0">
+                </div>
+
+                <!-- Term Selection -->
+                <div class="radio-group">
+                    <label>分期選項</label>
+                    <div class="radio-options">
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="termOption" value="years" checked class="form-radio text-blue-600" id="radioYears">
+                            <span class="ml-2">分期 (年)</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="termOption" value="months" class="form-radio text-blue-600" id="radioMonths">
+                            <span class="ml-2">分期 (月)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="termInputYearsGroup">
+                    <div class="input-group">
+                        <label for="loanTermYears">分期 (年)</label>
+                        <input type="number" id="loanTermYears" value="30" class="bg-yellow-100" step="1">
+                    </div>
+                    <div class="converted-display">
+                        換算月份: <span id="convertedMonthsValue">360</span> 月 (不可編輯)
+                    </div>
+                </div>
+
+                <div id="termInputMonthsGroup" style="display: none;">
+                    <div class="input-group">
+                        <label for="loanTermMonths">分期 (月)</label>
+                        <input type="number" id="loanTermMonths" value="360" class="bg-yellow-100" step="1">
+                    </div>
+                    <div class="converted-display">
+                        換算年份: <span id="convertedYearsValue">30</span> 年 (不可編輯)
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Column: Results and Description -->
+            <div>
+                <div class="section-title">計算結果</div>
+
+                <!-- Group 1: Suggested Annual Return & Expected Monthly Return -->
+                <div class="output-group-section bg-blue-50">
+                    <div class="output-group">
+                        <span id="suggestedAnnualReturnDisplay" class="highlight-result">N/A</span>
+                        <label class="result-label">投資標的建議年報酬 (%)<span class="calculation-source">(每月需繳本利攤 * 12個月) / 借款總額</span></label>
+                    </div>
+                    <div class="output-group">
+                        <span id="expectedMonthlyReturnDisplay" class="highlight-result">0.49%</span>
+                        <label class="result-label">預期月報酬<span class="calculation-source">(1 + 預計年報酬)^(1/12) - 1</span></label>
+                    </label>
+                    </div>
+                </div>
+
+                <!-- Group 2: Grace Period Payment & Amortization Payment -->
+                <div class="output-group-section bg-green-50">
+                    <div class="output-group">
+                        <span id="gracePeriodMonthlyPaymentDisplay" class="highlight-result">NT$ 0</span>
+                        <label class="result-label">(寬限期)每期繳<span class="calculation-source">(借款金額 * 月借款利率)</span></label>
+                    </div>
+                    <div class="output-group">
+                        <span id="amortizationMonthlyPaymentDisplay" class="highlight-result">NT$ 0</span>
+                        <label class="result-label">本利攤(寬限期後)<span class="calculation-source">(剩餘本金透過本息攤還計算)</span></label>
+                    </div>
+                </div>
+
+                <!-- Group 3: Total Interest Paid & Total Principal and Interest -->
+                <div class="output-group-section bg-purple-50">
+                    <div class="output-group">
+                        <span id="totalInterestPaidDisplay" class="highlight-result">NT$ 4,037,889</span>
+                        <label class="result-label">借款所繳利息總和<span class="calculation-source">(借款本利總合 - 借款金額)</span></label>
+                    </div>
+                    <div class="output-group">
+                        <span id="totalPrincipalAndInterestDisplay" class="highlight-result">NT$ 14,037,889</span>
+                        <label class="result-label">借款本利總合<span class="calculation-source">(寬限期利息總和 + 攤還期本息總和)</span></label>
+                    </div>
+                    <!-- Pie Chart for Principal vs Interest -->
+                    <div class="pie-chart-container">
+                        <canvas id="principalInterestPieChart" class="pie-chart-canvas"></canvas>
+                        <div id="principalInterestDescription" class="chart-description"></div>
+                    </div>
+                </div>
+
+                <!-- Group 4: Total Investment Return -->
+                <div class="output-group-section bg-orange-50">
+                    <div class="output-group">
+                        <span id="totalInvestmentReturnDisplay" class="highlight-result">NT$ 57,432,620</span>
+                        <label class="result-label">投資總報酬<span class="calculation-source">( (借款金額 - 開辦費) * (1 + 預期月報酬)^預計投資總月數 ) - 借款本利總合 - 開辦費</span></label>
+                    </div>
+                    <!-- Pie Chart for Investment Outcome -->
+                    <div class="pie-chart-container">
+                        <canvas id="investmentOutcomePieChart" class="pie-chart-canvas"></canvas>
+                        <div id="investmentOutcomeDescription" class="chart-description"></div>
+                        <div id="investmentOutcomeNoData" class="text-center text-gray-400 text-sm mt-4" style="display: none;">
+                            無獲利，不適用圓餅圖
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="note">
+                    <p><strong>說明：</strong>本計算機根據常見的財務模型進行推算，結果可能與您預期的略有差異。若設定寬限期，則寬限期內僅繳利息，之後才開始攤還本金。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- New sections for Total Profit, ROI, and IRR - Moved outside grid-container -->
+        <div class="bento-box-container scroll-animate">
+            <div class="bento-item">
+                <div class="bento-label">獲利總額</div>
+                <div class="bento-value" id="totalProfitDisplay">NT$ 0</div>
+                <div class="calculation-source-bento">獲利總額代表整個借款投資策略的最終淨利潤，為投資總報酬扣除開辦費後的結果。</div>
+            </div>
+            <div class="bento-item">
+                <div class="bento-label">投報率</div>
+                <div class="bento-value" id="roiDisplay">0.00%</div>
+                <div class="calculation-source-bento">(獲利總額 / (借款金額 - 開辦費)) * 100%<br>一般而言，投報率若能顯著高於借款利率，則可視為較合理的投資。長期而言，超過通貨膨脹率或銀行定存利率的投報率較具吸引力。</div>
+            </div>
+            <div class="bento-item">
+                <div class="bento-label">IRR值 (年化)</div>
+                <div class="bento-value" id="irrDisplay">N/A</div>
+                <div class="calculation-source-bento">(內部報酬率計算，考慮開辦費、每月還款及最終投資價值)<br>一般而言，IRR值若能顯著高於借款利率，且高於其他可替代投資（如定存、通膨率），則可視為較合理的投資。IRR值越高，代表該投資的潛在回報越好。</div>
+            </div>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="chart-container scroll-animate">
+            <h3 class="text-xl font-bold text-gray-100 mb-4 text-center">投資成長與借款還款圖表</h3>
+            <canvas id="investmentChart"></canvas>
+        </div>
+    </div>
+
+    <script type="module">
+        // Firebase imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Register the datalabels plugin globally
+        Chart.register(ChartDataLabels);
+
+        let investmentChart; // Declare chart variable globally
+        let principalInterestPieChart; // Declare pie chart variable globally
+        let investmentOutcomePieChart; // Declare new pie chart variable globally
+
+        // Firebase variables
+        let app;
+        let db;
+        let auth;
+        let userId = null;
+        let userPresenceRef = null; // Reference to the current user's presence document
+
+        // User presence constants
+        const USER_PRESENCE_TIMEOUT_MS = 60 * 1000; // 60 seconds for active user
+        const USER_PRESENCE_UPDATE_INTERVAL_MS = 30 * 1000; // Update every 30 seconds
+
+        // Initialize Firebase
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        if (Object.keys(firebaseConfig).length > 0) {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+
+            // Sign in using __initial_auth_token if available, else anonymously
+            async function authenticateFirebase() {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    try {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                        console.log("Signed in with custom token.");
+                    } catch (error) {
+                        console.error("Custom token authentication failed, falling back to anonymous:", error);
+                        await signInAnonymously(auth);
+                    }
+                } else {
+                    await signInAnonymously(auth);
+                    console.log("Signed in anonymously.");
+                }
+            }
+
+            // Call authentication function immediately
+            authenticateFirebase();
+
+            // Set up auth state listener
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    userId = user.uid;
+                    console.log("Firebase authenticated. User ID:", userId);
+                    // Corrected Firestore path for user presence
+                    userPresenceRef = doc(db, 'artifacts', appId, 'public', 'data', 'users_online', userId);
+                    const cumulativeUserRef = doc(db, 'artifacts', appId, 'public', 'data', 'cumulative_users', userId);
+
+                    // Set initial presence and start updating
+                    await setDoc(userPresenceRef, {
+                        lastSeen: serverTimestamp(),
+                        userId: userId
+                    }, { merge: true });
+
+                    // Add user to cumulative users collection (if not already there)
+                    await setDoc(cumulativeUserRef, { firstSeen: serverTimestamp() }, { merge: true });
+
+
+                    // Periodically update presence
+                    setInterval(async () => {
+                        if (userPresenceRef) {
+                            await setDoc(userPresenceRef, { lastSeen: serverTimestamp() }, { merge: true });
+                        }
+                    }, USER_PRESENCE_UPDATE_INTERVAL_MS);
+
+                    // Listen for online users
+                    listenForOnlineUsers();
+                    // Listen for cumulative users
+                    listenForCumulativeUsers();
+
+                    // Attempt to remove presence on unload (best effort)
+                    window.addEventListener('beforeunload', async () => {
+                        if (userPresenceRef) {
+                            await deleteDoc(userPresenceRef);
+                        }
+                    });
+
+                } else {
+                    // This else block might be hit if initial anonymous sign-in fails,
+                    // but the primary authentication is now handled by authenticateFirebase()
+                    console.log("No user authenticated (yet or failed).");
+                }
+            });
+
+            function listenForOnlineUsers() {
+                // Corrected Firestore path for online users collection
+                const onlineUsersCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'users_online');
+                // Query for users whose lastSeen is within the timeout period
+                // Note: Firestore queries on timestamps require an index for range filters
+                // For a simple client-side app, we'll fetch all and filter in memory for simplicity,
+                // but for large scale, server-side filtering or more complex presence systems are needed.
+                onSnapshot(onlineUsersCollectionRef, (snapshot) => {
+                    const now = Date.now();
+                    let activeUsers = 0;
+                    snapshot.docs.forEach(doc => {
+                        const data = doc.data();
+                        // Check if lastSeen exists and is within the timeout period
+                        if (data.lastSeen && data.lastSeen.toDate && (now - data.lastSeen.toDate().getTime()) < USER_PRESENCE_TIMEOUT_MS) {
+                            activeUsers++;
+                        }
+                    });
+                    document.getElementById('onlineUsersCount').textContent = activeUsers;
+                }, (error) => {
+                    console.error("Error listening to online users:", error);
+                });
+            }
+
+            function listenForCumulativeUsers() {
+                const cumulativeUsersCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'cumulative_users');
+                onSnapshot(cumulativeUsersCollectionRef, (snapshot) => {
+                    document.getElementById('cumulativeUsersCount').textContent = snapshot.size; // snapshot.size gives the number of documents
+                }, (error) => {
+                    console.error("Error listening to cumulative users:", error);
+                });
+            }
+
+        } else {
+            console.warn("Firebase config not found. User count feature disabled.");
+        }
+
+
+        // Helper function to format currency with thousand separators
+        function formatCurrency(amount) {
+            if (isNaN(amount)) return 'N/A';
+            return `NT$ ${Math.round(amount).toLocaleString('en-US')}`;
+        }
+
+        // Helper function to format currency as HTML with smaller unit symbol
+        function formatCurrencyHtml(amount) {
+            if (isNaN(amount)) return 'N/A';
+            return `<span class="bento-unit">NT$</span> ${Math.round(amount).toLocaleString('en-US')}`;
+        }
+
+        // Helper function to parse currency input (removes non-numeric characters except dot)
+        function parseCurrencyInput(inputString) {
+            const parsed = parseFloat(inputString.replace(/[^0-9.]/g, ''));
+            return isNaN(parsed) ? 0 : parsed; // Return 0 if NaN
+        }
+
+        // Helper function to parse percentage input (removes % if present, then converts to decimal)
+        function parsePercentageInput(inputString) {
+            const parsed = parseFloat(inputString.replace(/%/g, '')) / 100;
+            return isNaN(parsed) ? 0 : parsed; // Return 0 if NaN
+        }
+
+        // Function to calculate NPV for a given rate and cash flows
+        function calculateNPV(rate, cashFlows) {
+            let npv = 0;
+            for (let i = 0; i < cashFlows.length; i++) {
+                npv += cashFlows[i] / Math.pow(1 + rate, i);
+            }
+            return npv;
+        }
+
+        // Function to calculate IRR using Newton-Raphson method
+        function calculateIRR(cashFlows, guess = 0.005) { // Changed default guess to a more reasonable monthly rate
+            const MAX_ITERATIONS = 1000;
+            const PRECISION = 1e-7;
+
+            // Handle edge cases for cash flows
+            if (cashFlows.length === 0) return NaN;
+            if (cashFlows.every(cf => cf === 0)) return 0; // All zeros
+            
+            // Check if there are both positive and negative cash flows (required for a meaningful IRR)
+            const hasPositive = cashFlows.some(cf => cf > 0);
+            const hasNegative = cashFlows.some(cf => cf < 0);
+            if (!hasPositive || !hasNegative) return NaN; // IRR cannot be calculated without both inflows and outflows
+
+            let irr = guess;
+
+            for (let i = 0; i < MAX_ITERATIONS; i++) {
+                let npv = 0;
+                let derivative = 0;
+
+                for (let t = 0; t < cashFlows.length; t++) {
+                    // Check for non-finite values in cashFlows or irr before calculation
+                    if (!Number.isFinite(cashFlows[t]) || !Number.isFinite(irr)) {
+                        console.warn("IRR calculation: Non-finite cash flow or rate encountered.");
+                        return NaN;
+                    }
+
+                    const denominator = Math.pow(1 + irr, t);
+                    if (denominator === 0) { // Avoid division by zero if (1+irr) is 0
+                        // This can happen if irr is -1 and t > 0
+                        console.warn("IRR calculation: Denominator became zero (1+irr=0).");
+                        return NaN;
+                    }
+                    npv += cashFlows[t] / denominator;
+                    derivative -= cashFlows[t] * t / (denominator * (1 + irr)); // Simplified derivative
+                }
+
+                if (Math.abs(npv) < PRECISION) {
+                    return irr;
+                }
+
+                if (derivative === 0) { // Avoid division by zero
+                    console.warn("IRR calculation: Derivative became zero.");
+                    return NaN;
+                }
+
+                irr = irr - npv / derivative;
+
+                // Basic check to prevent IRR from going to extreme values
+                if (!Number.isFinite(irr) || Math.abs(irr) > 100) { // If irr becomes too large/small, it's likely not converging
+                    console.warn("IRR calculation: Rate diverged to extreme value.");
+                    return NaN;
+                }
+            }
+            console.warn("IRR calculation: Did not converge within MAX_ITERATIONS.");
+            return NaN; // Could not converge
+        }
+
+        // New helper function to generate description HTML for pie charts
+        function generatePieChartDescription(data, labels, colors, title) {
+            let html = `<div class="text-sm font-semibold mb-2 text-gray-300 text-center">${title}</div>`;
+            html += `<ul class="list-none p-0 m-0">`;
+            const total = data.reduce((sum, val) => sum + val, 0);
+            data.forEach((value, index) => {
+                if (value > 0) { // Only show slices with positive values
+                    const percentage = total > 0 ? ((value / total) * 100).toFixed(0) : 0;
+                    html += `<li class="flex items-center mb-1">
+                                <span class="inline-block w-3 h-3 rounded-full mr-2" style="background-color: ${colors[index]};"></span>
+                                <span class="text-gray-300">${labels[index]}: </span>
+                                <span class="font-bold ml-1">${formatCurrency(value)}</span>
+                                <span class="text-gray-400 text-xs ml-1">(${percentage}%)</span>
+                            </li>`;
+                }
+            });
+            html += `</ul>`;
+            return html;
+        }
+
+
+        // Get elements for term selection
+        const radioYears = document.getElementById('radioYears');
+        const radioMonths = document.getElementById('radioMonths');
+        const termInputYearsGroup = document.getElementById('termInputYearsGroup');
+        const termInputMonthsGroup = document.getElementById('termInputMonthsGroup');
+        const loanTermYearsInput = document.getElementById('loanTermYears');
+        const loanTermMonthsInput = document.getElementById('loanTermMonths');
+        const convertedMonthsValueSpan = document.getElementById('convertedMonthsValue');
+        const convertedYearsValueSpan = document.getElementById('convertedYearsValue');
+        const gracePeriodYearsInput = document.getElementById('gracePeriodYears'); // Get grace period input
+        const expectedInvestmentTermYearsInput = document.getElementById('expectedInvestmentTermYears'); // New investment term input
+
+        // Function to toggle term input visibility and update converted values
+        function toggleTermInputs() {
+            if (radioYears.checked) {
+                termInputYearsGroup.style.display = 'block';
+                termInputMonthsGroup.style.display = 'none';
+                // Update converted months value based on years input
+                const years = parseFloat(loanTermYearsInput.value);
+                if (!isNaN(years)) {
+                    convertedMonthsValueSpan.textContent = Math.round(years * 12);
+                    loanTermMonthsInput.value = Math.round(years * 12); // Keep hidden input updated
+                } else {
+                    convertedMonthsValueSpan.textContent = '';
+                    loanTermMonthsInput.value = '';
+                }
+            } else {
+                termInputYearsGroup.style.display = 'none';
+                termInputMonthsGroup.style.display = 'block';
+                // Update converted years value based on months input
+                const months = parseFloat(loanTermMonthsInput.value);
+                if (!isNaN(months)) {
+                    convertedYearsValueSpan.textContent = Math.round(months / 12);
+                    loanTermYearsInput.value = Math.round(months / 12); // Keep hidden input updated
+                } else {
+                    convertedYearsValueSpan.textContent = '';
+                    loanTermYearsInput.value = '';
+                }
+            }
+            calculate(); // Recalculate after toggling
+        }
+
+        // Event listeners for radio buttons
+        radioYears.addEventListener('change', toggleTermInputs);
+        radioMonths.addEventListener('change', toggleTermInputs);
+
+        // Event listener for "分期(年)" input (updates converted months)
+        loanTermYearsInput.addEventListener('input', function() {
+            const years = parseFloat(this.value);
+            if (!isNaN(years)) {
+                convertedMonthsValueSpan.textContent = Math.round(years * 12);
+                loanTermMonthsInput.value = Math.round(years * 12); // Keep hidden input updated
+            } else {
+                convertedMonthsValueSpan.textContent = '';
+                loanTermMonthsInput.value = '';
+            }
+            calculate(); // Recalculate when years change
+        });
+
+        // Event listener for "分期(月)" input (updates converted years)
+        loanTermMonthsInput.addEventListener('input', function() {
+            const months = parseFloat(this.value);
+            if (!isNaN(months)) {
+                convertedYearsValueSpan.textContent = Math.round(months / 12);
+                loanTermYearsInput.value = Math.round(months / 12); // Keep hidden input updated
+            } else {
+                convertedYearsValueSpan.textContent = '';
+                loanTermYearsInput.value = '';
+            }
+            calculate(); // Recalculate when months change
+        });
+
+        // Event listener for "寬限期 (年)" input
+        gracePeriodYearsInput.addEventListener('input', calculate);
+        // Event listener for "預計投資年期 (年)" input
+        expectedInvestmentTermYearsInput.addEventListener('input', calculate);
+
+
+        // Get all input elements for focus and Enter key behavior
+        const inputs = document.querySelectorAll('.input-group input');
+
+        inputs.forEach((input, index) => {
+            // Add onfocus to select all text and handle specific formatting for currency/percentage
+            input.addEventListener('focus', function() {
+                if (this.id === 'expectedAnnualReturn' || this.id === 'loanInterestRate') {
+                    // For percentage inputs, remove '%' on focus
+                    let value = this.value.trim();
+                    if (value.endsWith('%')) {
+                        this.value = value.slice(0, -1);
+                    }
+                } else if (this.id === 'loanAmount' || this.id === 'handlingFee') {
+                    // For currency inputs, remove thousand separators on focus
+                    this.value = this.value.replace(/,/g, ''); // Just remove commas
+                }
+                this.select(); // Select all text
+            });
+
+            // Add blur event listener to format inputs back
+            input.addEventListener('blur', function() {
+                if (this.id === 'expectedAnnualReturn' || this.id === 'loanInterestRate') {
+                    // For percentage inputs, add '%' on blur if value is not empty AND is a valid number
+                    let value = parseFloat(this.value.trim());
+                    if (!isNaN(value) && this.value.trim() !== '') {
+                        this.value = value + '%';
+                    } else if (this.value.trim() === '') {
+                        this.value = ''; // Ensure it's truly empty if user cleared it
+                    }
+                } else if (this.id === 'loanAmount' || this.id === 'handlingFee') {
+                    // For currency inputs, format with thousand separators on blur
+                    let value = parseFloat(this.value.replace(/,/g, '')); // Parse with commas removed
+                    if (!isNaN(value) && this.value.trim() !== '') {
+                        this.value = `${value.toLocaleString('en-US')}`;
+                    } else if (this.value.trim() === '') {
+                        this.value = ''; // Ensure it's truly empty if user cleared it
+                    }
+                }
+                calculate(); // Recalculate on blur
+            });
+
+            // Add keydown listener for Enter key
+            input.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault(); // Prevent default form submission
+
+                    // Find the next input field in the correct order, skipping hidden/disabled ones
+                    let nextInput = null;
+                    let currentInputIndex = Array.from(inputs).indexOf(this);
+
+                    for (let i = currentInputIndex + 1; i < inputs.length; i++) {
+                        const candidateInput = inputs[i];
+                        // Check if the input is visible and not disabled (for term inputs)
+                        // Also check if its parent group is displayed
+                        const parentGroupStyle = candidateInput.closest('div[id$="Group"]')?.style.display;
+                        if (candidateInput.closest('.input-group').style.display !== 'none' &&
+                            (parentGroupStyle === 'block' || parentGroupStyle === undefined) && /* Check if term group is visible, or if it's not a term group */
+                            !candidateInput.disabled) {
+                            nextInput = candidateInput;
+                            break;
+                        }
+                    }
+
+                    // If no next visible input found, loop back to the first visible input
+                    if (!nextInput) {
+                        for (let i = 0; i < inputs.length; i++) {
+                            const candidateInput = inputs[i];
+                            const parentGroupStyle = candidateInput.closest('div[id$="Group"]')?.style.display;
+                            if (candidateInput.closest('.input-group').style.display !== 'none' &&
+                                (parentGroupStyle === 'block' || parentGroupStyle === undefined) &&
+                                !candidateInput.disabled) {
+                                nextInput = candidateInput;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (nextInput) {
+                        nextInput.focus();
+                    }
+                }
+            });
+        });
+
+
+        function calculate() {
+            try {
+                // Get input values
+                const expectedAnnualReturn = parsePercentageInput(document.getElementById('expectedAnnualReturn').value);
+                let expectedInvestmentTermYears = parseFloat(document.getElementById('expectedInvestmentTermYears').value);
+                
+                const loanAmount = parseCurrencyInput(document.getElementById('loanAmount').value);
+                const handlingFee = parseCurrencyInput(document.getElementById('handlingFee').value);
+                const loanInterestRate = parsePercentageInput(document.getElementById('loanInterestRate').value);
+                let gracePeriodYears = parseFloat(document.getElementById('gracePeriodYears').value);
+                let gracePeriodMonths = Math.round(gracePeriodYears * 12);
+
+
+                // Determine loanTermMonths based on which radio button is selected
+                let loanTermYears;
+                let loanTermMonths;
+                if (radioYears.checked) {
+                    loanTermYears = parseFloat(loanTermYearsInput.value);
+                    loanTermMonths = isNaN(loanTermYears) ? 360 : Math.round(loanTermYears * 12);
+                } else { // radioMonths.checked
+                    loanTermMonths = parseFloat(loanTermMonthsInput.value);
+                    loanTermYears = isNaN(loanTermMonths) ? 30 : Math.round(loanTermMonths / 12);
+                }
+
+                // Ensure loanTermMonths is a valid number
+                if (isNaN(loanTermMonths) || loanTermMonths <= 0) {
+                    loanTermMonths = 360; // Default to 360 months if invalid
+                    loanTermYears = 30;
+                    // Update the visible input and converted display if default is applied
+                    if (radioYears.checked) {
+                        loanTermYearsInput.value = 30;
+                        convertedMonthsValueSpan.textContent = 360;
+                    } else {
+                        loanTermMonthsInput.value = 360;
+                        convertedYearsValueSpan.textContent = 30;
+                    }
+                }
+
+                // Validation for expectedInvestmentTermYears: cannot be greater than loanTermYears
+                if (expectedInvestmentTermYears > loanTermYears) {
+                    expectedInvestmentTermYears = loanTermYears;
+                    document.getElementById('expectedInvestmentTermYears').value = loanTermYears; // Update input field
+                }
+                let expectedInvestmentTermMonths = Math.round(expectedInvestmentTermYears * 12);
+
+
+                // Ensure grace period does not exceed total loan term
+                if (gracePeriodMonths > loanTermMonths) {
+                    gracePeriodMonths = loanTermMonths; // Grace period cannot be longer than loan term
+                    document.getElementById('gracePeriodYears').value = Math.round(gracePeriodMonths / 12); // Update input field
+                }
+
+                // Derived rates
+                const expectedMonthlyReturn = Math.pow(1 + expectedAnnualReturn, 1/12) - 1;
+                const monthlyLoanRate = loanInterestRate / 12;
+
+                // --- Calculations ---
+                let gracePeriodMonthlyPayment = 0;
+                let amortizationMonthlyPayment = 0;
+                let totalPrincipalAndInterestCalculated = 0;
+                let totalInterestPaidCalculated = 0;
+                let cashFlows = [];
+                let remainingLoanTermMonths = loanTermMonths - gracePeriodMonths; // Declare here
+
+                // Determine the maximum period for cash flows (either loan term or investment term)
+                const maxPeriodMonths = Math.max(loanTermMonths, expectedInvestmentTermMonths);
+                // Initialize cashFlows array with zeros up to maxPeriodMonths
+                for (let i = 0; i <= maxPeriodMonths; i++) {
+                    cashFlows.push(0);
+                }
+
+                // Define initialInvestmentForChart here, before its first use
+                const initialInvestmentForChart = loanAmount - handlingFee;
+
+                // Initial outflow (t=0)
+                cashFlows[0] = -handlingFee; 
+
+
+                if (loanTermMonths === 0) {
+                    // Immediate transaction, no loan term, no payments
+                    // All values remain 0 as initialized, except for investment return
+                } else {
+                    let currentPrincipalBalance = loanAmount; // Track principal balance for accurate interest calculation
+                    const monthlyInterestDuringGrace = currentPrincipalBalance * monthlyLoanRate;
+                    gracePeriodMonthlyPayment = monthlyInterestDuringGrace;
+
+                    // Cash flows during grace period (interest only)
+                    for (let i = 1; i <= gracePeriodMonths; i++) {
+                        cashFlows[i] -= monthlyInterestDuringGrace;
+                        totalInterestPaidCalculated += monthlyInterestDuringGrace;
+                    }
+
+                    if (remainingLoanTermMonths > 0) {
+                        // Calculate amortized payment for the remaining term
+                        if (monthlyLoanRate === 0) {
+                            amortizationMonthlyPayment = currentPrincipalBalance / remainingLoanTermMonths;
+                        } else {
+                            amortizationMonthlyPayment = currentPrincipalBalance * (monthlyLoanRate * Math.pow(1 + monthlyLoanRate, remainingLoanTermMonths)) / (Math.pow(1 + monthlyLoanRate, remainingLoanTermMonths) - 1);
+                        }
+
+                        // Cash flows during amortization period (principal + interest)
+                        for (let i = gracePeriodMonths + 1; i <= loanTermMonths; i++) {
+                            const interestThisMonth = currentPrincipalBalance * monthlyLoanRate;
+                            const principalPaidThisMonth = amortizationMonthlyPayment - interestThisMonth;
+                            currentPrincipalBalance -= principalPaidThisMonth; // Update principal balance
+
+                            cashFlows[i] -= amortizationMonthlyPayment;
+                            totalInterestPaidCalculated += interestThisMonth;
+                        }
+                    } else if (gracePeriodMonths > 0 && gracePeriodMonths === loanTermMonths) {
+                        // If entire loan is grace period, principal is paid at the end as balloon.
+                        // This principal repayment is added to the cash flow at loanTermMonths
+                        // The total interest paid is already calculated as monthlyInterestDuringGrace * loanTermMonths
+                        cashFlows[loanTermMonths] -= loanAmount; // Add the principal repayment as an outflow
+                    }
+                }
+
+                totalPrincipalAndInterestCalculated = totalInterestPaidCalculated + loanAmount;
+
+                // Suggested Annual Return for Investment Target calculation
+                let suggestedAnnualReturn = 0;
+                if (loanAmount > 0) {
+                    // Use amortizationMonthlyPayment if it's calculated, otherwise fall back to gracePeriodMonthlyPayment if grace period covers entire loan
+                    let effectiveMonthlyPayment = amortizationMonthlyPayment;
+                    if (loanTermMonths > 0 && remainingLoanTermMonths <= 0 && gracePeriodMonths > 0) {
+                        // If loan is entirely grace period, or grace period ends at loan end, use grace period payment for this calculation
+                        effectiveMonthlyPayment = gracePeriodMonthlyPayment;
+                    }
+
+                    if (!isNaN(effectiveMonthlyPayment) && effectiveMonthlyPayment > 0) {
+                        suggestedAnnualReturn = (effectiveMonthlyPayment * 12) / loanAmount;
+                    }
+                }
+                document.getElementById('suggestedAnnualReturnDisplay').textContent = `${(suggestedAnnualReturn * 100).toFixed(2)}%`;
+
+
+                // Grace period monthly payment display logic
+                const gracePeriodMonthlyPaymentDisplayElement = document.getElementById('gracePeriodMonthlyPaymentDisplay');
+                if (gracePeriodMonths === 0) {
+                    gracePeriodMonthlyPaymentDisplayElement.textContent = formatCurrency(0);
+                    gracePeriodMonthlyPaymentDisplayElement.classList.add('disabled-output');
+                } else {
+                    gracePeriodMonthlyPaymentDisplayElement.textContent = formatCurrency(gracePeriodMonthlyPayment);
+                    gracePeriodMonthlyPaymentDisplayElement.classList.remove('disabled-output');
+                }
+
+                document.getElementById('amortizationMonthlyPaymentDisplay').textContent = formatCurrency(amortizationMonthlyPayment);
+                document.getElementById('totalPrincipalAndInterestDisplay').textContent = formatCurrency(totalPrincipalAndInterestCalculated);
+                document.getElementById('totalInterestPaidDisplay').textContent = formatCurrency(totalInterestPaidCalculated);
+
+                // 計算 fvOfInitialInvestedAmount (投資所得的總價值)
+                const fvOfInitialInvestedAmount = initialInvestmentForChart * Math.pow(1 + expectedMonthlyReturn, expectedInvestmentTermMonths);
+                
+                // 投資總報酬 (Total Investment Return) - 扣除借貸本利攤後的淨利，再扣除開辦費
+                const totalInvestmentReturn = fvOfInitialInvestedAmount - totalPrincipalAndInterestCalculated - handlingFee;
+                document.getElementById('totalInvestmentReturnDisplay').textContent = formatCurrency(totalInvestmentReturn);
+
+                // --- Bento Box Calculations ---
+                // 獲利總額 (Total Profit) - 最終淨利潤，與投資總報酬相同
+                const totalProfit = totalInvestmentReturn; // This is now the same as totalInvestmentReturn
+                document.getElementById('totalProfitDisplay').innerHTML = formatCurrencyHtml(totalProfit); // Use formatCurrencyHtml
+
+                // ROI calculation
+                // Use initialInvestmentForChart directly as it represents (loanAmount - handlingFee)
+                let roi = 0;
+                if (initialInvestmentForChart > 0) {
+                    roi = (totalProfit / initialInvestmentForChart) * 100;
+                } else if (totalProfit > 0) {
+                    roi = Infinity; // Infinite return if no initial invested capital and profit
+                } else if (totalProfit === 0) {
+                    roi = 0;
+                } else {
+                    roi = NaN; // Negative profit with zero initial invested capital
+                }
+                document.getElementById('roiDisplay').innerHTML = `${roi.toFixed(2)}<span class="bento-unit">%</span>`; // Format percentage with smaller unit
+
+                // Add final investment value to the last cash flow for IRR
+                // This is the liquidation of the investment at the end of the investment term.
+                cashFlows[expectedInvestmentTermMonths] = (cashFlows[expectedInvestmentTermMonths] || 0) + fvOfInitialInvestedAmount;
+                
+                const irrMonthly = calculateIRR(cashFlows);
+                let irrAnnual = NaN;
+                if (!isNaN(irrMonthly)) {
+                    irrAnnual = (Math.pow(1 + irrMonthly, 12) - 1) * 100; // Annualize the monthly IRR
+                }
+                document.getElementById('irrDisplay').innerHTML = isNaN(irrAnnual) ? 'N/A' : `${irrAnnual.toFixed(2)}<span class="bento-unit">%</span>`; // Format percentage with smaller unit
+
+
+                // --- Chart Data Preparation ---
+                const chartLabels = [];
+                const chartInvestmentGrowthData = [];
+                const chartAnnualLoanBalanceData = []; // New dataset for annual loan balance
+
+                // initialInvestmentForChart is already defined at the top of calculate()
+                // const initialInvestmentForChart = loanAmount - handlingFee; // This line is now redundant
+
+                const totalYearsForChart = Math.max(
+                    Math.ceil(loanTermMonths / 12),
+                    Math.ceil(expectedInvestmentTermMonths / 12)
+                );
+
+                let currentPrincipalBalanceAtStartOfYear = loanAmount; // For loan balance tracking
+
+                for (let year = 0; year <= totalYearsForChart; year++) {
+                    const currentMonthEnd = year * 12;
+                    chartLabels.push(`${year}年`);
+
+                    // Investment Growth Data (Line)
+                    if (year === 0) {
+                        chartInvestmentGrowthData.push(initialInvestmentForChart);
+                    } else if (currentMonthEnd <= expectedInvestmentTermMonths) {
+                        const fvAtYearEnd = initialInvestmentForChart * Math.pow(1 + expectedMonthlyReturn, currentMonthEnd);
+                        chartInvestmentGrowthData.push(fvAtYearEnd);
+                    } else {
+                        // If investment term ended, maintain the last value
+                        chartInvestmentGrowthData.push(chartInvestmentGrowthData[chartInvestmentGrowthData.length - 1]);
+                    }
+
+                    // Annual Loan Balance Data (Bars)
+                    if (year === 0) {
+                        chartAnnualLoanBalanceData.push(loanAmount); // Initial loan amount at year 0
+                    } else {
+                        let principalRepaidInThisYear = 0;
+                        const startMonth = (year - 1) * 12 + 1;
+                        const endMonth = year * 12;
+
+                        let tempPrincipalBalance = currentPrincipalBalanceAtStartOfYear; // Use a temp variable for monthly calculations within the year
+
+                        for (let month = startMonth; month <= endMonth; month++) {
+                            if (month <= loanTermMonths) {
+                                if (month <= gracePeriodMonths) {
+                                    // No principal repayment during grace period
+                                } else {
+                                    // Amortization period
+                                    const interestThisMonth = tempPrincipalBalance * monthlyLoanRate;
+                                    const principalPaidThisMonth = amortizationMonthlyPayment - interestThisMonth;
+                                    principalRepaidInThisYear += principalPaidThisMonth;
+                                    tempPrincipalBalance -= principalPaidThisMonth; // Update temp balance for next month's calculation
+                                }
+                            } else {
+                                break; // Loan term ended before this month
+                            }
+                        }
+                        currentPrincipalBalanceAtStartOfYear = Math.max(0, currentPrincipalBalanceAtStartOfYear - principalRepaidInThisYear); // Update for next year's start, ensure non-negative
+                        chartAnnualLoanBalanceData.push(currentPrincipalBalanceAtStartOfYear);
+                    }
+                }
+
+                // Ensure the first data point for investment is accurate if loanAmount - handlingFee is 0 or negative.
+                if (initialInvestmentForChart <= 0 && chartInvestmentGrowthData.length > 0) {
+                    chartInvestmentGrowthData[0] = 0;
+                }
+
+
+                const ctx = document.getElementById('investmentChart').getContext('2d');
+
+                if (investmentChart) {
+                    investmentChart.destroy(); // Destroy existing chart before creating a new one
+                }
+
+                investmentChart = new Chart(ctx, {
+                    type: 'bar', // Set default type to bar
+                    data: {
+                        labels: chartLabels,
+                        datasets: [
+                            {
+                                label: '逐年借款餘額 (Annual Loan Balance)', // New dataset label
+                                data: chartAnnualLoanBalanceData,
+                                backgroundColor: 'rgba(54, 162, 235, 0.6)', // Blue for loan balance
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1,
+                                type: 'bar', // Explicitly define as bar
+                                order: 2 // Render after line
+                            },
+                            {
+                                label: '投資成長曲線 (Investment Growth)',
+                                data: chartInvestmentGrowthData,
+                                borderColor: 'rgb(75, 192, 192)',
+                                tension: 0.1,
+                                fill: false,
+                                type: 'line', // Explicitly define as line
+                                order: 1 // Render first (behind bars)
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: '投資成長與借款還款圖表', // Updated chart title
+                                font: {
+                                    size: 16,
+                                    color: '#e2e8f0' /* Light text for chart title */
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed.y !== null) {
+                                            label += formatCurrency(context.parsed.y);
+                                        }
+                                        return label;
+                                    }
+                                }
+                            },
+                            datalabels: { // Add datalabels plugin configuration
+                                display: false // Hide data labels on the chart elements
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '時間 (年)',
+                                    color: '#cbd5e0' /* Light text for axis title */
+                                },
+                                ticks: {
+                                    display: true, /* Show x-axis tick labels */
+                                    color: '#a0aec0' /* Medium grey for tick labels */
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: '金額 (NT$)',
+                                    color: '#cbd5e0' /* Light text for axis title */
+                                },
+                                beginAtZero: true,
+                                ticks: {
+                                    display: true, /* Show y-axis tick labels */
+                                    color: '#a0aec0', /* Medium grey for tick labels */
+                                    callback: function(value, index, values) {
+                                        return formatCurrency(value);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // --- Pie Chart for Principal vs Interest ---
+                const pieCtx = document.getElementById('principalInterestPieChart').getContext('2d');
+                const principalInterestDescriptionDiv = document.getElementById('principalInterestDescription');
+
+                if (principalInterestPieChart) {
+                    principalInterestPieChart.destroy(); // Destroy existing pie chart
+                }
+
+                // Data for the pie chart
+                const principalInterestData = [];
+                const principalInterestLabels = [];
+                const principalInterestColors = [];
+
+                if (loanAmount > 0) {
+                    principalInterestData.push(loanAmount);
+                    principalInterestLabels.push('本金');
+                    principalInterestColors.push('rgba(99, 179, 237, 0.7)'); /* Light Blue */
+                }
+                if (totalInterestPaidCalculated > 0) {
+                    principalInterestData.push(totalInterestPaidCalculated);
+                    principalInterestLabels.push('利息');
+                    principalInterestColors.push('rgba(129, 230, 217, 0.7)'); /* Teal */
+                }
+
+
+                principalInterestPieChart = new Chart(pieCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: principalInterestLabels,
+                        datasets: [{
+                            data: principalInterestData,
+                            backgroundColor: principalInterestColors,
+                            borderColor: '#1a202c', /* Dark border for slices */
+                            borderWidth: 2 /* Thicker border for separation */
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: false,
+                            },
+                            title: {
+                                display: true,
+                                text: '本金與利息佔比',
+                                font: {
+                                    size: 14,
+                                    color: '#e2e8f0' /* Light text for chart title */
+                                }
+                            },
+                            datalabels: {
+                                display: true,
+                                color: '#000', /* Black text for better contrast inside slices */
+                                font: {
+                                    weight: 'bold',
+                                    size: 12
+                                },
+                                formatter: (value, context) => {
+                                    const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
+                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(0) : 0;
+                                    return `${percentage}%`;
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Update the description div for Principal vs Interest
+                if (principalInterestDescriptionDiv) {
+                    if (principalInterestData.length > 0) {
+                        principalInterestDescriptionDiv.innerHTML = generatePieChartDescription(
+                            principalInterestData,
+                            principalInterestLabels,
+                            principalInterestColors,
+                            '本金與利息佔比'
+                        );
+                        principalInterestDescriptionDiv.style.display = 'block';
+                    } else {
+                        principalInterestDescriptionDiv.innerHTML = '<div class="text-center text-gray-400 text-sm mt-4">無數據</div>';
+                        principalInterestDescriptionDiv.style.display = 'block';
+                    }
+                }
+
+
+                // --- Pie Chart for Investment Outcome ---
+                const investmentOutcomeCanvas = document.getElementById('investmentOutcomePieChart');
+                const investmentOutcomeNoData = document.getElementById('investmentOutcomeNoData');
+                const investmentOutcomeDescriptionDiv = document.getElementById('investmentOutcomeDescription');
+                let investmentOutcomePieCtx = null;
+
+                if (investmentOutcomeCanvas) {
+                    investmentOutcomePieCtx = investmentOutcomeCanvas.getContext('2d');
+                }
+
+                if (investmentOutcomePieChart) {
+                    investmentOutcomePieChart.destroy(); // Destroy existing pie chart
+                }
+
+                // Data for the pie chart
+                const investmentOutcomeData = [];
+                const investmentOutcomeLabels = [];
+                const investmentOutcomeColors = [];
+                const totalLoanCost = loanAmount + totalInterestPaidCalculated;
+                
+                if (totalLoanCost > 0) {
+                    investmentOutcomeData.push(totalLoanCost);
+                    investmentOutcomeLabels.push('借款總成本');
+                    investmentOutcomeColors.push('rgba(183, 148, 244, 0.7)'); /* Purple */
+                }
+                if (totalProfit > 0) {
+                    investmentOutcomeData.push(totalProfit);
+                    investmentOutcomeLabels.push('投資淨獲利');
+                    investmentOutcomeColors.push('rgba(246, 173, 85, 0.7)'); /* Orange */
+                }
+
+                if (totalProfit > 0 && totalLoanCost > 0 && investmentOutcomeCanvas && investmentOutcomeNoData) {
+                    investmentOutcomeNoData.style.display = 'none'; // Hide no data message
+                    investmentOutcomeCanvas.style.display = 'block'; // Show canvas element itself
+
+                    investmentOutcomePieChart = new Chart(investmentOutcomePieCtx, {
+                        type: 'pie',
+                        data: {
+                            labels: investmentOutcomeLabels,
+                            datasets: [{
+                                data: investmentOutcomeData,
+                                backgroundColor: investmentOutcomeColors,
+                                borderColor: '#1a202c', /* Dark border for slices */
+                                borderWidth: 2 /* Thicker border for separation */
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    display: false,
+                                },
+                                title: {
+                                    display: true,
+                                    text: '投資策略成果佔比',
+                                    font: {
+                                        size: 14,
+                                        color: '#e2e8f0' /* Light text for chart title */
+                                    }
+                                },
+                                datalabels: {
+                                    display: true,
+                                    color: '#000', /* Black text for better contrast inside slices */
+                                    font: {
+                                        weight: 'bold',
+                                        size: 12
+                                    },
+                                    formatter: (value, context) => {
+                                        const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
+                                        const percentage = total > 0 ? ((value / total) * 100).toFixed(0) : 0;
+                                        return `${percentage}%`;
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    // Update the description div for Investment Outcome
+                    if (investmentOutcomeDescriptionDiv) {
+                        investmentOutcomeDescriptionDiv.innerHTML = generatePieChartDescription(
+                            investmentOutcomeData,
+                            investmentOutcomeLabels,
+                            investmentOutcomeColors,
+                            '投資策略成果佔比'
+                        );
+                        investmentOutcomeDescriptionDiv.style.display = 'block';
+                    }
+
+                } else {
+                    if (investmentOutcomeNoData) {
+                        investmentOutcomeNoData.style.display = 'block'; // Show no data message
+                    }
+                    if (investmentOutcomeCanvas) {
+                        investmentOutcomeCanvas.style.display = 'none'; // Hide canvas
+                    }
+                    if (investmentOutcomeDescriptionDiv) {
+                        investmentOutcomeDescriptionDiv.innerHTML = '<div class="text-center text-gray-400 text-sm mt-4">無獲利，不適用圓餅圖</div>';
+                        investmentOutcomeDescriptionDiv.style.display = 'block';
+                    }
+                }
+
+
+            } catch (error) {
+                console.error("計算時發生錯誤:", error);
+                // Optionally, update output fields to indicate error
+                document.getElementById('totalProfitDisplay').textContent = '錯誤';
+                document.getElementById('roiDisplay').textContent = '錯誤';
+                document.getElementById('irrDisplay').textContent = '錯誤';
+            }
+        }
+
+        // Intersection Observer for scroll animations
+        const animateOnScroll = () => {
+            const elements = document.querySelectorAll('.scroll-animate');
+            const observerOptions = {
+                root: null, /* relative to viewport */
+                rootMargin: '0px',
+                threshold: 0.1 /* 10% of element visible to trigger */
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target); /* Stop observing once visible */
+                    }
+                });
+            }, observerOptions);
+
+            elements.forEach(element => {
+                observer.observe(element);
+            });
+        };
+
+
+        // Initial setup on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleTermInputs(); // Set initial visibility based on radio selection
+            calculate(); // Perform initial calculation
+            animateOnScroll(); // Initialize scroll animations
+        });
+
+        // Add input event listeners for general real-time updates (e.g., paste, programmatic changes)
+        document.querySelectorAll('input').forEach(input => {
+            // Only add input listener if it's not one of the percentage or currency fields,
+            // as blur event already handles calculation for them.
+            // Also exclude term inputs as their specific listeners handle it.
+            if (input.id !== 'expectedAnnualReturn' && input.id !== 'loanInterestRate' &&
+                input.id !== 'loanAmount' && input.id !== 'handlingFee' &&
+                input.id !== 'loanTermYears' && input.id !== 'loanTermMonths' &&
+                input.id !== 'gracePeriodYears' && input.id !== 'expectedInvestmentTermYears') {
+                input.addEventListener('input', calculate);
+            }
+        });
+    </script>
+</body>
+</html>
