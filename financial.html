@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>充電站投資效益分析 (專業版 v4.4)</title>
+    <title>充電站投資效益分析 (v5.5 - 價格更新)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -171,7 +171,7 @@
             padding: 2rem;
             border-radius: 1rem; 
             width: 90%;
-            max-width: 700px;
+            max-width: 800px;
             max-height: 90vh;
             overflow-y: auto;
             box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
@@ -197,7 +197,7 @@
             border-color: #3b82f6;
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
         }
-        .modal-content button {
+        .modal-action-button {
             background-color: #4f46e5; 
             color: white;
             padding: 0.75rem 1.75rem; 
@@ -207,79 +207,44 @@
             border: none;
             cursor: pointer;
         }
-        .modal-content button:hover {
+        .modal-action-button:hover {
             background-color: #4338ca; 
             transform: translateY(-1px); 
         }
-        .modal-content button:active {
-            transform: translateY(0);
-        }
         .modal-message {
-            margin-top: 1rem;
-            padding: 0.75rem;
-            border-radius: 0.5rem;
+            margin-top: 1rem; padding: 0.75rem; border-radius: 0.5rem;
+            font-weight: 500; text-align: center; display: none; 
+        }
+        .modal-message.error { background-color: #fee2e2; color: #ef4444; }
+        .modal-message.success { background-color: #d1fae5; color: #10b981; }
+        .password-section-compact { font-size: 0.9rem; }
+        .password-section-compact .grid { gap: 0.5rem 1rem; }
+        .password-section-compact .input-field { padding: 0.5rem 0.75rem; }
+        
+        /* Modal Tabs */
+        .modal-tabs { border-bottom: 2px solid #e5e7eb; margin-bottom: 1.5rem; }
+        .modal-tab-btn {
+            padding: 0.75rem 1.25rem; border: none; background: none;
+            font-size: 1rem; font-weight: 600; color: #6b7280;
+            cursor: pointer; transition: all 0.2s ease;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+        .modal-tab-btn.active { color: #4f46e5; border-bottom-color: #4f46e5; }
+        .modal-tab-content { display: none; }
+        .modal-tab-content.active { display: block; }
+
+        .salvage-display {
+            color: #ef4444; /* text-red-500 */
             font-weight: 500;
-            text-align: center;
-            display: none; 
-        }
-        .modal-message.error {
-            background-color: #fee2e2;
-            color: #ef4444;
-        }
-        .modal-message.success {
-            background-color: #d1fae5;
-            color: #10b981;
-        }
-        .password-section-compact {
-            font-size: 0.9rem;
-        }
-        .password-section-compact .grid {
-            gap: 0.5rem 1rem;
-        }
-        .password-section-compact .input-field {
-            padding: 0.5rem 0.75rem;
+            vertical-align: middle;
         }
 
         /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes slideIn {
-            from { transform: translateY(-20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
-        /* Compact Modal Styles */
-        #specsModal th, #specsModal td {
-            padding: 0.6rem 0.8rem;
-            font-size: 0.875rem;
-        }
-        #specsModal .modal-table-input {
-            padding: 0.3rem 0.4rem;
-            font-size: 0.875rem;
-        }
-        .formula-item {
-            padding-bottom: 0.75rem;
-            gap: 0.5rem 1rem;
-            align-items: center;
-        }
-        .formula-item-label {
-            font-size: 0.9rem;
-        }
-        .formula-item-description {
-            font-size: 0.8rem;
-            margin-left: 0;
-        }
-        .formula-item-input-group {
-            margin-top: 0;
-        }
-        .formula-item-checkbox {
-            margin-top: 0;
-        }
-        #kwhTableIcon.rotate-180 {
-            transform: rotate(180deg);
-        }
+        #kwhTableIcon.rotate-180 { transform: rotate(180deg); }
 
     </style>
 </head>
@@ -287,7 +252,7 @@
     <div class="max-w-7xl mx-auto">
         <header class="text-center mb-10">
             <h1 class="text-5xl font-extrabold text-gray-800 leading-tight">充電站投資效益分析</h1>
-            <p class="text-xl text-gray-600 mt-3">互動式損益評估工具 (專業版 v4.4)</p>
+            <p class="text-xl text-gray-600 mt-3">互動式損益評估工具 (v5.5 - 價格更新)</p>
         </header>
 
         <!-- Main Grid -->
@@ -295,19 +260,14 @@
             <!-- Left Column: Inputs -->
             <div class="lg:col-span-1 flex flex-col gap-6">
                 <div class="card">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-5 pb-3 border-b border-gray-200">設置參數(輸入區)</h2>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-5 pb-3 border-b border-gray-200">設置參數</h2>
                     <div class="space-y-4">
                         <div class="grid grid-cols-3 items-center gap-2">
                             <span class="label-text col-span-1">設備功率</span>
                             <select id="devicePowerSelect" class="input-field col-span-2"></select>
                         </div>
-                        <div class="flex justify-end mt-2">
-                            <button id="openSpecsModalBtn" class="text-sm bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-all duration-200 ease-in-out shadow-sm">
-                                ⚙️ 規格設定
-                            </button>
-                        </div>
                         <div id="pileCountGroup" class="grid grid-cols-2 items-center gap-4">
-                            <!-- This will be dynamically populated -->
+                            <!-- Dynamically populated -->
                         </div>
                         <div class="grid grid-cols-2 items-center gap-4">
                             <span class="label-text">車格數值</span>
@@ -335,8 +295,8 @@
                         </div>
                         <div id="touRateSection" class="hidden-section space-y-4">
                              <div class="grid grid-cols-2 items-center gap-4">
-                                 <span class="label-text font-bold text-indigo-600">尖離峰均價</span>
-                                 <input type="text" id="avgTouRate" class="input-field readonly font-bold text-indigo-600" readonly>
+                                  <span class="label-text font-bold text-indigo-600">尖離峰均價</span>
+                                  <input type="text" id="avgTouRate" class="input-field readonly font-bold text-indigo-600" readonly>
                              </div>
                             <div class="grid grid-cols-2 items-center gap-4">
                                 <span class="label-text">尖峰費率 (元)</span><input type="number" id="peakRate" class="input-field" value="12" step="0.1">
@@ -367,7 +327,12 @@
                                 </div>
                             </div>
                         </div>
-                        <hr class="border-gray-200"/>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-5 pb-3 border-b border-gray-200">營運與成本假設</h2>
+                    <div class="space-y-4">
                         <div>
                             <span class="label-text mb-3 block">營收估算方式</span>
                             <div class="flex flex-wrap gap-3">
@@ -382,48 +347,20 @@
                            <span class="label-text">每月度數/槍</span><input type="text" id="kwhPerGunPerMonth" class="input-field" value="2,700">
                         </div>
                         <div class="grid grid-cols-2 items-center gap-4">
-                            <span class="label-text">每車平均充電度數 (kWh)</span>
+                            <span class="label-text">每車平均充電 (kWh)</span>
                             <input type="number" id="avgKwhPerCar" class="input-field" value="30">
                         </div>
                         <hr class="border-gray-200"/>
                         <div class="grid grid-cols-2 items-center gap-4">
                             <span class="label-text">需求年增率 (%)</span><input type="number" id="demandGrowthRate" class="input-field" value="20">
                         </div>
-                            <div class="grid grid-cols-2 items-center gap-4">
+                        <div class="grid grid-cols-2 items-center gap-4">
                             <span class="label-text">預計營運期 (年)</span><input type="number" id="operationYears" class="input-field" value="15" min="1">
                         </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-5 pb-3 border-b border-gray-200">建置成本(預估)</h2>
-                    <div class="space-y-4">
-                         <div class="grid grid-cols-2 items-center gap-4">
+                        <div class="grid grid-cols-2 items-center gap-4">
                             <span class="label-text">折舊攤提年限</span><input type="number" id="depreciationYears" class="input-field" value="5" min="1">
                         </div>
-                        <div class="grid grid-cols-2 items-center gap-4">
-                            <span class="label-text">設備成本(扣除殘值)</span>
-                            <input type="text" id="depreciableCostDisplay" class="input-field readonly" readonly>
-                        </div>
-                        <div class="grid grid-cols-2 items-center gap-4">
-                            <span class="label-text">請電(預估)</span>
-                            <input type="text" id="taipowerCostDisplay" class="input-field readonly" readonly>
-                        </div>
-                        <div class="grid grid-cols-2 items-center gap-4">
-                            <span class="label-text">工程(預估)</span>
-                            <input type="text" id="constructionCostInput" class="input-field" value="500,000">
-                        </div>
-                        <hr class="border-gray-200 my-2"/>
-                        <div class="grid grid-cols-2 items-center gap-4">
-                            <span class="label-text font-bold">總計</span>
-                            <input type="text" id="totalInitialCostDisplay" class="input-field readonly font-bold" readonly>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-5 pb-3 border-b border-gray-200">站點相關成本 (其它)</h2>
-                    <div class="space-y-4">
+                         <hr class="border-gray-200"/>
                         <div>
                             <span class="label-text mb-3 block">租金成本</span>
                             <div class="flex flex-wrap gap-3 mb-3">
@@ -457,7 +394,7 @@
                     </div>
                 </div>
                 <div class="card">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-5" id="pnlChartTitle">充電淨利圖表</h2>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-5">充電淨利圖表</h2>
                     <div class="flex-grow h-80">
                         <canvas id="pnlChart"></canvas>
                     </div>
@@ -522,142 +459,110 @@
                 </div>
                 <!-- Calculation Explanation Section -->
                 <div class="mt-8 pt-5 border-t border-gray-200">
-                    <h3 class="text-xl font-bold text-gray-800 mb-3">計算方式說明</h3>
-                    <ul class="list-disc list-inside text-gray-700 space-y-2">
-                        <li><strong>總投資額：</strong> 建置充電站所需的所有初期花費。</li>
-                        <li><strong>總營收：</strong> 依據您選擇的「依車次」或「依度數」模型，並計入「需求年增率」後的年度收入。</li>
-                        <li><strong>總成本：</strong> 年度營運所需的所有開銷，包含電費、維護、租金、金流、保險及設備折舊等。</li>
-                        <li><strong>充電淨利：</strong> 年度的「總營收」減去「總成本」。</li>
-                        <li><strong>累積稅前淨利：</strong> 從「總投資額」（負值）開始，逐年累加「充電淨利」後的數值。</li>
-                        <li><strong>預計回收年限：</strong> 「累積稅前淨利」由負轉正的年度。</li>
-                    </ul>
-                    <div class="mt-4 text-right">
-                        <button id="openManagementModalBtn" class="text-sm bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-all duration-200 ease-in-out shadow-sm">
-                            🔑 管理計算公式
-                        </button>
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800 mb-3">計算方式說明</h3>
+                            <ul class="list-disc list-inside text-gray-700 space-y-2">
+                                <li><strong>總投資額：</strong> 建置充電站所需的所有初期花費。</li>
+                                <li><strong>總營收：</strong> 依據您選擇的營收模型與需求年增率計算的年度收入。</li>
+                                <li><strong>總成本：</strong> 年度營運的所有開銷，包含電費、維護、租金、金流、保險及折舊。</li>
+                                <li><strong>預計回收年限：</strong> 「累積稅前淨利」由負轉正的年度。</li>
+                            </ul>
+                        </div>
+                        <div class="text-right mt-2">
+                            <button id="openAdvancedModalBtn" class="text-sm bg-indigo-600 text-white px-5 py-2.5 rounded-lg hover:bg-indigo-700 transition-all duration-200 ease-in-out shadow-md hover:shadow-lg">
+                                ⚙️ 進階設定
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Specs Modal -->
-    <div id="specsModal" class="modal-overlay">
+    <!-- Advanced Settings Modal -->
+    <div id="advancedModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">設備規格與價格設定</h3>
-                <button id="closeSpecsModalBtn" class="modal-close-btn">&times;</button>
+                <h3 class="modal-title">進階設定</h3>
+                <button id="closeAdvancedModalBtn" class="modal-close-btn">&times;</button>
             </div>
             
-            <div id="specsPasswordInputSection" class="space-y-4 password-section-compact">
-                <div class="grid grid-cols-2 items-center gap-4">
-                    <span class="label-text">輸入密碼</span>
-                    <input type="password" id="specsPassword" class="input-field" placeholder="預設密碼: 0000">
-                </div>
-                <div class="text-center">
-                    <button id="specsLoginBtn">登入</button>
-                </div>
-                <div id="specsMessage" class="modal-message"></div>
+            <div id="advancedPasswordSection" class="space-y-4 password-section-compact max-w-sm mx-auto text-center">
+                <span class="label-text block mb-2">請輸入管理密碼</span>
+                <input type="password" id="advancedPassword" class="input-field" placeholder="預設密碼: 0000">
+                <button id="loginAdvancedBtn" class="modal-action-button w-full">登入</button>
+                <div id="advancedMessage" class="modal-message"></div>
             </div>
 
-            <div id="specsContentSection" class="hidden">
-                <div class="flex justify-between items-center mb-5">
-                    <h4 class="text-xl font-bold text-gray-800">價格設定</h4>
-                    <span class="text-sm font-medium text-gray-500">單位：元</span>
+            <div id="advancedContentSection" class="hidden">
+                <div class="modal-tabs">
+                    <button class="modal-tab-btn active" data-tab="specs">設備規格</button>
+                    <button class="modal-tab-btn" data-tab="formulas">計算參數</button>
+                    <button class="modal-tab-btn" data-tab="password">修改密碼</button>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full text-sm border-collapse">
-                        <thead class="table-header">
-                            <tr>
-                                <th class="p-3 text-left w-[20%]">規格名稱</th>
-                                <th class="p-3 text-left w-[15%]">組件</th>
-                                <th class="p-3 text-right w-[20%]">設備成本(未稅)</th>
-                                <th class="p-3 text-right w-[15%]">設備成本 (含稅)</th>
-                                <th class="p-3 text-right w-[15%]">預估殘值 %</th>
-                                <th class="p-3 text-right w-[15%]">預估殘值</th>
-                            </tr>
-                        </thead>
-                        <tbody id="specsModalTableBody">
-                            <!-- Data will be populated by JS -->
-                        </tbody>
-                    </table>
+
+                <!-- Tab 1: Specs -->
+                <div id="tab-specs" class="modal-tab-content active">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-xl font-bold text-gray-800">設備價格設定</h4>
+                        <span class="text-sm font-medium text-gray-500">單位：元</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-sm border-collapse">
+                            <thead class="table-header">
+                                <tr>
+                                    <th class="p-2 text-left w-[20%]">規格名稱</th>
+                                    <th class="p-2 text-left w-[15%]">組件</th>
+                                    <th class="p-2 text-right w-[16%]">設備成本(未稅)</th>
+                                    <th class="p-2 text-right w-[16%]">設備成本 (含稅)</th>
+                                    <th class="p-2 text-right w-[16%]">設定殘值%</th>
+                                    <th class="p-2 text-right w-[17%]">預估殘值</th>
+                                </tr>
+                            </thead>
+                            <tbody id="specsModalTableBody"></tbody>
+                        </table>
+                    </div>
+                     <div class="mt-4 text-left text-sm text-gray-500">
+                        <p><strong>說明：</strong>180kW 跟 360kW 比較：</p>
+                        <ul class="list-disc list-inside ml-4">
+                            <li>當設置小於等於3樁(6車格)時, 180kW較划算。</li>
+                            <li>若超過3樁時則 360kW較划算。</li>
+                        </ul>
+                    </div>
                 </div>
+
+                <!-- Tab 2: Formulas -->
+                <div id="tab-formulas" class="modal-tab-content">
+                     <h4 class="text-xl font-bold text-gray-800 mb-4">詳細計算參數</h4>
+                     <div id="formulaContainer" class="space-y-3"></div>
+                </div>
+
+                <!-- Tab 3: Password -->
+                <div id="tab-password" class="modal-tab-content">
+                    <h4 class="text-xl font-bold text-gray-800 mb-4">修改管理密碼</h4>
+                    <div class="space-y-4 password-section-compact max-w-md mx-auto">
+                        <div class="grid grid-cols-2 items-center gap-4">
+                            <span class="label-text">舊密碼</span>
+                            <input type="password" id="oldPassword" class="input-field">
+                        </div>
+                        <div class="grid grid-cols-2 items-center gap-4">
+                            <span class="label-text">新密碼</span>
+                            <input type="password" id="newPassword" class="input-field">
+                        </div>
+                        <div class="grid grid-cols-2 items-center gap-4">
+                            <span class="label-text">確認新密碼</span>
+                            <input type="password" id="confirmNewPassword" class="input-field">
+                        </div>
+                        <div class="text-center">
+                            <button id="changePasswordBtn" class="modal-action-button bg-green-600 hover:bg-green-700">確認儲存新密碼</button>
+                        </div>
+                        <div id="passwordChangeMessage" class="modal-message"></div>
+                    </div>
+                </div>
+                
                 <div class="mt-8 text-right">
-                    <button id="saveSpecsBtn">儲存並關閉</button>
-                </div>
-
-                <hr class="my-6 border-gray-200"/>
-
-                <h4 class="text-xl font-bold text-gray-800 mb-3 mt-6">修改規格設定密碼</h4>
-                <div class="space-y-4 password-section-compact">
-                    <div class="grid grid-cols-2 items-center gap-4">
-                        <span class="label-text">舊密碼</span>
-                        <input type="password" id="oldSpecsPassword" class="input-field">
-                    </div>
-                    <div class="grid grid-cols-2 items-center gap-4">
-                        <span class="label-text">新密碼</span>
-                        <input type="password" id="newSpecsPassword" class="input-field">
-                    </div>
-                    <div class="grid grid-cols-2 items-center gap-4">
-                        <span class="label-text">確認新密碼</span>
-                        <input type="password" id="confirmNewSpecsPassword" class="input-field">
-                    </div>
-                    <div class="text-center">
-                        <button id="changeSpecsPasswordBtn" class="bg-green-600 hover:bg-green-700">確認儲存新密碼</button>
-                    </div>
-                    <div id="specsPasswordChangeMessage" class="modal-message"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Management Modal -->
-    <div id="managementModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">管理計算公式</h3>
-                <button id="closeManagementModalBtn" class="modal-close-btn">&times;</button>
-            </div>
-            <div id="passwordInputSection" class="space-y-4 password-section-compact">
-                <div class="grid grid-cols-2 items-center gap-4">
-                    <span class="label-text">輸入密碼</span>
-                    <input type="password" id="managementPassword" class="input-field" placeholder="預設密碼: 0000">
-                </div>
-                <div class="text-center">
-                    <button id="loginManagementBtn">登入</button>
-                </div>
-                <div id="managementMessage" class="modal-message"></div>
-            </div>
-
-            <div id="formulasSection" class="hidden">
-                <h4 class="text-xl font-bold text-gray-800 mb-3">詳細計算參數</h4>
-                <div id="formulaContainer" class="space-y-4">
-                    <!-- All rows will be generated here by JS -->
-                </div>
-                <div class="mt-6 text-center">
-                    <button id="saveFormulasBtn" class="bg-blue-600 hover:bg-blue-700">儲存計算參數</button>
-                </div>
-
-                <hr class="my-6 border-gray-200"/>
-
-                <h4 class="text-xl font-bold text-gray-800 mb-3">修改密碼</h4>
-                <div class="space-y-4 password-section-compact">
-                    <div class="grid grid-cols-2 items-center gap-4">
-                        <span class="label-text">舊密碼</span>
-                        <input type="password" id="oldPassword" class="input-field">
-                    </div>
-                    <div class="grid grid-cols-2 items-center gap-4">
-                        <span class="label-text">新密碼</span>
-                        <input type="password" id="newPassword" class="input-field">
-                    </div>
-                    <div class="grid grid-cols-2 items-center gap-4">
-                        <span class="label-text">確認新密碼</span>
-                        <input type="password" id="confirmNewSpecsPassword" class="input-field">
-                    </div>
-                    <div class="text-center">
-                        <button id="changeSpecsPasswordBtn" class="bg-green-600 hover:bg-green-700">確認儲存新密碼</button>
-                    </div>
-                    <div id="passwordChangeMessage" class="modal-message"></div>
+                    <button id="saveAdvancedBtn" class="modal-action-button">儲存設定並關閉</button>
                 </div>
             </div>
         </div>
@@ -665,1147 +570,988 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // --- Data Definitions ---
-    let deviceSpecs = {
-        '7': { name: 'AC 7kW Smart', cost: 31395, power: 7, type: 'AC' },
-        '30': { name: 'DC 30kW', cost: 325500, power: 30, type: 'DC' },
-        '120': { name: 'DC 120kW', cost: 850500, power: 120, type: 'DC' },
-        '180': { name: 'DC 180kW', cost: 997500, power: 180, type: 'DC' },
-        '360': { 
-            name: 'DC 360kW', 
-            power: 360, // Power per cabinet
-            cabinetCost: 1575000, 
-            terminalCost: 504000, 
-            type: 'DC_360' 
-        }
-    };
-    
-    // Initialize salvage values to 10% of cost
-    Object.values(deviceSpecs).forEach(spec => {
-        if (spec.type === 'DC_360') {
-            spec.cabinetSalvage = spec.cabinetCost * 0.1;
-            spec.terminalSalvage = spec.terminalCost * 0.1;
-        } else {
-            spec.salvage = spec.cost * 0.1;
-        }
-    });
-
-
-    let pnlChart = null;
-    let cumulativePnlChart = null;
-    let touPieChart = null;
-    let DOMElements = {}; 
-    let currentManagementPassword = '0000';
-    let currentSpecsPassword = '0000';
-    let isAdjustingTou = false; // Flag to prevent recursion in TOU adjustment
-    let currentResults = {}; // To store the latest calculation results for details expansion
-    let previousRentPerSpace = 500;
-    let previousRentPerLand = 15000;
-
-    let calculationParams = {
-        // Initial Investment
-        deviceCost: { value: 0, label: '設備總成本', unit: '元', description: '所有充電樁的含稅總成本。', enabled: true, category: 'investment', readonly: true },
-        constructionCost: { value: 500000, label: '建置工程費', unit: '元', description: '場地土木、基礎、裝修等工程費用(一次性)。', enabled: true, category: 'investment', readonly: true },
-        lineSubsidyPerKw: { value: 550, label: '線路補助費/kW', unit: '元', description: '台電線補費，每kW收取的一次性費用。', enabled: true, category: 'investment' },
-        technicianFee: { value: 150000, label: '技師費', unit: '元', description: '台電外包技師費用(一次性)。', enabled: true, category: 'investment' },
-        distributionPanelFee: { value: 300000, label: '配電盤費', unit: '元', description: '高壓或低壓配電盤費用(一次性)。', enabled: true, category: 'investment' },
-        meterFeeBase: { value: 12000, label: '電錶費用(基本)', unit: '元', description: '台電電表基本費用(僅DC樁, 一次性)。', enabled: true, category: 'investment' },
-        meterFeePerGun: { value: 1400, label: '電錶費用/槍', unit: '元', description: '每增加一槍的電表費用(僅DC樁, 一次性)。', enabled: true, category: 'investment' },
-        taxRate: { value: 0.05, label: '營業稅率', unit: '%', description: '設備購買及相關服務的營業稅率。', enabled: true, category: 'investment' },
-        
-        // Annual Costs
-        taipowerFee: { value: 4, label: '台電平均電費', unit: '元', description: '向台電購電的每度平均成本。', enabled: true, category: 'annual' },
-        electricalTechnicianFee: { value: 15000, label: '用電技術人員/年', unit: '元', description: '每年收取一次技師檢定費。', enabled: true, category: 'annual' },
-        maintenanceFee: { value: 37000, label: '維運&客服/年', unit: '元', description: '年度場域維護與線上客服費用。', enabled: true, category: 'annual' },
-        transactionFeeRate: { value: 0.03, label: '金流費%', unit: '%', description: '支付給金流服務商的每筆交易手續費率。', enabled: true, category: 'annual' },
-        insuranceFee: { value: 8500, label: '意外保險費/年', unit: '元', description: '場域年度意外險費用。', enabled: true, category: 'annual' },
-        electronicInvoiceFeePerTransaction: { value: 1.2, label: '電子發票/張', unit: '元', description: '每筆交易的電子發票成本。', enabled: true, category: 'annual' },
-        repairPartsRate: { value: 0.01, label: '設備維護%/年', unit: '%', description: '年度維修備品費用，為設備含稅總成本的百分比。', enabled: true, category: 'annual' },
-        extendedWarrantyPerPile: { value: 1000, label: '保固延保(樁)/年', unit: '元', description: '每支充電樁的年度延長保固費用。', enabled: true, category: 'annual' },
-        laborCost: { value: 60000, label: '勞務成本/年', unit: '元', description: '年度人力、巡檢等相關勞務成本。', enabled: true, category: 'annual' },
-        internetFee: { value: 500, label: '網路費/月', unit: '元', description: '場域每月的網路通訊費用。', enabled: true, category: 'annual' },
-        tdxUploadFee: { value: 299, label: 'TDX上傳費(槍/月)', unit: '元', description: '每支槍每月上傳資料至交通部TDX平台的費用。', enabled: true, category: 'annual' },
-        powerLossRate: { value: 0.05, label: '電損%/年', unit: '%', description: '電力在傳輸和轉換過程中的損耗率。', enabled: true, category: 'annual' },
-    };
-    
-    // Separate object for TOU ratios to manage them easily
-    let touRatios = {
-        peak: { value: 0.1, label: '尖峰用電比例' },
-        offpeak: { value: 0.8, label: '離峰用電比例' },
-        holiday: { value: 0.1, label: '假日用電比例' }
-    };
-
     /**
-     * Caches all necessary DOM elements for quick access.
+     * =================================================================
+     * APP MODULE: Main Controller
+     * Initializes the application, wires up event listeners, and
+     * orchestrates the overall workflow.
+     * =================================================================
      */
-    function cacheDOMElements() {
-        const ids = [
-            'devicePowerSelect', 'pileCountGroup', 'parkingSpaces', 'openSpecsModalBtn',
-            'chargeFeePerKwh', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDay', 'kwhPerGunPerMonth',
-            'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'taipowerFee',
-            'totalInitialCostDisplay', 'constructionCostInput', 'taipowerCostDisplay', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'depreciableCostDisplay',
-            'depreciationYears',
-            'fixedRateSection', 'touRateSection',
-            'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection',
-            'totalInvestment', 'paybackPeriod', 'pnlChartTitle', 'pnlTableBody', 'pnlChart', 'cumulativePnlChart', 'touPieChart',
-            'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio',
-            'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer',
-            // Modals
-            'specsModal', 'closeSpecsModalBtn', 'specsPasswordInputSection', 'specsPassword', 'specsLoginBtn', 'specsMessage',
-            'specsContentSection', 'specsModalTableBody', 'saveSpecsBtn', 'oldSpecsPassword', 'newSpecsPassword', 'confirmNewSpecsPassword',
-            'changeSpecsPasswordBtn', 'specsPasswordChangeMessage',
-            'managementModal', 'closeManagementModalBtn', 'passwordInputSection', 'managementPassword', 'loginManagementBtn', 'managementMessage',
-            'formulasSection', 'formulaContainer', 'saveFormulasBtn', 'oldPassword', 'newPassword', 'confirmNewPassword',
-            'changePasswordBtn', 'passwordChangeMessage', 'openManagementModalBtn'
-        ];
-        ids.forEach(id => DOMElements[id] = document.getElementById(id));
-    }
+    const App = {
+        isAdjustingTou: false, // Flag to prevent recursion in TOU adjustment
+        previousRentValues: { bySpace: 500, byLand: 15000 },
 
-    /**
-     * Attaches event listeners to all interactive elements.
-     */
-    function setupEventListeners() {
-        const inputs = [
-            'chargeFeePerKwh', 'peakRate', 'offPeakRate', 'holidayRate', 'carsPerGunPerDay', 'kwhPerGunPerMonth',
-            'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears',
-            'rentPerSpace', 'rentPerLand', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio',
-            'constructionCostInput'
-        ];
-        inputs.forEach(id => {
-            if (DOMElements[id]) {
-                DOMElements[id].addEventListener('input', calculateAndDisplayResults);
-            }
-        });
-        DOMElements.devicePowerSelect.addEventListener('change', () => {
-            updatePileCountUI();
-            calculateAndDisplayResults();
-        });
+        init() {
+            Persistence.load();
+            UI.init();
+            this.setupEventListeners();
+            this.update();
+        },
 
-        document.querySelectorAll('input[name="billingMethod"]').forEach(radio => {
-            radio.addEventListener('change', updateUIVisibility);
-        });
-        document.querySelectorAll('input[name="revenueMethod"]').forEach(radio => {
-            radio.addEventListener('change', updateUIVisibility);
-        });
-        document.querySelectorAll('input[name="rentMethod"]').forEach(radio => {
-            radio.addEventListener('change', updateUIVisibility);
-        });
-        
-        // TOU Ratio Inputs - Special handling
-        document.querySelectorAll('.tou-ratio-input').forEach(input => {
-            input.addEventListener('input', handleTouRatioChange);
-        });
-        
-        DOMElements.toggleKwhTableBtn.addEventListener('click', () => {
-            const container = DOMElements.kwhTableContainer;
-            const icon = DOMElements.kwhTableIcon;
-            icon.classList.toggle('rotate-180');
-            if (container.style.maxHeight && container.style.maxHeight !== '0px') {
-                container.style.maxHeight = '0px';
-            } else {
-                container.style.maxHeight = container.scrollHeight + 'px';
-            }
-        });
-        
-        const formatableInputs = ['kwhPerGunPerMonth', 'rentPerSpace', 'rentPerLand', 'constructionCostInput'];
-        formatableInputs.forEach(id => {
-             if (DOMElements[id]) {
-                DOMElements[id].addEventListener('blur', (e) => {
-                    const value = getNumericValue(id, null);
-                    if (value !== null) {
-                        e.target.value = value.toLocaleString('en-US');
-                    }
-                });
-            }
-        });
-
-        // Modals
-        setupModalListeners();
-    }
-    
-    /**
-     * Handles changes in TOU ratio inputs to ensure they sum to 100.
-     */
-    function handleTouRatioChange(e) {
-        if (isAdjustingTou) return; // Prevent recursive calls
-        isAdjustingTou = true;
-
-        const changedInput = e.target;
-        const changedKey = changedInput.dataset.tou;
-        let changedValue = getNumericValue(changedInput.id, 0, 100) / 100;
-
-        let otherInputs = Array.from(document.querySelectorAll('.tou-ratio-input')).filter(el => el !== changedInput);
-        let otherTotal = otherInputs.reduce((sum, el) => sum + getNumericValue(el.id) / 100, 0);
-
-        let currentTotal = changedValue + otherTotal;
-
-        if (currentTotal > 1) {
-            let overflow = currentTotal - 1;
-            // Distribute the overflow reduction proportionally among other inputs
-            for (let input of otherInputs) {
-                let currentValue = getNumericValue(input.id) / 100;
-                if (currentValue > 0) {
-                     let reduction = (currentValue / otherTotal) * overflow;
-                     let newValue = Math.max(0, currentValue - reduction);
-                     input.value = (newValue * 100).toFixed(0);
-                }
-            }
-        }
-        
-        // Final check to ensure total is exactly 100
-        let finalTotal = Array.from(document.querySelectorAll('.tou-ratio-input')).reduce((sum, el) => sum + getNumericValue(el.id), 0);
-        let diff = 100 - finalTotal;
-
-        if (diff !== 0) {
-            // Add the difference to the largest value that is not the one being changed
-            let inputsToAdjust = Array.from(document.querySelectorAll('.tou-ratio-input')).filter(el => el !== changedInput);
-            if (inputsToAdjust.length === 0) inputsToAdjust = [changedInput]; // Fallback if only one input
+        setupEventListeners() {
+            // --- Main Input Listeners ---
+            const inputsToWatch = [
+                'chargeFeePerKwh', 'peakRate', 'offPeakRate', 'holidayRate', 'carsPerGunPerDay', 
+                'kwhPerGunPerMonth', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 
+                'depreciationYears', 'rentPerSpace', 'rentPerLand'
+            ];
+            inputsToWatch.forEach(id => UI.elements[id]?.addEventListener('input', () => this.update()));
             
-            inputsToAdjust.sort((a, b) => getNumericValue(b.id) - getNumericValue(a.id));
-            let largestInput = inputsToAdjust[0];
-            largestInput.value = Math.min(100, Math.max(0, getNumericValue(largestInput.id) + diff));
-        }
-
-        isAdjustingTou = false;
-        calculateAndDisplayResults();
-    }
-
-
-    /**
-     * Sets up listeners for all modal interactions.
-     */
-    function setupModalListeners() {
-        // Specs Modal
-        if (DOMElements.openSpecsModalBtn) DOMElements.openSpecsModalBtn.addEventListener('click', () => openModal(DOMElements.specsModal));
-        if (DOMElements.closeSpecsModalBtn) DOMElements.closeSpecsModalBtn.addEventListener('click', () => closeModal(DOMElements.specsModal));
-        if (DOMElements.specsLoginBtn) DOMElements.specsLoginBtn.addEventListener('click', handleSpecsLogin);
-        if (DOMElements.specsPassword) DOMElements.specsPassword.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleSpecsLogin(); });
-        if (DOMElements.saveSpecsBtn) DOMElements.saveSpecsBtn.addEventListener('click', saveSpecsAndClose);
-        if (DOMElements.changeSpecsPasswordBtn) DOMElements.changeSpecsPasswordBtn.addEventListener('click', changeSpecsPassword);
-
-        // Management Modal
-        if (DOMElements.openManagementModalBtn) DOMElements.openManagementModalBtn.addEventListener('click', () => openModal(DOMElements.managementModal));
-        if (DOMElements.closeManagementModalBtn) DOMElements.closeManagementModalBtn.addEventListener('click', () => closeModal(DOMElements.managementModal));
-        if (DOMElements.loginManagementBtn) DOMElements.loginManagementBtn.addEventListener('click', handleManagementLogin);
-        if (DOMElements.managementPassword) DOMElements.managementPassword.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleManagementLogin(); });
-        if (DOMElements.saveFormulasBtn) DOMElements.saveFormulasBtn.addEventListener('click', saveFormulasAndClose);
-        if (DOMElements.changePasswordBtn) DOMElements.changePasswordBtn.addEventListener('click', changeManagementPassword);
-        
-        // ESC key to close modals
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape') {
-                if (DOMElements.specsModal && DOMElements.specsModal.style.display === 'flex') {
-                    closeModal(DOMElements.specsModal);
+            // Listen for dynamic pile/terminal count inputs
+            UI.elements.pileCountGroup.addEventListener('input', (e) => {
+                if(e.target.id === 'pileCount' || e.target.id === 'terminalCount') {
+                    this.update();
                 }
-                if (DOMElements.managementModal && DOMElements.managementModal.style.display === 'flex') {
-                    closeModal(DOMElements.managementModal);
-                }
-            }
-        });
-    }
-
-    /**
-     * Initializes the UI components, populates dropdowns, and sets default states.
-     */
-    function initializeUI() {
-        // Populate device power select
-        Object.keys(deviceSpecs).forEach(power => {
-            const option = document.createElement('option');
-            option.value = power;
-            option.textContent = deviceSpecs[power].name;
-            DOMElements.devicePowerSelect.appendChild(option);
-        });
-
-        // Set initial state
-        DOMElements.devicePowerSelect.value = '120'; // Default selection
-        
-        initializeCharts();
-        updatePileCountUI();
-        populateFormulasModal();
-        updateUIVisibility(); // This triggers the first calculation
-    }
-
-    /**
-     * Updates the UI sections' visibility based on user selections.
-     */
-    function updateUIVisibility() {
-        const billingMethod = document.querySelector('input[name="billingMethod"]:checked').value;
-        if (billingMethod === 'fixed') {
-            DOMElements.fixedRateSection.style.display = 'grid';
-            DOMElements.touRateSection.style.display = 'none';
-        } else { // tou
-            DOMElements.fixedRateSection.style.display = 'none';
-            DOMElements.touRateSection.style.display = 'block';
-        }
-
-        const revenueMethod = document.querySelector('input[name="revenueMethod"]:checked').value;
-        DOMElements.carsPerGunPerDay.readOnly = revenueMethod === 'byKwh';
-        DOMElements.kwhPerGunPerMonth.readOnly = revenueMethod === 'byCars';
-        DOMElements.carsPerGunPerDay.classList.toggle('readonly', revenueMethod === 'byKwh');
-        DOMElements.kwhPerGunPerMonth.classList.toggle('readonly', revenueMethod === 'byCars');
-        
-        const rentMethod = document.querySelector('input[name="rentMethod"]:checked').value;
-        DOMElements.rentPerSpace.readOnly = rentMethod === 'byLand' || rentMethod === 'none';
-        DOMElements.rentPerLand.readOnly = rentMethod === 'bySpace' || rentMethod === 'none';
-        DOMElements.rentPerSpace.classList.toggle('readonly', rentMethod === 'byLand' || rentMethod === 'none');
-        DOMElements.rentPerLand.classList.toggle('readonly', rentMethod === 'bySpace' || rentMethod === 'none');
-        
-        if(rentMethod === 'none'){
-            DOMElements.rentPerSpace.value = 0;
-            DOMElements.rentPerLand.value = 0;
-        } else if (rentMethod === 'bySpace') {
-            DOMElements.rentPerSpace.value = previousRentPerSpace;
-        } else if (rentMethod === 'byLand') {
-            DOMElements.rentPerLand.value = previousRentPerLand;
-        }
-
-        calculateAndDisplayResults();
-    }
-    
-    /**
-     * Dynamically creates the UI for setting pile/cabinet/terminal counts based on the selected device.
-     */
-    function updatePileCountUI() {
-        const power = DOMElements.devicePowerSelect.value;
-        const spec = deviceSpecs[power];
-        const container = DOMElements.pileCountGroup;
-        container.innerHTML = ''; // Clear previous inputs
-
-        if (spec.type === 'DC_360') {
-            container.className = 'grid grid-cols-1 items-center gap-4';
-            container.innerHTML = `
-                <div class="grid grid-cols-2 items-center gap-2">
-                    <span class="label-text">能源櫃</span>
-                    <input type="number" id="cabinetCount" class="input-field readonly" value="1" readonly>
-                </div>
-                <div class="grid grid-cols-2 items-center gap-2">
-                    <span class="label-text">充電樁(終端機)</span>
-                    <input type="number" id="terminalCount" class="input-field" value="2" min="1">
-                </div>
-            `;
-            document.getElementById('terminalCount').addEventListener('input', calculateAndDisplayResults);
-        } else {
-            container.className = 'grid grid-cols-2 items-center gap-4';
-            container.innerHTML = `
-                <span class="label-text">充電樁數量</span>
-                <input type="number" id="pileCount" class="input-field" value="1" min="1">
-            `;
-            document.getElementById('pileCount').addEventListener('input', calculateAndDisplayResults);
-        }
-    }
-
-    /**
-     * Gathers all inputs from the form.
-     * @returns {object} An object containing all parsed input values.
-     */
-    function getInputs() {
-        const power = DOMElements.devicePowerSelect.value;
-        const spec = deviceSpecs[power];
-        let pileCount = 0, gunCount = 0, cabinetCount = 0, parkingSpaces = 0;
-
-        if (spec.type === 'DC_360') {
-            gunCount = getNumericValue('terminalCount', 1);
-            cabinetCount = Math.ceil(gunCount / 6);
-            pileCount = gunCount; // For cost calculation purposes, each terminal is a "pile"
-            parkingSpaces = gunCount * 2;
-        } else {
-            pileCount = getNumericValue('pileCount', 1);
-            if (spec.type === 'DC' && spec.power > 30) {
-                gunCount = pileCount * 2;
-            } else {
-                gunCount = pileCount;
-            }
-            parkingSpaces = gunCount;
-        }
-
-        const billingMethod = document.querySelector('input[name="billingMethod"]:checked').value;
-        const revenueMethod = document.querySelector('input[name="revenueMethod"]:checked').value;
-        const rentMethod = document.querySelector('input[name="rentMethod"]:checked').value;
-
-        return {
-            power,
-            spec,
-            pileCount,
-            gunCount,
-            cabinetCount,
-            parkingSpaces,
-            billingMethod,
-            chargeFeePerKwh: getNumericValue('chargeFeePerKwh'),
-            peakRate: getNumericValue('peakRate'),
-            offPeakRate: getNumericValue('offPeakRate'),
-            holidayRate: getNumericValue('holidayRate'),
-            revenueMethod,
-            carsPerGunPerDay: getNumericValue('carsPerGunPerDay'),
-            kwhPerGunPerMonth: getNumericValue('kwhPerGunPerMonth'),
-            avgKwhPerCar: getNumericValue('avgKwhPerCar'),
-            demandGrowthRate: getNumericValue('demandGrowthRate') / 100,
-            operationYears: getNumericValue('operationYears', 1),
-            depreciationYears: getNumericValue('depreciationYears', 1),
-            rentMethod,
-            rentPerSpace: getNumericValue('rentPerSpace'),
-            rentPerLand: getNumericValue('rentPerLand'),
-            touRatios: {
-                peak: getNumericValue('peakUsageRatio') / 100,
-                offpeak: getNumericValue('offPeakUsageRatio') / 100,
-                holiday: getNumericValue('holidayUsageRatio') / 100,
-            }
-        };
-    }
-
-    /**
-     * Main calculation function. Gathers inputs, computes all financial metrics, and triggers display updates.
-     */
-    function calculateAndDisplayResults() {
-        const rentMethod = document.querySelector('input[name="rentMethod"]:checked').value;
-        if (rentMethod === 'bySpace') {
-            previousRentPerSpace = getNumericValue('rentPerSpace');
-        } else if (rentMethod === 'byLand') {
-            previousRentPerLand = getNumericValue('rentPerLand');
-        }
-    
-        calculationParams.constructionCost.value = getNumericValue('constructionCostInput');
-        const inputs = getInputs();
-        
-        if (inputs.spec.type === 'DC_360') {
-            document.getElementById('cabinetCount').value = inputs.cabinetCount;
-        }
-        
-        // Linked Inputs Calculation
-        if (inputs.revenueMethod === 'byCars') {
-            const calculatedKwh = inputs.carsPerGunPerDay * inputs.avgKwhPerCar * 30; // Approx 30 days
-            DOMElements.kwhPerGunPerMonth.value = Math.round(calculatedKwh).toLocaleString('en-US');
-        } else { // byKwh
-            const calculatedCars = inputs.avgKwhPerCar > 0 ? (inputs.kwhPerGunPerMonth / 30) / inputs.avgKwhPerCar : 0;
-            DOMElements.carsPerGunPerDay.value = calculatedCars.toFixed(1);
-        }
-
-        if (inputs.rentMethod === 'bySpace') {
-            const calculatedLandRent = inputs.rentPerSpace * inputs.parkingSpaces;
-            DOMElements.rentPerLand.value = Math.round(calculatedLandRent).toLocaleString('en-US');
-        } else if (inputs.rentMethod === 'byLand') {
-            const calculatedSpaceRent = inputs.parkingSpaces > 0 ? inputs.rentPerLand / inputs.parkingSpaces : 0;
-            DOMElements.rentPerSpace.value = Math.round(calculatedSpaceRent).toLocaleString('en-US');
-        }
-
-
-        const results = {
-            annualData: [],
-            totalInvestment: 0,
-            paybackPeriod: 'N/A',
-        };
-        let avgChargeFee = 0;
-
-        // --- Step 1: Calculate Initial Investment ---
-        const taxRate = calculationParams.taxRate.enabled ? calculationParams.taxRate.value : 0;
-        let totalDeviceCostUntaxed = 0;
-        let totalSalvageValue = 0;
-
-        if (inputs.spec.type === 'DC_360') {
-            totalDeviceCostUntaxed = (inputs.cabinetCount * inputs.spec.cabinetCost) + (inputs.gunCount * inputs.spec.terminalCost);
-            totalSalvageValue = (inputs.cabinetCount * inputs.spec.cabinetSalvage) + (inputs.gunCount * inputs.spec.terminalSalvage);
-        } else {
-            totalDeviceCostUntaxed = inputs.pileCount * inputs.spec.cost;
-            totalSalvageValue = inputs.pileCount * inputs.spec.salvage;
-        }
-        
-        const totalDeviceCostTaxed = totalDeviceCostUntaxed * (1 + taxRate);
-        calculationParams.deviceCost.value = totalDeviceCostTaxed;
-
-        let totalInvestment = 0;
-        if(calculationParams.deviceCost.enabled) totalInvestment += totalDeviceCostTaxed;
-        
-        const totalPowerKw = inputs.spec.type === 'DC_360' ? inputs.cabinetCount * inputs.spec.power : inputs.pileCount * inputs.spec.power;
-        
-        if(calculationParams.constructionCost.enabled) totalInvestment += calculationParams.constructionCost.value;
-        if(calculationParams.lineSubsidyPerKw.enabled) totalInvestment += calculationParams.lineSubsidyPerKw.value * totalPowerKw;
-        if(calculationParams.technicianFee.enabled) totalInvestment += calculationParams.technicianFee.value;
-        if(calculationParams.distributionPanelFee.enabled) totalInvestment += calculationParams.distributionPanelFee.value;
-        
-        if (inputs.spec.type.startsWith('DC')) {
-            if(calculationParams.meterFeeBase.enabled) totalInvestment += calculationParams.meterFeeBase.value;
-            if(calculationParams.meterFeePerGun.enabled) totalInvestment += calculationParams.meterFeePerGun.value * inputs.gunCount;
-        }
-
-        results.totalInvestment = totalInvestment;
-
-        // --- Step 2: Calculate Annual P&L & Stats ---
-        let cumulativePnl = -totalInvestment;
-        let paybackFound = false;
-
-        for (let year = 1; year <= inputs.operationYears; year++) {
-            let totalKwhSold = 0;
-            let numberOfTransactions = 0;
-            const demandMultiplier = Math.pow(1 + inputs.demandGrowthRate, year - 1);
-
-            if (inputs.revenueMethod === 'byCars') {
-                numberOfTransactions = getNumericValue('carsPerGunPerDay') * inputs.gunCount * 365 * demandMultiplier;
-                totalKwhSold = numberOfTransactions * inputs.avgKwhPerCar;
-            } else { // byKwh
-                totalKwhSold = getNumericValue('kwhPerGunPerMonth') * inputs.gunCount * 12 * demandMultiplier;
-                if (inputs.avgKwhPerCar > 0) {
-                    numberOfTransactions = totalKwhSold / inputs.avgKwhPerCar;
-                }
-            }
-
-            let revenue = 0;
-            if (inputs.billingMethod === 'fixed') {
-                avgChargeFee = inputs.chargeFeePerKwh;
-                revenue = totalKwhSold * avgChargeFee;
-            } else { // TOU
-                avgChargeFee = (inputs.peakRate * inputs.touRatios.peak) +
-                               (inputs.offPeakRate * inputs.touRatios.offpeak) +
-                               (inputs.holidayRate * inputs.touRatios.holiday);
-                revenue = totalKwhSold * avgChargeFee;
-            }
-            
-            let annualCost = 0;
-            const powerLossRate = calculationParams.powerLossRate.enabled ? calculationParams.powerLossRate.value : 0;
-            const electricityCost = totalKwhSold * (calculationParams.taipowerFee.enabled ? calculationParams.taipowerFee.value : 0) * (1 + powerLossRate);
-            annualCost += electricityCost;
-
-            if(calculationParams.electricalTechnicianFee.enabled) annualCost += calculationParams.electricalTechnicianFee.value;
-            if(calculationParams.transactionFeeRate.enabled) annualCost += revenue * calculationParams.transactionFeeRate.value;
-            if(calculationParams.maintenanceFee.enabled) annualCost += calculationParams.maintenanceFee.value;
-            if(calculationParams.insuranceFee.enabled) annualCost += calculationParams.insuranceFee.value;
-            if(calculationParams.electronicInvoiceFeePerTransaction.enabled) annualCost += numberOfTransactions * calculationParams.electronicInvoiceFeePerTransaction.value;
-            if(calculationParams.repairPartsRate.enabled) annualCost += totalDeviceCostTaxed * calculationParams.repairPartsRate.value;
-            if(calculationParams.extendedWarrantyPerPile.enabled) annualCost += inputs.pileCount * calculationParams.extendedWarrantyPerPile.value;
-            if(calculationParams.laborCost.enabled) annualCost += calculationParams.laborCost.value;
-            if(calculationParams.internetFee.enabled) annualCost += calculationParams.internetFee.value * 12;
-            if(calculationParams.tdxUploadFee.enabled) annualCost += calculationParams.tdxUploadFee.value * inputs.gunCount * 12;
-
-            let rentCost = 0;
-            if (inputs.rentMethod === 'bySpace') {
-                rentCost = getNumericValue('rentPerSpace') * inputs.parkingSpaces * 12;
-            } else if (inputs.rentMethod === 'byLand') {
-                rentCost = getNumericValue('rentPerLand') * 12;
-            }
-            annualCost += rentCost;
-
-            const depreciation = (year <= inputs.depreciationYears) ? (totalDeviceCostTaxed - totalSalvageValue) / inputs.depreciationYears : 0;
-            annualCost += depreciation;
-
-            const pnl = revenue - annualCost;
-            cumulativePnl += pnl;
-
-            const details = {
-                revenue: {
-                    '充電總度數 (kWh)': totalKwhSold,
-                    '平均每度收費': avgChargeFee,
-                    '總營收': revenue
-                },
-                costs: {
-                    '台電電費': electricityCost,
-                    [calculationParams.electricalTechnicianFee.label]: calculationParams.electricalTechnicianFee.enabled ? calculationParams.electricalTechnicianFee.value : 0,
-                    [calculationParams.transactionFeeRate.label]: calculationParams.transactionFeeRate.enabled ? revenue * calculationParams.transactionFeeRate.value : 0,
-                    [calculationParams.maintenanceFee.label]: calculationParams.maintenanceFee.enabled ? calculationParams.maintenanceFee.value : 0,
-                    [calculationParams.insuranceFee.label]: calculationParams.insuranceFee.enabled ? calculationParams.insuranceFee.value : 0,
-                    [calculationParams.electronicInvoiceFeePerTransaction.label]: calculationParams.electronicInvoiceFeePerTransaction.enabled ? numberOfTransactions * calculationParams.electronicInvoiceFeePerTransaction.value : 0,
-                    [calculationParams.repairPartsRate.label]: calculationParams.repairPartsRate.enabled ? totalDeviceCostTaxed * calculationParams.repairPartsRate.value : 0,
-                    [calculationParams.extendedWarrantyPerPile.label]: calculationParams.extendedWarrantyPerPile.enabled ? inputs.pileCount * calculationParams.extendedWarrantyPerPile.value : 0,
-                    [calculationParams.laborCost.label]: calculationParams.laborCost.enabled ? calculationParams.laborCost.value : 0,
-                    '網路費': calculationParams.internetFee.enabled ? calculationParams.internetFee.value * 12 : 0,
-                    'TDX上傳費': calculationParams.tdxUploadFee.enabled ? calculationParams.tdxUploadFee.value * inputs.gunCount * 12 : 0,
-                    '租金': rentCost,
-                    '折舊': depreciation
-                }
-            };
-
-            results.annualData.push({
-                year,
-                revenue,
-                cost: annualCost,
-                pnl,
-                cumulativePnl,
-                kwhPerYear: totalKwhSold,
-                kwhPerMonth: totalKwhSold / 12,
-                kwhPerDay: totalKwhSold / 365,
-                details
             });
 
-            if (cumulativePnl >= 0 && !paybackFound) {
-                const prevCumulativePnl = results.annualData[year - 2]?.cumulativePnl || -totalInvestment;
-                const pnlCurrentYear = pnl;
-                const fractionOfYear = pnlCurrentYear > 0 ? (-prevCumulativePnl / pnl) : 0;
-                results.paybackPeriod = `${(year - 1 + fractionOfYear).toFixed(1)} 年`;
-                paybackFound = true;
-            }
-        }
-        
-        updateDisplay(inputs, results, totalSalvageValue, avgChargeFee);
-    }
-    
-    /**
-     * Updates all display elements (cards, charts, table) with the calculated results.
-     */
-    function updateDisplay(inputs, results, totalSalvageValue, avgChargeFee) {
-        currentResults = results;
-        DOMElements.totalInvestment.textContent = formatCurrency(results.totalInvestment);
-        DOMElements.paybackPeriod.textContent = results.paybackPeriod;
-        
-        DOMElements.parkingSpaces.value = inputs.parkingSpaces;
-        DOMElements.avgTouRate.value = formatCurrency(avgChargeFee, 2);
+            UI.elements.devicePowerSelect.addEventListener('change', () => {
+                UI.updatePileCountUI(Config.deviceSpecs[UI.elements.devicePowerSelect.value]);
+                this.update();
+            });
 
-        // Update kWh stats table
-        const kwhTableBody = DOMElements.kwhStatsTableBody;
-        kwhTableBody.innerHTML = '';
-        results.annualData.forEach(data => {
-            const row = `
+            // --- Radio Button Listeners ---
+            document.querySelectorAll('input[name="billingMethod"], input[name="revenueMethod"], input[name="rentMethod"]')
+                .forEach(radio => radio.addEventListener('change', () => this.update()));
+
+            // --- TOU Ratio Listeners ---
+            document.querySelectorAll('.tou-ratio-input').forEach(input => {
+                input.addEventListener('input', (e) => this.handleTouRatioChange(e));
+            });
+            
+            // --- Table & Modal Listeners ---
+            UI.elements.toggleKwhTableBtn.addEventListener('click', UI.toggleKwhTable);
+            UI.elements.pnlTableBody.addEventListener('click', (e) => {
+                const row = e.target.closest('.pnl-row');
+                if (row) UI.togglePnlDetails(row, Calculator.getLastResults());
+            });
+
+            // --- Advanced Modal Listeners ---
+            UI.elements.openAdvancedModalBtn.addEventListener('click', () => UI.openModal(UI.elements.advancedModal));
+            UI.elements.closeAdvancedModalBtn.addEventListener('click', () => UI.closeModal(UI.elements.advancedModal));
+            UI.elements.loginAdvancedBtn.addEventListener('click', () => this.handleAdvancedLogin());
+            UI.elements.advancedPassword.addEventListener('keydown', (e) => { if (e.key === 'Enter') this.handleAdvancedLogin(); });
+            UI.elements.saveAdvancedBtn.addEventListener('click', () => this.saveAdvancedSettings());
+            UI.elements.changePasswordBtn.addEventListener('click', () => this.changePassword());
+            
+            document.querySelectorAll('.modal-tab-btn').forEach(btn => {
+                btn.addEventListener('click', UI.handleTabSwitch);
+            });
+
+            // --- Formatting Listeners ---
+            ['kwhPerGunPerMonth', 'rentPerSpace', 'rentPerLand'].forEach(id => {
+                UI.elements[id]?.addEventListener('blur', (e) => UI.formatNumericInput(e.target));
+            });
+        },
+
+        /**
+         * The main update loop. Triggered by any input change.
+         */
+        update() {
+            const inputs = UI.getInputs(this.previousRentValues);
+            
+            // Update linked inputs (e.g., cars vs. kWh)
+            UI.updateLinkedInputs(inputs);
+            
+            // Store previous rent values for smart restoration
+            if (inputs.rentMethod === 'bySpace') this.previousRentValues.bySpace = inputs.rentPerSpace;
+            if (inputs.rentMethod === 'byLand') this.previousRentValues.byLand = inputs.rentPerLand;
+            
+            const results = Calculator.run(inputs, Config.calculationParams, Config.deviceSpecs);
+            UI.updateDisplay(inputs, results);
+            Charts.update(inputs, results);
+        },
+
+        /**
+         * Handles changes in TOU ratio inputs to ensure they always sum to 100.
+         */
+        handleTouRatioChange(e) {
+            if (this.isAdjustingTou) return;
+            this.isAdjustingTou = true;
+
+            const changedInput = e.target;
+            let changedValue = UI.getNumericValue(changedInput.id, 0, 100);
+
+            const otherInputs = Array.from(document.querySelectorAll('.tou-ratio-input')).filter(el => el !== changedInput);
+            let otherTotal = otherInputs.reduce((sum, el) => sum + UI.getNumericValue(el.id), 0);
+
+            if (changedValue + otherTotal > 100) {
+                let overflow = (changedValue + otherTotal) - 100;
+                for (let input of otherInputs) {
+                    let currentValue = UI.getNumericValue(input.id);
+                    if (currentValue > 0 && otherTotal > 0) {
+                        let reduction = (currentValue / otherTotal) * overflow;
+                        let newValue = Math.max(0, currentValue - reduction);
+                        input.value = newValue.toFixed(0);
+                    }
+                }
+            }
+            
+            // Final check to ensure total is exactly 100
+            let finalTotal = Array.from(document.querySelectorAll('.tou-ratio-input')).reduce((sum, el) => sum + UI.getNumericValue(el.id), 0);
+            let diff = 100 - finalTotal;
+
+            if (diff !== 0) {
+                const inputsToAdjust = otherInputs.length > 0 ? otherInputs : [changedInput];
+                inputsToAdjust.sort((a, b) => UI.getNumericValue(b.id) - UI.getNumericValue(a.id));
+                let largestInput = inputsToAdjust[0];
+                largestInput.value = Math.min(100, Math.max(0, UI.getNumericValue(largestInput.id) + diff));
+            }
+
+            this.isAdjustingTou = false;
+            this.update();
+        },
+        
+        handleAdvancedLogin() {
+            if (UI.elements.advancedPassword.value === Config.passwords.advanced) {
+                UI.showAdvancedContent(true);
+                UI.populateSpecsModal(Config.deviceSpecs, Config.calculationParams);
+                UI.populateFormulasModal(Config.calculationParams);
+            } else {
+                UI.showModalMessage(UI.elements.advancedMessage, '密碼錯誤，請重試。');
+            }
+        },
+
+        saveAdvancedSettings() {
+            // Save specs
+            const specInputs = UI.elements.specsModalTableBody.querySelectorAll('input[data-power]');
+            specInputs.forEach(input => {
+                const power = input.dataset.power;
+                const type = input.dataset.type;
+                if (Config.deviceSpecs[power] && type) {
+                    Config.deviceSpecs[power][type] = parseFloat(input.value.replace(/,/g,'')) || 0;
+                }
+            });
+
+            // Save formulas (values are already updated by listeners, but we re-read just in case)
+            const formulaInputs = UI.elements.formulaContainer.querySelectorAll('input[type="text"]');
+            const formulaCheckboxes = UI.elements.formulaContainer.querySelectorAll('input[type="checkbox"]');
+            formulaInputs.forEach(input => {
+                const key = input.dataset.key;
+                if (Config.calculationParams[key] && !Config.calculationParams[key].readonly) {
+                    const isPercentage = Config.calculationParams[key].unit === '%';
+                    const numVal = parseFloat(input.value.replace(/,/g, ''));
+                    if (!isNaN(numVal)) {
+                        Config.calculationParams[key].value = isPercentage ? numVal / 100 : numVal;
+                    }
+                }
+            });
+            formulaCheckboxes.forEach(checkbox => {
+                const key = checkbox.dataset.key;
+                if (Config.calculationParams[key] && !Config.calculationParams[key].readonly) {
+                    Config.calculationParams[key].enabled = checkbox.checked;
+                }
+            });
+            
+            Persistence.save();
+            this.update();
+            UI.closeModal(UI.elements.advancedModal);
+        },
+        
+        changePassword() {
+            const oldPass = UI.elements.oldPassword.value;
+            const newPass = UI.elements.newPassword.value;
+            const confirmPass = UI.elements.confirmNewPassword.value;
+
+            if (oldPass !== Config.passwords.advanced) {
+                UI.showModalMessage(UI.elements.passwordChangeMessage, '舊密碼不正確。');
+                return;
+            }
+            if (!newPass || newPass.length < 4) {
+                UI.showModalMessage(UI.elements.passwordChangeMessage, '新密碼長度至少需要4位數。');
+                return;
+            }
+            if (newPass !== confirmPass) {
+                UI.showModalMessage(UI.elements.passwordChangeMessage, '新密碼與確認密碼不相符。');
+                return;
+            }
+            Config.passwords.advanced = newPass;
+            Persistence.save();
+            UI.showModalMessage(UI.elements.passwordChangeMessage, '密碼已成功更新！', false);
+            setTimeout(() => {
+                UI.elements.oldPassword.value = '';
+                UI.elements.newPassword.value = '';
+                UI.elements.confirmNewPassword.value = '';
+                UI.elements.passwordChangeMessage.style.display = 'none';
+            }, 2000);
+        }
+    };
+
+    /**
+     * =================================================================
+     * CONFIG MODULE: Data and Parameters
+     * Holds all static and configurable data for the application,
+     * such as device specs, calculation parameters, and passwords.
+     * =================================================================
+     */
+    const Config = {
+        passwords: {
+            advanced: '0000'
+        },
+        deviceSpecs: {
+            '7': { name: 'AC 7kW Smart', cost: 29900, power: 7, type: 'AC', salvage: 2990 },
+            '30': { name: 'DC 30kW', cost: 310000, power: 30, type: 'DC', salvage: 31000 },
+            '120': { name: 'DC 120kW', cost: 810000, power: 120, type: 'DC', salvage: 81000 },
+            '180': { name: 'DC 180kW', cost: 950000, power: 180, type: 'DC', salvage: 95000 },
+            '360': { 
+                name: 'DC 360kW', power: 360, type: 'DC_360',
+                cabinetCost: 1500000, terminalCost: 480000,
+                cabinetSalvage: 150000, terminalSalvage: 48000
+            }
+        },
+        calculationParams: {
+            // Initial Investment
+            deviceCost: { value: 0, label: '設備總成本', unit: '元', description: '所有充電樁的含稅總成本。', enabled: true, category: 'investment', readonly: true },
+            lineSubsidyPerKw: { value: 1300, label: '台電線路補助費/kW', unit: '元', description: '台電線補費，每kW收取的一次性費用。', enabled: true, category: 'investment' },
+            technicianFee: { value: 150000, label: '技師簽證費', unit: '元', description: '台電外包技師費用(一次性)。', enabled: true, category: 'investment' },
+            distributionPanelFee: { value: 300000, label: '高/低壓配電盤', unit: '元', description: '高壓或低壓配電盤費用(一次性)。', enabled: true, category: 'investment' },
+            constructionFee: { value: 500000, label: '基礎設施工程', unit: '元', description: '場地土木、基礎、裝修等工程費用(一次性)。', enabled: true, category: 'investment' },
+            meterFeeBase: { value: 12000, label: '電錶費用(基本)', unit: '元', description: '台電電表基本費用(僅DC樁, 一次性)。', enabled: true, category: 'investment' },
+            meterFeePerGun: { value: 1400, label: '電錶費用/槍', unit: '元', description: '每增加一槍的電表費用(僅DC樁, 一次性)。', enabled: true, category: 'investment' },
+            taxRate: { value: 0.05, label: '營業稅率', unit: '%', description: '設備購買及相關服務的營業稅率。', enabled: true, category: 'investment' },
+            
+            // Annual Costs
+            taipowerFee: { value: 4, label: '台電平均電費', unit: '元', description: '向台電購電的每度平均成本。', enabled: true, category: 'annual' },
+            electricalTechnicianFee: { value: 15000, label: '高壓用電技術人員/年', unit: '元', description: '每年收取一次技師檢定費。', enabled: true, category: 'annual' },
+            maintenanceFee: { value: 37000, label: '維運&客服/年', unit: '元', description: '年度場域維護與線上客服費用。', enabled: true, category: 'annual' },
+            transactionFeeRate: { value: 0.03, label: '金流手續費', unit: '%', description: '支付給金流服務商的每筆交易手續費率。', enabled: true, category: 'annual' },
+            insuranceFee: { value: 8500, label: '意外保險費/年', unit: '元', description: '場域年度意外險費用。', enabled: true, category: 'annual' },
+            electronicInvoiceFeePerTransaction: { value: 1.2, label: '電子發票/張', unit: '元', description: '每筆交易的電子發票成本。', enabled: true, category: 'annual' },
+            repairPartsRate: { value: 0.01, label: '設備維護備品', unit: '%', description: '年度維修備品費用，為設備含稅總成本的百分比。', enabled: true, category: 'annual' },
+            extendedWarrantyPerPile: { value: 1000, label: '保固延保(樁)/年', unit: '元', description: '每支充電樁的年度延長保固費用。', enabled: true, category: 'annual' },
+            laborCost: { value: 60000, label: '勞務成本/年', unit: '元', description: '年度人力、巡檢等相關勞務成本。', enabled: true, category: 'annual' },
+            internetFee: { value: 500, label: '網路費/月', unit: '元', description: '場域每月的網路通訊費用。', enabled: true, category: 'annual' },
+            tdxUploadFee: { value: 299, label: 'TDX上傳費(槍/月)', unit: '元', description: '每支槍每月上傳資料至交通部TDX平台的費用。', enabled: true, category: 'annual' },
+            powerLossRate: { value: 0.05, label: '充電電損率', unit: '%', description: '電力在傳輸和轉換過程中的損耗率。', enabled: true, category: 'annual' },
+        }
+    };
+
+    /**
+     * =================================================================
+     * UI MODULE: DOM Manipulation and User Interface
+     * Handles all interactions with the DOM, such as caching elements,
+     * updating values, toggling visibility, and populating modals.
+     * =================================================================
+     */
+    const UI = {
+        elements: {},
+
+        init() {
+            this.cacheDOMElements();
+            this.populateDeviceSelect();
+            this.updatePileCountUI(Config.deviceSpecs[this.elements.devicePowerSelect.value]);
+            this.updateUIVisibility();
+        },
+
+        cacheDOMElements() {
+            const ids = [
+                'devicePowerSelect', 'pileCountGroup', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay',
+                'chargeFeePerKwh', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDay', 'kwhPerGunPerMonth',
+                'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears',
+                'fixedRateSection', 'touRateSection',
+                'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection',
+                'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'cumulativePnlChart', 'touPieChart',
+                'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio',
+                'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'pnlChart',
+                // Advanced Modal
+                'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn',
+                'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage',
+                'advancedContentSection', 'specsModalTableBody', 'formulaContainer',
+                'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage',
+                'saveAdvancedBtn'
+            ];
+            ids.forEach(id => this.elements[id] = document.getElementById(id));
+        },
+        
+        getNumericValue(id, defaultValue = 0, max = Infinity) {
+            const element = document.getElementById(id);
+            if (!element) return defaultValue;
+            const value = parseFloat(String(element.value).replace(/,/g, ''));
+            return isNaN(value) ? defaultValue : Math.min(value, max);
+        },
+
+        formatCurrency(value, precision = 0, shorthand = false, unitOnly = false) {
+            if (isNaN(value) || value === null) return 'N/A';
+            const num = Number(value);
+            if (shorthand) {
+                if (Math.abs(num) >= 1e6) return `NT$ ${(num / 1e6).toFixed(1)}M`;
+                if (Math.abs(num) >= 1e3) return `NT$ ${(num / 1e3).toFixed(0)}K`;
+            }
+            const numberString = num.toLocaleString('en-US', { minimumFractionDigits: precision, maximumFractionDigits: precision });
+            return unitOnly ? numberString : `NT$ ${numberString}`;
+        },
+
+        formatNumericInput(element) {
+            const value = this.getNumericValue(element.id, null);
+            if (value !== null) {
+                element.value = value.toLocaleString('en-US');
+            }
+        },
+        
+        getInputs(previousRentValues) {
+            const power = this.elements.devicePowerSelect.value;
+            const spec = Config.deviceSpecs[power];
+            let pileCount = 0, gunCount = 0, cabinetCount = 0, parkingSpaces = 0;
+
+            if (spec.type === 'DC_360') {
+                gunCount = this.getNumericValue('terminalCount', 1);
+                cabinetCount = Math.ceil(gunCount / 6);
+                pileCount = gunCount; // For cost calculation, each terminal is a "pile"
+                parkingSpaces = gunCount * 2;
+            } else {
+                pileCount = this.getNumericValue('pileCount', 1);
+                gunCount = (spec.type === 'DC' && spec.power > 30) ? pileCount * 2 : pileCount;
+                parkingSpaces = gunCount;
+            }
+
+            const rentMethod = document.querySelector('input[name="rentMethod"]:checked').value;
+            let rentPerSpace = this.getNumericValue('rentPerSpace');
+            let rentPerLand = this.getNumericValue('rentPerLand');
+
+            if (rentMethod === 'none') {
+                rentPerSpace = 0;
+                rentPerLand = 0;
+            } else if (rentMethod === 'bySpace') {
+                rentPerLand = 0; // Only one value is active
+            } else { // byLand
+                rentPerSpace = 0; // Only one value is active
+            }
+
+            return {
+                power, spec, pileCount, gunCount, cabinetCount, parkingSpaces,
+                billingMethod: document.querySelector('input[name="billingMethod"]:checked').value,
+                chargeFeePerKwh: this.getNumericValue('chargeFeePerKwh'),
+                peakRate: this.getNumericValue('peakRate'),
+                offPeakRate: this.getNumericValue('offPeakRate'),
+                holidayRate: this.getNumericValue('holidayRate'),
+                revenueMethod: document.querySelector('input[name="revenueMethod"]:checked').value,
+                carsPerGunPerDay: this.getNumericValue('carsPerGunPerDay'),
+                kwhPerGunPerMonth: this.getNumericValue('kwhPerGunPerMonth'),
+                avgKwhPerCar: this.getNumericValue('avgKwhPerCar'),
+                demandGrowthRate: this.getNumericValue('demandGrowthRate') / 100,
+                operationYears: this.getNumericValue('operationYears', 1),
+                depreciationYears: this.getNumericValue('depreciationYears', 1),
+                rentMethod, rentPerSpace, rentPerLand,
+                touRatios: {
+                    peak: this.getNumericValue('peakUsageRatio') / 100,
+                    offpeak: this.getNumericValue('offPeakUsageRatio') / 100,
+                    holiday: this.getNumericValue('holidayUsageRatio') / 100,
+                }
+            };
+        },
+
+        populateDeviceSelect() {
+            Object.keys(Config.deviceSpecs).forEach(power => {
+                const option = document.createElement('option');
+                option.value = power;
+                option.textContent = Config.deviceSpecs[power].name;
+                this.elements.devicePowerSelect.appendChild(option);
+            });
+            this.elements.devicePowerSelect.value = '120'; // Default
+        },
+
+        updatePileCountUI(spec) {
+            const container = this.elements.pileCountGroup;
+            container.innerHTML = ''; 
+            if (spec.type === 'DC_360') {
+                container.className = 'grid grid-cols-1 items-center gap-4';
+                container.innerHTML = `
+                    <div class="grid grid-cols-2 items-center gap-2">
+                        <span class="label-text">能源櫃</span>
+                        <input type="number" id="cabinetCount" class="input-field readonly" value="1" readonly>
+                    </div>
+                    <div class="grid grid-cols-2 items-center gap-2">
+                        <span class="label-text">充電樁(終端機)</span>
+                        <input type="number" id="terminalCount" class="input-field" value="2" min="1">
+                    </div>`;
+            } else {
+                container.className = 'grid grid-cols-2 items-center gap-4';
+                container.innerHTML = `
+                    <span class="label-text">充電樁數量</span>
+                    <input type="number" id="pileCount" class="input-field" value="1" min="1">`;
+            }
+        },
+
+        updateUIVisibility() {
+            const billingMethod = document.querySelector('input[name="billingMethod"]:checked').value;
+            this.elements.fixedRateSection.style.display = billingMethod === 'fixed' ? 'grid' : 'none';
+            this.elements.touRateSection.style.display = billingMethod === 'tou' ? 'block' : 'none';
+
+            const revenueMethod = document.querySelector('input[name="revenueMethod"]:checked').value;
+            this.elements.carsPerGunPerDay.readOnly = revenueMethod === 'byKwh';
+            this.elements.kwhPerGunPerMonth.readOnly = revenueMethod === 'byCars';
+            this.elements.carsPerGunPerDay.classList.toggle('readonly', revenueMethod === 'byKwh');
+            this.elements.kwhPerGunPerMonth.classList.toggle('readonly', revenueMethod === 'byCars');
+            
+            const rentMethod = document.querySelector('input[name="rentMethod"]:checked').value;
+            this.elements.rentBySpaceSection.style.display = rentMethod === 'bySpace' ? 'grid' : 'none';
+            this.elements.rentByLandSection.style.display = rentMethod === 'byLand' ? 'grid' : 'none';
+        },
+        
+        updateLinkedInputs(inputs) {
+            if (inputs.revenueMethod === 'byCars') {
+                const calculatedKwh = inputs.carsPerGunPerDay * inputs.avgKwhPerCar * 30;
+                this.elements.kwhPerGunPerMonth.value = Math.round(calculatedKwh).toLocaleString('en-US');
+            } else { // byKwh
+                const calculatedCars = inputs.avgKwhPerCar > 0 ? (inputs.kwhPerGunPerMonth / 30) / inputs.avgKwhPerCar : 0;
+                this.elements.carsPerGunPerDay.value = calculatedCars.toFixed(1);
+            }
+        },
+
+        updateDisplay(inputs, results) {
+            this.updateUIVisibility();
+
+            // Update summary cards
+            this.elements.totalInvestment.textContent = this.formatCurrency(results.totalInvestment);
+            this.elements.paybackPeriod.textContent = results.paybackPeriod;
+
+            // Update derived input fields
+            this.elements.parkingSpaces.value = inputs.parkingSpaces;
+            if (inputs.billingMethod === 'tou') {
+                this.elements.avgTouRate.value = this.formatCurrency(results.avgChargeFee, 2, false, true);
+            }
+            if (inputs.spec.type === 'DC_360') {
+                 document.getElementById('cabinetCount').value = inputs.cabinetCount;
+            }
+
+            // Update main cost displays
+            this.elements.equipmentCostDisplayMain.value = this.formatCurrency(results.costBreakdown.equipmentCost, 0, false, true);
+            this.elements.salvageValueDisplay.value = this.formatCurrency(results.costBreakdown.totalSalvageValue, 0, false, true);
+
+            // Update tables
+            this.populateTable(this.elements.kwhStatsTableBody, results.annualData, (data) => `
                 <tr>
                     <td class="table-cell table-cell-year">第 ${data.year} 年</td>
                     <td class="table-cell text-green-600 font-semibold">${data.kwhPerDay.toLocaleString('en-US', {maximumFractionDigits: 1})}</td>
                     <td class="table-cell text-blue-600 font-semibold">${data.kwhPerMonth.toLocaleString('en-US', {maximumFractionDigits: 0})}</td>
                     <td class="table-cell text-red-600 font-semibold">${data.kwhPerYear.toLocaleString('en-US', {maximumFractionDigits: 0})}</td>
                 </tr>
-            `;
-            kwhTableBody.insertAdjacentHTML('beforeend', row);
-        });
+            `);
 
-        const tableBody = DOMElements.pnlTableBody;
-        tableBody.innerHTML = '';
-        results.annualData.forEach(data => {
-            const row = document.createElement('tr');
-            row.className = 'pnl-row';
-            row.dataset.year = data.year;
-            row.innerHTML = `
-                <td class="table-cell table-cell-year">第 ${data.year} 年</td>
-                <td class="table-cell">${formatCurrency(data.revenue, 0, false, true)}</td>
-                <td class="table-cell">${formatCurrency(data.cost, 0, false, true)}</td>
-                <td class="table-cell ${data.pnl >= 0 ? 'text-green-600' : 'text-red-600'}">${formatCurrency(data.pnl, 0, false, true)}</td>
-                <td class="table-cell font-semibold ${data.cumulativePnl >= 0 ? 'text-blue-600' : 'text-orange-600'}">${formatCurrency(data.cumulativePnl, 0, false, true)}</td>
-            `;
-            tableBody.appendChild(row);
-        });
+            this.populateTable(this.elements.pnlTableBody, results.annualData, (data) => `
+                <tr class="pnl-row" data-year="${data.year}">
+                    <td class="table-cell table-cell-year">第 ${data.year} 年</td>
+                    <td class="table-cell">${this.formatCurrency(data.revenue, 0, false, true)}</td>
+                    <td class="table-cell">${this.formatCurrency(data.cost, 0, false, true)}</td>
+                    <td class="table-cell ${data.pnl >= 0 ? 'text-green-600' : 'text-red-600'}">${this.formatCurrency(data.pnl, 0, false, true)}</td>
+                    <td class="table-cell font-semibold ${data.cumulativePnl >= 0 ? 'text-blue-600' : 'text-orange-600'}">${this.formatCurrency(data.cumulativePnl, 0, false, true)}</td>
+                </tr>
+            `);
+        },
         
-        tableBody.querySelectorAll('.pnl-row').forEach(row => {
-            row.addEventListener('click', (e) => {
-                const year = parseInt(e.currentTarget.dataset.year);
-                const existingDetailsRow = tableBody.querySelector(`.details-row[data-year="${year}"]`);
+        populateTable(tbody, data, rowTemplate) {
+            tbody.innerHTML = '';
+            data.forEach(item => {
+                tbody.insertAdjacentHTML('beforeend', rowTemplate(item));
+            });
+        },
 
-                tableBody.querySelectorAll('.details-row').forEach(dr => {
-                    if (dr !== existingDetailsRow) {
-                        dr.remove();
+        toggleKwhTable() {
+            const container = UI.elements.kwhTableContainer;
+            const icon = UI.elements.kwhTableIcon;
+            icon.classList.toggle('rotate-180');
+            if (container.style.maxHeight && container.style.maxHeight !== '0px') {
+                container.style.maxHeight = '0px';
+            } else {
+                container.style.maxHeight = container.scrollHeight + 'px';
+            }
+        },
+
+        togglePnlDetails(row, results) {
+            const year = parseInt(row.dataset.year);
+            const existingDetailsRow = this.elements.pnlTableBody.querySelector(`.details-row[data-year="${year}"]`);
+
+            // Close all other details rows
+            this.elements.pnlTableBody.querySelectorAll('.details-row').forEach(dr => {
+                if (dr !== existingDetailsRow) dr.remove();
+            });
+
+            if (existingDetailsRow) {
+                existingDetailsRow.remove(); // Toggle off
+            } else {
+                const yearData = results.annualData.find(d => d.year === year);
+                if (yearData && yearData.details) {
+                    const detailsHtml = this.createDetailsHtml(yearData.details);
+                    const newRow = document.createElement('tr');
+                    newRow.className = 'details-row';
+                    newRow.dataset.year = year;
+                    newRow.innerHTML = `<td colspan="5">${detailsHtml}</td>`;
+                    row.after(newRow);
+                }
+            }
+        },
+
+        createDetailsHtml(details) {
+            const createSection = (title, data) => {
+                let itemsHtml = Object.entries(data)
+                    .filter(([, value]) => value > 0)
+                    .map(([key, value]) => `
+                        <div class="details-item">
+                            <span>${key.replace(/\/.*$/, '')}</span>
+                            <span>${this.formatCurrency(value, 0, false, true)}</span>
+                        </div>
+                    `).join('');
+                return `<div class="details-section"><h4>${title}</h4>${itemsHtml}</div>`;
+            };
+            const revenueHtml = createSection('總營收細項', details.revenue);
+            const costsHtml = createSection('總成本細項', details.costs);
+            return `<div class="details-container"><div class="details-grid">${revenueHtml}${costsHtml}</div></div>`;
+        },
+
+        // --- Modal Methods ---
+        openModal(modal) { modal.style.display = 'flex'; },
+        closeModal(modal) {
+            modal.style.display = 'none';
+            this.showAdvancedContent(false);
+            this.elements.advancedPassword.value = '';
+            this.showModalMessage(this.elements.advancedMessage, '', false, true);
+        },
+        showModalMessage(element, message, isError = true, hide = false) {
+            if (hide) {
+                element.style.display = 'none';
+                return;
+            }
+            element.textContent = message;
+            element.className = `modal-message ${isError ? 'error' : 'success'}`;
+            element.style.display = 'block';
+        },
+        showAdvancedContent(show) {
+            this.elements.advancedPasswordSection.style.display = show ? 'none' : 'block';
+            this.elements.advancedContentSection.style.display = show ? 'block' : 'none';
+        },
+        handleTabSwitch(event) {
+            const tabId = event.target.dataset.tab;
+            document.querySelectorAll('.modal-tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.modal-tab-content').forEach(content => content.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+        },
+        populateSpecsModal(deviceSpecs, calculationParams) {
+            const tableBody = this.elements.specsModalTableBody;
+            tableBody.innerHTML = '';
+            const taxRate = calculationParams.taxRate.enabled ? calculationParams.taxRate.value : 0;
+
+            Object.entries(deviceSpecs).forEach(([power, spec]) => {
+                if (spec.type === 'DC_360') {
+                    const createRow = (component, cost, salvage) => {
+                        const costTaxed = cost * (1 + taxRate);
+                        const salvagePercentage = cost > 0 ? (salvage / cost * 100).toFixed(1) : 10;
+                        return `
+                            <td>${component}</td>
+                            <td><input type="text" class="modal-table-input cost-input" data-power="${power}" data-type="${component.toLowerCase()}Cost" value="${cost.toLocaleString('en-US')}"></td>
+                            <td class="text-right p-2">${this.formatCurrency(costTaxed, 0, false, true)}</td>
+                            <td><input type="number" class="modal-table-input salvage-percent-input" value="${salvagePercentage}"></td>
+                            <td class="text-right salvage-display p-2" data-power="${power}" data-type="${component.toLowerCase()}Salvage">${salvage.toLocaleString('en-US')}</td>`;
+                    };
+                    tableBody.insertAdjacentHTML('beforeend', `
+                        <tr><td class="font-semibold align-middle" rowspan="2">${spec.name}</td>${createRow('Cabinet', spec.cabinetCost, spec.cabinetSalvage)}</tr>
+                        <tr>${createRow('Terminal', spec.terminalCost, spec.terminalSalvage)}</tr>`);
+                } else {
+                    const costTaxed = spec.cost * (1 + taxRate);
+                    const salvagePercentage = spec.cost > 0 ? (spec.salvage / spec.cost * 100).toFixed(1) : 10;
+                    tableBody.insertAdjacentHTML('beforeend', `
+                        <tr>
+                            <td class="font-semibold align-middle">${spec.name}</td><td>充電樁</td>
+                            <td><input type="text" class="modal-table-input cost-input" data-power="${power}" data-type="cost" value="${spec.cost.toLocaleString('en-US')}"></td>
+                            <td class="text-right p-2">${this.formatCurrency(costTaxed, 0, false, true)}</td>
+                            <td><input type="number" class="modal-table-input salvage-percent-input" value="${salvagePercentage}"></td>
+                            <td class="text-right salvage-display p-2" data-power="${power}" data-type="salvage">${spec.salvage.toLocaleString('en-US')}</td>
+                        </tr>`);
+                }
+            });
+            this.addSpecInputListeners(tableBody);
+        },
+        addSpecInputListeners(tableBody) {
+            const focusable = Array.from(tableBody.querySelectorAll('.cost-input, .salvage-percent-input'));
+            focusable.forEach((input, index) => {
+                input.addEventListener('focus', (e) => {
+                    e.target.dataset.originalValue = e.target.value;
+                });
+                
+                input.addEventListener('keydown', (e) => {
+                    switch (e.key) {
+                        case 'Enter':
+                        case 'ArrowDown':
+                            e.preventDefault();
+                            if (e.key === 'Enter') {
+                                e.target.blur(); // Format the number
+                            }
+                            const nextIndex = (index + 1) % focusable.length;
+                            focusable[nextIndex].focus();
+                            focusable[nextIndex].select();
+                            break;
+                        case 'ArrowUp':
+                            e.preventDefault();
+                            const prevIndex = (index - 1 + focusable.length) % focusable.length;
+                            focusable[prevIndex].focus();
+                            focusable[prevIndex].select();
+                            break;
+                        case 'Escape':
+                            e.preventDefault();
+                            e.target.value = e.target.dataset.originalValue;
+                            e.target.blur();
+                            break;
                     }
                 });
 
-                if (existingDetailsRow) {
-                    existingDetailsRow.remove();
-                } else {
-                    const yearData = currentResults.annualData.find(d => d.year === year);
-                    if (yearData && yearData.details) {
-                        const detailsHtml = createDetailsHtml(yearData.details);
-                        const newRow = document.createElement('tr');
-                        newRow.className = 'details-row';
-                        newRow.dataset.year = year;
-                        newRow.innerHTML = `<td colspan="5">${detailsHtml}</td>`;
-                        e.currentTarget.after(newRow);
-                    }
-                }
-            });
-        });
-        
-        // Update Initial Cost Breakdown
-        const { enabled: lineSubsidyEnabled, value: lineSubsidyValue } = calculationParams.lineSubsidyPerKw;
-        const { enabled: techFeeEnabled, value: techFeeValue } = calculationParams.technicianFee;
-        const { enabled: panelFeeEnabled, value: panelFeeValue } = calculationParams.distributionPanelFee;
-        const totalPowerKw = inputs.spec.type === 'DC_360' ? inputs.cabinetCount * inputs.spec.power : inputs.pileCount * inputs.spec.power;
-
-        const equipmentCost = calculationParams.deviceCost.value;
-        const depreciableCost = equipmentCost - totalSalvageValue;
-        const taipowerCost = (lineSubsidyEnabled ? lineSubsidyValue * totalPowerKw : 0) + 
-                               (techFeeEnabled ? techFeeValue : 0) + 
-                               (panelFeeEnabled ? panelFeeValue : 0);
-        const constructionCost = calculationParams.constructionCost.value;
-        const totalInitialCost = depreciableCost + taipowerCost + constructionCost;
-
-        DOMElements.equipmentCostDisplayMain.value = Math.round(equipmentCost).toLocaleString('en-US');
-        DOMElements.salvageValueDisplay.value = Math.round(totalSalvageValue).toLocaleString('en-US');
-        DOMElements.taipowerCostDisplay.value = Math.round(taipowerCost).toLocaleString('en-US');
-        DOMElements.constructionCostInput.value = constructionCost.toLocaleString('en-US');
-        DOMElements.totalInitialCostDisplay.value = Math.round(totalInitialCost).toLocaleString('en-US');
-        DOMElements.depreciableCostDisplay.value = Math.round(depreciableCost).toLocaleString('en-US');
-
-
-        updateCharts(inputs, results);
-    }
-    
-    function createDetailsHtml(details) {
-        let revenueHtml = '<h4>總營收細項</h4>';
-        revenueHtml += `<div class="details-item"><span>充電總度數 (kWh)</span><span>${details.revenue['充電總度數 (kWh)'].toLocaleString('en-US', {maximumFractionDigits: 0})}</span></div>`;
-        revenueHtml += `<div class="details-item"><span>平均每度收費</span><span>${formatCurrency(details.revenue['平均每度收費'], 2, false, true)}</span></div>`;
-        revenueHtml += `<div class="details-item"><span>總營收</span><span>${formatCurrency(details.revenue['總營收'], 0, false, true)}</span></div>`;
-
-        let costsHtml = '<h4>總成本細項</h4>';
-        Object.entries(details.costs).forEach(([key, value]) => {
-            if (value > 0) { // Only show costs that are not zero
-                costsHtml += `<div class="details-item"><span>${key.replace('/年', '').replace('/月','').replace('/張','').replace('%','')}</span><span>${formatCurrency(value, 0, false, true)}</span></div>`;
-            }
-        });
-
-        return `
-            <div class="details-container">
-                <div class="details-grid">
-                    <div class="details-section">${revenueHtml}</div>
-                    <div class="details-section">${costsHtml}</div>
-                </div>
-            </div>
-        `;
-    }
-
-    /**
-     * Initializes all Chart.js charts.
-     */
-    function initializeCharts() {
-        const chartOptions = {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
-            scales: {
-                x: { grid: { display: false } },
-                y: {
-                    ticks: {
-                        callback: value => formatCurrency(value, 0, true)
-                    }
-                }
-            },
-            plugins: {
-                legend: { position: 'top' },
-                tooltip: {
-                    callbacks: {
-                        label: context => `${context.dataset.label}: ${formatCurrency(context.raw)}`
-                    }
-                }
-            }
-        };
-
-        pnlChart = new Chart(DOMElements.pnlChart, {
-            type: 'bar',
-            data: { labels: [], datasets: [] },
-            options: { ...chartOptions, scales: { ...chartOptions.scales, y: { ...chartOptions.scales.y, beginAtZero: false }}}
-        });
-
-        cumulativePnlChart = new Chart(DOMElements.cumulativePnlChart, {
-            type: 'line',
-            data: { labels: [], datasets: [] },
-            options: { ...chartOptions, scales: { ...chartOptions.scales, y: { ...chartOptions.scales.y, beginAtZero: false }}}
-        });
-        
-        touPieChart = new Chart(DOMElements.touPieChart, {
-            type: 'doughnut',
-            data: { labels: [], datasets: [] },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: context => `${context.label}: ${context.raw}%`
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    /**
-     * Updates chart data and re-renders them.
-     */
-    function updateCharts(inputs, results) {
-        if (!pnlChart || !cumulativePnlChart || !touPieChart) return;
-
-        const labels = results.annualData.map(d => `第 ${d.year} 年`);
-        
-        pnlChart.data.labels = labels;
-        pnlChart.data.datasets = [
-            { type: 'bar', label: '總營收', data: results.annualData.map(d => d.revenue), backgroundColor: 'rgba(75, 192, 192, 0.6)' },
-            { type: 'bar', label: '總成本', data: results.annualData.map(d => d.cost), backgroundColor: 'rgba(255, 159, 64, 0.6)' },
-            { type: 'line', label: '充電淨利', data: results.annualData.map(d => d.pnl), borderColor: 'rgba(153, 102, 255, 1)', backgroundColor: 'rgba(153, 102, 255, 0.2)', fill: false, tension: 0.1 }
-        ];
-        pnlChart.update();
-
-        const cumulativeData = [-results.totalInvestment, ...results.annualData.map(d => d.cumulativePnl)];
-        cumulativePnlChart.data.labels = ['投資額', ...labels];
-        cumulativePnlChart.data.datasets = [{
-            label: '累積稅前淨利',
-            data: cumulativeData,
-            borderColor: 'rgba(54, 162, 235, 1)',
-            pointBackgroundColor: 'rgba(54, 162, 235, 1)',
-            pointRadius: 4,
-            tension: 0.1,
-            fill: true,
-            backgroundColor: (context) => {
-                const chart = context.chart;
-                const {ctx, chartArea, scales} = chart;
-                if (!chartArea || chartArea.height <= 0) return null;
-                
-                const scale = scales.y;
-                if (scale.min >= 0) return 'rgba(219, 234, 254, 0.6)';
-                if (scale.max <= 0) return 'rgba(254, 226, 226, 0.6)';
-
-                const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-                const zero = scale.getPixelForValue(0);
-                
-                if (!isFinite(zero)) return 'rgba(219, 234, 254, 0.6)';
-
-                const zeroPoint = (zero - chartArea.top) / chartArea.height;
-                const clampedZeroPoint = Math.max(0, Math.min(1, zeroPoint));
-
-                if (!isFinite(clampedZeroPoint)) return 'rgba(219, 234, 254, 0.6)';
-
-                gradient.addColorStop(0, 'rgba(219, 234, 254, 0.6)');
-                gradient.addColorStop(clampedZeroPoint, 'rgba(219, 234, 254, 0.6)');
-                gradient.addColorStop(clampedZeroPoint, 'rgba(254, 226, 226, 0.6)');
-                gradient.addColorStop(1, 'rgba(254, 226, 226, 0.6)');
-                
-                return gradient;
-            },
-        }];
-        cumulativePnlChart.update();
-        
-        if (inputs.billingMethod === 'tou') {
-            DOMElements.touPieChartContainer.style.display = 'block';
-            touPieChart.data.labels = ['尖峰', '離峰', '假日'];
-            touPieChart.data.datasets = [{
-                data: [
-                    (inputs.touRatios.peak * 100).toFixed(0),
-                    (inputs.touRatios.offpeak * 100).toFixed(0),
-                    (inputs.touRatios.holiday * 100).toFixed(0)
-                ],
-                backgroundColor: ['#ef4444', '#3b82f6', '#10b981']
-            }];
-            touPieChart.update();
-        } else {
-            DOMElements.touPieChartContainer.style.display = 'none';
-        }
-    }
-    
-    // --- Modal Logic ---
-
-    function openModal(modal) {
-        modal.style.display = 'flex';
-    }
-
-    function closeModal(modal) {
-        modal.style.display = 'none';
-        modal.querySelectorAll('input[type="password"]').forEach(input => input.value = '');
-        modal.querySelectorAll('.modal-message').forEach(msg => {
-            msg.style.display = 'none';
-            msg.textContent = '';
-        });
-    }
-
-    function showModalMessage(element, message, isError = true) {
-        element.textContent = message;
-        element.className = `modal-message ${isError ? 'error' : 'success'}`;
-        element.style.display = 'block';
-    }
-
-    function handleSpecsLogin() {
-        if (DOMElements.specsPassword.value === currentSpecsPassword) {
-            DOMElements.specsPasswordInputSection.style.display = 'none';
-            DOMElements.specsContentSection.classList.remove('hidden');
-            populateSpecsModal();
-        } else {
-            showModalMessage(DOMElements.specsMessage, '密碼錯誤，請重試。');
-        }
-    }
-
-    function populateSpecsModal() {
-        const tableBody = DOMElements.specsModalTableBody;
-        tableBody.innerHTML = '';
-        const taxRate = calculationParams.taxRate.enabled ? calculationParams.taxRate.value : 0;
-
-        Object.entries(deviceSpecs).forEach(([power, spec]) => {
-            if (spec.type === 'DC_360') {
-                const cabinetCostTaxed = spec.cabinetCost * (1 + taxRate);
-                const terminalCostTaxed = spec.terminalCost * (1 + taxRate);
-                const cabinetSalvagePercentage = spec.cabinetCost > 0 ? (spec.cabinetSalvage / spec.cabinetCost * 100).toFixed(1) : 10;
-                const terminalSalvagePercentage = spec.terminalCost > 0 ? (spec.terminalSalvage / spec.terminalCost * 100).toFixed(1) : 10;
-
-                const rowCabinet = `
-                    <tr>
-                        <td class="font-semibold align-middle" rowspan="2">${spec.name}</td>
-                        <td class="align-middle">能源櫃</td>
-                        <td><input type="text" class="modal-table-input cost-input" data-power="${power}" data-type="cabinetCost" value="${spec.cabinetCost.toLocaleString('en-US')}"></td>
-                        <td class="text-right">${formatCurrency(cabinetCostTaxed, 0, false, true)}</td>
-                        <td><input type="number" class="modal-table-input salvage-percent-input" data-cost-type="cabinetCost" data-power="${power}" value="${cabinetSalvagePercentage}"></td>
-                        <td><input type="text" class="modal-table-input salvage-value-input" data-power="${power}" data-type="cabinetSalvage" value="${spec.cabinetSalvage.toLocaleString('en-US')}" readonly></td>
-                    </tr>`;
-                const rowTerminal = `
-                    <tr>
-                        <td class="align-middle">充電樁(終端機)</td>
-                        <td><input type="text" class="modal-table-input cost-input" data-power="${power}" data-type="terminalCost" value="${spec.terminalCost.toLocaleString('en-US')}"></td>
-                        <td class="text-right">${formatCurrency(terminalCostTaxed, 0, false, true)}</td>
-                        <td><input type="number" class="modal-table-input salvage-percent-input" data-cost-type="terminalCost" data-power="${power}" value="${terminalSalvagePercentage}"></td>
-                        <td><input type="text" class="modal-table-input salvage-value-input" data-power="${power}" data-type="terminalSalvage" value="${spec.terminalSalvage.toLocaleString('en-US')}" readonly></td>
-                    </tr>`;
-                tableBody.insertAdjacentHTML('beforeend', rowCabinet + rowTerminal);
-            } else {
-                const costTaxed = spec.cost * (1 + taxRate);
-                const salvagePercentage = spec.cost > 0 ? (spec.salvage / spec.cost * 100).toFixed(1) : 10;
-                const row = `
-                    <tr>
-                        <td class="font-semibold align-middle">${spec.name}</td>
-                        <td class="align-middle">充電樁</td>
-                        <td><input type="text" class="modal-table-input cost-input" data-power="${power}" data-type="cost" value="${spec.cost.toLocaleString('en-US')}"></td>
-                        <td class="text-right">${formatCurrency(costTaxed, 0, false, true)}</td>
-                        <td><input type="number" class="modal-table-input salvage-percent-input" data-cost-type="cost" data-power="${power}" value="${salvagePercentage}"></td>
-                        <td><input type="text" class="modal-table-input salvage-value-input" data-power="${power}" data-type="salvage" value="${spec.salvage.toLocaleString('en-US')}" readonly></td>
-                    </tr>`;
-                tableBody.insertAdjacentHTML('beforeend', row);
-            }
-        });
-
-        tableBody.querySelectorAll('.salvage-percent-input').forEach(input => {
-            input.addEventListener('input', (e) => {
-                const percent = parseFloat(e.target.value) || 0;
-                const row = e.target.closest('tr');
-                if (!row) return;
-                const costInput = row.querySelector('.cost-input');
-                if (!costInput) return;
-                const cost = parseFloat(costInput.value.replace(/,/g,'')) || 0;
-                const salvageValueInput = row.querySelector('.salvage-value-input');
-                if (salvageValueInput) {
-                    salvageValueInput.value = Math.round((cost * percent) / 100).toLocaleString('en-US');
-                }
-            });
-        });
-        
-        tableBody.querySelectorAll('.cost-input').forEach(input => {
-            input.addEventListener('blur', (e) => {
-                const value = parseFloat(e.target.value.replace(/,/g,'')) || 0;
-                e.target.value = value.toLocaleString('en-US');
-            });
-        });
-    }
-    
-    function saveSpecsAndClose() {
-        const inputs = DOMElements.specsModalTableBody.querySelectorAll('input[data-power]');
-        inputs.forEach(input => {
-            const power = input.dataset.power;
-            const type = input.dataset.type;
-            if (deviceSpecs[power] && type) {
-                deviceSpecs[power][type] = parseFloat(input.value.replace(/,/g,'')) || 0;
-            }
-        });
-        saveDataToLocalStorage();
-        calculateAndDisplayResults();
-        closeModal(DOMElements.specsModal);
-        DOMElements.specsPasswordInputSection.style.display = 'block';
-        DOMElements.specsContentSection.classList.add('hidden');
-    }
-
-    function changeSpecsPassword() {
-        const oldPass = DOMElements.oldSpecsPassword.value;
-        const newPass = DOMElements.newSpecsPassword.value;
-        const confirmPass = DOMElements.confirmNewSpecsPassword.value;
-
-        if (oldPass !== currentSpecsPassword) {
-            showModalMessage(DOMElements.specsPasswordChangeMessage, '舊密碼不正確。');
-            return;
-        }
-        if (!newPass || newPass.length < 4) {
-            showModalMessage(DOMElements.specsPasswordChangeMessage, '新密碼長度至少需要4位數。');
-            return;
-        }
-        if (newPass !== confirmPass) {
-            showModalMessage(DOMElements.specsPasswordChangeMessage, '新密碼與確認密碼不相符。');
-            return;
-        }
-        currentSpecsPassword = newPass;
-        saveDataToLocalStorage();
-        showModalMessage(DOMElements.specsPasswordChangeMessage, '密碼已成功更新！', false);
-    }
-
-    function handleManagementLogin() {
-        if (DOMElements.managementPassword.value === currentManagementPassword) {
-            DOMElements.passwordInputSection.style.display = 'none';
-            DOMElements.formulasSection.classList.remove('hidden');
-            populateFormulasModal();
-        } else {
-            showModalMessage(DOMElements.managementMessage, '密碼錯誤，請重試。');
-        }
-    }
-
-    function populateFormulasModal() {
-        const container = DOMElements.formulaContainer;
-        container.innerHTML = '';
-        
-        const categories = {
-            investment: '總投資額項目',
-            annual: '年度成本項目'
-        };
-
-        Object.keys(categories).forEach(catKey => {
-            const header = document.createElement('h5');
-            header.className = 'text-lg font-bold text-indigo-700 mt-4 pb-2 border-b';
-            header.textContent = categories[catKey];
-            container.appendChild(header);
-
-            Object.entries(calculationParams).forEach(([key, param]) => {
-                if (param.category === catKey) {
-                    const isPercentage = param.unit === '%';
-                    const displayValue = isPercentage ? param.value * 100 : param.value;
-                    const formattedValue = isPercentage ? displayValue : displayValue.toLocaleString('en-US', {maximumFractionDigits: 2});
-
-                    const itemDiv = document.createElement('div');
-                    itemDiv.className = 'formula-item grid grid-cols-1 md:grid-cols-12 items-center gap-2 border-b border-gray-100 pb-3';
+                input.addEventListener('input', (e) => {
+                    const row = e.target.closest('tr');
+                    const costInput = row.querySelector('.cost-input');
+                    const percentInput = row.querySelector('.salvage-percent-input');
+                    const salvageValueDisplay = row.querySelector('.salvage-display');
                     
-                    itemDiv.innerHTML = `
-                        <div class="md:col-span-4 flex items-center">
-                            <input type="checkbox" id="check_${key}" data-key="${key}" class="formula-item-checkbox h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-3" ${param.enabled ? 'checked' : ''} ${param.readonly ? 'disabled' : ''}>
-                            <label for="check_${key}" class="formula-item-label font-medium text-gray-800">${param.label}</label>
-                        </div>
-                        <div class="md:col-span-5">
-                            <p class="formula-item-description text-gray-500">${param.description}</p>
-                        </div>
-                        <div class="md:col-span-3 formula-item-input-group flex items-center">
-                            <input type="text" id="input_${key}" data-key="${key}" value="${formattedValue}" class="modal-table-input flex-grow" ${param.readonly ? 'readonly' : ''}>
-                            <span class="ml-2 text-gray-600 w-10 text-left">${param.unit}</span>
-                        </div>
-                    `;
-                    container.appendChild(itemDiv);
-                }
+                    const cost = parseFloat(costInput.value.replace(/,/g,'')) || 0;
+                    const percent = parseFloat(percentInput.value) || 0;
+                    salvageValueDisplay.textContent = Math.round((cost * percent) / 100).toLocaleString('en-US');
+                });
+                 input.addEventListener('blur', (e) => {
+                    const value = parseFloat(e.target.value.replace(/,/g, '')) || 0;
+                    e.target.value = value.toLocaleString('en-US');
+                });
             });
-        });
+        },
+        populateFormulasModal(calculationParams) {
+            const container = this.elements.formulaContainer;
+            container.innerHTML = '';
+            const categories = { investment: '總投資額項目', annual: '年度成本項目' };
 
-        container.querySelectorAll('input[type="text"]').forEach(input => {
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    const key = e.target.dataset.key;
-                    if (calculationParams[key] && !calculationParams[key].readonly) {
-                         const isPercentage = calculationParams[key].unit === '%';
-                        const numericValue = parseFloat(e.target.value.replace(/,/g, ''));
-                        if (!isNaN(numericValue)) {
-                            calculationParams[key].value = isPercentage ? numericValue / 100 : numericValue;
-                            e.target.value = numericValue.toLocaleString('en-US');
-                            saveDataToLocalStorage();
-                            calculateAndDisplayResults();
-                            
-                            // Visual feedback
-                            e.target.style.borderColor = '#10b981';
-                            setTimeout(() => { e.target.style.borderColor = '#d1d5db'; }, 1000);
-                        }
+            Object.keys(categories).forEach(catKey => {
+                const header = document.createElement('h5');
+                header.className = 'text-lg font-bold text-indigo-700 mt-4 pb-2 border-b';
+                header.textContent = categories[catKey];
+                container.appendChild(header);
+
+                Object.entries(calculationParams).forEach(([key, param]) => {
+                    if (param.category === catKey) {
+                        const isPercentage = param.unit === '%';
+                        const displayValue = isPercentage ? param.value * 100 : param.value;
+                        const formattedValue = isPercentage ? displayValue : displayValue.toLocaleString('en-US', {maximumFractionDigits: 2});
+                        container.insertAdjacentHTML('beforeend', `
+                            <div class="grid grid-cols-1 md:grid-cols-12 items-center gap-2 border-b border-gray-100 pb-3">
+                                <div class="md:col-span-4 flex items-center">
+                                    <input type="checkbox" id="check_${key}" data-key="${key}" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-3" ${param.enabled ? 'checked' : ''} ${param.readonly ? 'disabled' : ''}>
+                                    <label for="check_${key}" class="font-medium text-gray-800">${param.label}</label>
+                                </div>
+                                <div class="md:col-span-5"><p class="text-sm text-gray-500">${param.description}</p></div>
+                                <div class="md:col-span-3 flex items-center">
+                                    <input type="text" id="input_${key}" data-key="${key}" value="${formattedValue}" class="modal-table-input flex-grow" ${param.readonly ? 'readonly' : ''}>
+                                    <span class="ml-2 text-gray-600 w-10 text-left">${param.unit}</span>
+                                </div>
+                            </div>`);
                     }
-                }
+                });
             });
-        });
-        
-        container.querySelectorAll('.formula-item-checkbox').forEach(checkbox => {
-            checkbox.addEventListener('change', (e) => {
-                const key = e.target.dataset.key;
-                if (calculationParams[key] && !calculationParams[key].readonly) {
-                    calculationParams[key].enabled = e.target.checked;
-                    saveDataToLocalStorage();
-                    calculateAndDisplayResults();
-                }
+            this.addFormulaInputListeners();
+        },
+        addFormulaInputListeners() {
+            const container = this.elements.formulaContainer;
+            
+            container.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    const key = e.target.dataset.key;
+                    if (Config.calculationParams[key] && !Config.calculationParams[key].readonly) {
+                        Config.calculationParams[key].enabled = e.target.checked;
+                        Persistence.save();
+                        App.update();
+                    }
+                });
             });
-        });
-    }
 
-    function saveFormulasAndClose() {
-        const inputs = DOMElements.formulaContainer.querySelectorAll('input[type="text"]');
-        const checkboxes = DOMElements.formulaContainer.querySelectorAll('input[type="checkbox"]');
+            const textInputs = container.querySelectorAll('input[type="text"]:not([readonly])');
+            textInputs.forEach((input, index) => {
+                input.addEventListener('focus', (e) => {
+                    e.target.dataset.originalValue = e.target.value;
+                });
 
-        inputs.forEach(input => {
-            const key = input.dataset.key;
-            if (calculationParams[key] && !calculationParams[key].readonly) {
-                const isPercentage = calculationParams[key].unit === '%';
-                const numericValue = parseFloat(input.value.replace(/,/g, ''));
-                if (!isNaN(numericValue)) {
-                    calculationParams[key].value = isPercentage ? numericValue / 100 : numericValue;
+                input.addEventListener('keydown', (e) => {
+                    const focusable = Array.from(textInputs);
+                    const currentIndex = focusable.indexOf(e.target);
+
+                    switch (e.key) {
+                        case 'Enter':
+                        case 'ArrowDown':
+                            e.preventDefault();
+                            if (e.key === 'Enter') {
+                                const key = e.target.dataset.key;
+                                const param = Config.calculationParams[key];
+                                if (param) {
+                                    const isPercentage = param.unit === '%';
+                                    const numericValue = parseFloat(e.target.value.replace(/,/g, ''));
+                                    if (!isNaN(numericValue)) {
+                                        param.value = isPercentage ? numericValue / 100 : numericValue;
+                                        e.target.value = isPercentage ? numericValue : numericValue.toLocaleString('en-US', { maximumFractionDigits: 2 });
+                                        Persistence.save();
+                                        App.update();
+                                        e.target.style.transition = 'border-color 0.1s ease-in-out';
+                                        e.target.style.borderColor = '#10b981';
+                                        setTimeout(() => { e.target.style.borderColor = ''; }, 1000);
+                                    }
+                                }
+                            }
+                            const nextIndex = (currentIndex + 1) % focusable.length;
+                            focusable[nextIndex].focus();
+                            focusable[nextIndex].select();
+                            break;
+                        
+                        case 'ArrowUp':
+                            e.preventDefault();
+                            const prevIndex = (currentIndex - 1 + focusable.length) % focusable.length;
+                            focusable[prevIndex].focus();
+                            focusable[prevIndex].select();
+                            break;
+
+                        case 'Escape':
+                            e.preventDefault();
+                            e.target.value = e.target.dataset.originalValue;
+                            e.target.blur();
+                            break;
+                    }
+                });
+            });
+        }
+    };
+
+    /**
+     * =================================================================
+     * CALCULATOR MODULE: Business Logic
+     * Contains the core financial calculation engine. It is a pure
+     * function that takes inputs and returns results, with no
+     * direct DOM interaction.
+     * =================================================================
+     */
+    const Calculator = {
+        lastResults: {},
+
+        run(inputs, params, deviceSpecs) {
+            const results = {
+                annualData: [],
+                totalInvestment: 0,
+                paybackPeriod: 'N/A',
+                costBreakdown: {},
+                avgChargeFee: 0,
+            };
+
+            // --- Step 1: Calculate Initial Investment ---
+            const taxRate = params.taxRate.enabled ? params.taxRate.value : 0;
+            let totalDeviceCostUntaxed = 0;
+            let totalSalvageValue = 0;
+
+            if (inputs.spec.type === 'DC_360') {
+                totalDeviceCostUntaxed = (inputs.cabinetCount * inputs.spec.cabinetCost) + (inputs.gunCount * inputs.spec.terminalCost);
+                totalSalvageValue = (inputs.cabinetCount * inputs.spec.cabinetSalvage) + (inputs.gunCount * inputs.spec.terminalSalvage);
+            } else {
+                totalDeviceCostUntaxed = inputs.pileCount * inputs.spec.cost;
+                totalSalvageValue = inputs.pileCount * inputs.spec.salvage;
+            }
+            
+            const totalDeviceCostTaxed = totalDeviceCostUntaxed * (1 + taxRate);
+            const totalPowerKw = inputs.spec.type === 'DC_360' ? inputs.cabinetCount * inputs.spec.power : inputs.pileCount * inputs.spec.power;
+            
+            let totalInvestment = 0;
+            if(params.deviceCost.enabled) totalInvestment += totalDeviceCostTaxed;
+            if(params.lineSubsidyPerKw.enabled) totalInvestment += params.lineSubsidyPerKw.value * totalPowerKw;
+            if(params.technicianFee.enabled) totalInvestment += params.technicianFee.value;
+            if(params.distributionPanelFee.enabled) totalInvestment += params.distributionPanelFee.value;
+            if(params.constructionFee.enabled) totalInvestment += params.constructionFee.value;
+            if (inputs.spec.type.startsWith('DC')) {
+                if(params.meterFeeBase.enabled) totalInvestment += params.meterFeeBase.value;
+                if(params.meterFeePerGun.enabled) totalInvestment += params.meterFeePerGun.value * inputs.gunCount;
+            }
+            results.totalInvestment = totalInvestment;
+            results.costBreakdown = { equipmentCost: totalDeviceCostTaxed, totalSalvageValue };
+
+            // --- Step 2: Calculate Annual P&L ---
+            let cumulativePnl = -totalInvestment;
+            let paybackFound = false;
+
+            for (let year = 1; year <= inputs.operationYears; year++) {
+                const demandMultiplier = Math.pow(1 + inputs.demandGrowthRate, year - 1);
+                const totalKwhSold = (inputs.revenueMethod === 'byCars'
+                    ? (inputs.carsPerGunPerDay * inputs.gunCount * 365 * inputs.avgKwhPerCar)
+                    : (inputs.kwhPerGunPerMonth * inputs.gunCount * 12)) * demandMultiplier;
+                
+                const numberOfTransactions = inputs.avgKwhPerCar > 0 ? totalKwhSold / inputs.avgKwhPerCar : 0;
+
+                results.avgChargeFee = (inputs.billingMethod === 'fixed')
+                    ? inputs.chargeFeePerKwh
+                    : (inputs.peakRate * inputs.touRatios.peak) + (inputs.offPeakRate * inputs.touRatios.offpeak) + (inputs.holidayRate * inputs.touRatios.holiday);
+                
+                const revenue = totalKwhSold * results.avgChargeFee;
+
+                // Calculate annual costs
+                const p = params; // shorthand
+                const electricityCost = totalKwhSold * (p.taipowerFee.enabled ? p.taipowerFee.value : 0) * (1 + (p.powerLossRate.enabled ? p.powerLossRate.value : 0));
+                let rentCost = 0;
+                if (inputs.rentMethod === 'bySpace') rentCost = inputs.rentPerSpace * inputs.parkingSpaces * 12;
+                if (inputs.rentMethod === 'byLand') rentCost = inputs.rentPerLand * 12;
+
+                const annualVariableCosts = {
+                    '台電電費': electricityCost,
+                    [p.transactionFeeRate.label]: p.transactionFeeRate.enabled ? revenue * p.transactionFeeRate.value : 0,
+                    [p.electronicInvoiceFeePerTransaction.label]: p.electronicInvoiceFeePerTransaction.enabled ? numberOfTransactions * p.electronicInvoiceFeePerTransaction.value : 0,
+                    [p.repairPartsRate.label]: p.repairPartsRate.enabled ? totalDeviceCostTaxed * p.repairPartsRate.value : 0,
+                };
+                const annualFixedCosts = {
+                    [p.electricalTechnicianFee.label]: p.electricalTechnicianFee.enabled ? p.electricalTechnicianFee.value : 0,
+                    [p.maintenanceFee.label]: p.maintenanceFee.enabled ? p.maintenanceFee.value : 0,
+                    [p.insuranceFee.label]: p.insuranceFee.enabled ? p.insuranceFee.value : 0,
+                    [p.extendedWarrantyPerPile.label]: p.extendedWarrantyPerPile.enabled ? inputs.pileCount * p.extendedWarrantyPerPile.value : 0,
+                    [p.laborCost.label]: p.laborCost.enabled ? p.laborCost.value : 0,
+                    '網路費': p.internetFee.enabled ? p.internetFee.value * 12 : 0,
+                    'TDX上傳費': p.tdxUploadFee.enabled ? p.tdxUploadFee.value * inputs.gunCount * 12 : 0,
+                    '租金': rentCost,
+                };
+                const depreciation = (year <= inputs.depreciationYears) ? (totalDeviceCostTaxed - totalSalvageValue) / inputs.depreciationYears : 0;
+                
+                const allCosts = { ...annualVariableCosts, ...annualFixedCosts, '折舊': depreciation };
+                const totalAnnualCost = Object.values(allCosts).reduce((sum, cost) => sum + cost, 0);
+                
+                const pnl = revenue - totalAnnualCost;
+                cumulativePnl += pnl;
+
+                // Store annual data
+                results.annualData.push({
+                    year, revenue, cost: totalAnnualCost, pnl, cumulativePnl,
+                    kwhPerYear: totalKwhSold, kwhPerMonth: totalKwhSold / 12, kwhPerDay: totalKwhSold / 365,
+                    details: { revenue: {'充電總度數 (kWh)': totalKwhSold, '平均每度收費': results.avgChargeFee, '總營收': revenue}, costs: allCosts }
+                });
+
+                // Check for payback period
+                if (cumulativePnl >= 0 && !paybackFound) {
+                    const prevCumulativePnl = results.annualData[year - 2]?.cumulativePnl || -totalInvestment;
+                    const fractionOfYear = pnl > 0 ? (-prevCumulativePnl / pnl) : 0;
+                    results.paybackPeriod = `${(year - 1 + fractionOfYear).toFixed(1)} 年`;
+                    paybackFound = true;
                 }
             }
-        });
+            
+            this.lastResults = results;
+            return results;
+        },
 
-        checkboxes.forEach(checkbox => {
-            const key = checkbox.dataset.key;
-            if (calculationParams[key] && !calculationParams[key].readonly) {
-                calculationParams[key].enabled = checkbox.checked;
-            }
-        });
-        
-        saveDataToLocalStorage();
-        calculateAndDisplayResults();
-        closeModal(DOMElements.managementModal);
-        DOMElements.passwordInputSection.style.display = 'block';
-        DOMElements.formulasSection.classList.add('hidden');
-    }
-    
-    function changeManagementPassword() {
-        const oldPass = DOMElements.oldPassword.value;
-        const newPass = DOMElements.newPassword.value;
-        const confirmPass = DOMElements.confirmNewSpecsPassword.value;
-
-        if (oldPass !== currentManagementPassword) {
-            showModalMessage(DOMElements.passwordChangeMessage, '舊密碼不正確。');
-            return;
+        getLastResults() {
+            return this.lastResults;
         }
-        if (!newPass || newPass.length < 4) {
-            showModalMessage(DOMElements.passwordChangeMessage, '新密碼長度至少需要4位數。');
-            return;
-        }
-        if (newPass !== confirmPass) {
-            showModalMessage(DOMElements.passwordChangeMessage, '新密碼與確認密碼不相符。');
-            return;
-        }
-        currentManagementPassword = newPass;
-        saveDataToLocalStorage();
-        showModalMessage(DOMElements.passwordChangeMessage, '密碼已成功更新！', false);
-    }
+    };
 
-    // --- Helper & Persistence Functions ---
-    
-    function formatCurrency(value, precision = 0, shorthand = false, unitOnly = false) {
-        if (isNaN(value)) return 'N/A';
-        const numberString = value.toLocaleString('en-US', { minimumFractionDigits: precision, maximumFractionDigits: precision });
-        if (unitOnly) return numberString;
+    /**
+     * =================================================================
+     * CHARTS MODULE: Chart.js Integration
+     * Manages the creation and updating of all charts.
+     * =================================================================
+     */
+    const Charts = {
+        instances: {},
 
-        if (shorthand) {
-            if (Math.abs(value) >= 1e6) return `NT$ ${(value / 1e6).toFixed(1)}M`;
-            if (Math.abs(value) >= 1e3) return `NT$ ${(value / 1e3).toFixed(0)}K`;
-        }
-        return `NT$ ${numberString}`;
-    }
-
-    function getNumericValue(id, defaultValue = 0, max = Infinity) {
-        const element = document.getElementById(id);
-        if (!element) return defaultValue;
-        const value = parseFloat(String(element.value).replace(/,/g, ''));
-        return isNaN(value) ? defaultValue : Math.min(value, max);
-    }
-
-    function saveDataToLocalStorage() {
-        const dataToSave = {
-            deviceSpecs: deviceSpecs,
-            calculationParams: calculationParams,
-            currentManagementPassword: currentManagementPassword,
-            currentSpecsPassword: currentSpecsPassword
-        };
-        localStorage.setItem('chargingStationAnalysisData', JSON.stringify(dataToSave));
-    }
-
-    function loadDataFromLocalStorage() {
-        const savedData = localStorage.getItem('chargingStationAnalysisData');
-        if (savedData) {
-            const parsedData = JSON.parse(savedData);
-            Object.assign(deviceSpecs, parsedData.deviceSpecs || {});
-            Object.keys(calculationParams).forEach(key => {
-                if(parsedData.calculationParams && parsedData.calculationParams[key]){
-                    Object.assign(calculationParams[key], parsedData.calculationParams[key]);
+        init() {
+            const commonOptions = {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { callbacks: { label: context => `${context.dataset.label}: ${UI.formatCurrency(context.raw)}` } }
+                }
+            };
+            this.instances.pnl = new Chart(UI.elements.pnlChart, {
+                type: 'bar', data: { labels: [], datasets: [] },
+                options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: value => UI.formatCurrency(value, 0, true) } } } }
+            });
+            this.instances.cumulative = new Chart(UI.elements.cumulativePnlChart, {
+                type: 'line', data: { labels: [], datasets: [] },
+                options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: value => UI.formatCurrency(value, 0, true) } } } }
+            });
+            this.instances.tou = new Chart(UI.elements.touPieChart, {
+                type: 'doughnut', data: { labels: [], datasets: [] },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: context => `${context.label}: ${context.raw}%` } } }
                 }
             });
-            currentManagementPassword = parsedData.currentManagementPassword || '0000';
-            currentSpecsPassword = parsedData.currentSpecsPassword || '0000';
-        }
-    }
+        },
 
-    // --- App Initialization ---
-    loadDataFromLocalStorage();
-    cacheDOMElements();
-    setupEventListeners();
-    initializeUI();
+        update(inputs, results) {
+            if (!this.instances.pnl) this.init();
+
+            const labels = results.annualData.map(d => `第 ${d.year} 年`);
+            
+            this.instances.pnl.data.labels = labels;
+            this.instances.pnl.data.datasets = [
+                { type: 'bar', label: '總營收', data: results.annualData.map(d => d.revenue), backgroundColor: 'rgba(75, 192, 192, 0.6)' },
+                { type: 'bar', label: '總成本', data: results.annualData.map(d => d.cost), backgroundColor: 'rgba(255, 159, 64, 0.6)' },
+                { type: 'line', label: '充電淨利', data: results.annualData.map(d => d.pnl), borderColor: 'rgba(153, 102, 255, 1)', tension: 0.1, fill: false }
+            ];
+            this.instances.pnl.update();
+
+            this.instances.cumulative.data.labels = ['投資額', ...labels];
+            this.instances.cumulative.data.datasets = [{
+                label: '累積稅前淨利', data: [-results.totalInvestment, ...results.annualData.map(d => d.cumulativePnl)],
+                borderColor: 'rgba(54, 162, 235, 1)', tension: 0.1, fill: true,
+                backgroundColor: (context) => {
+                    const { ctx, chartArea, scales } = context.chart;
+                    if (!chartArea) return null;
+                    const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                    const zero = scales.y.getPixelForValue(0);
+                    const zeroPoint = (zero - chartArea.top) / chartArea.height;
+                    if (!isFinite(zeroPoint)) return 'rgba(219, 234, 254, 0.6)';
+                    const clampedZero = Math.max(0, Math.min(1, zeroPoint));
+                    gradient.addColorStop(0, 'rgba(219, 234, 254, 0.6)');
+                    gradient.addColorStop(clampedZero, 'rgba(219, 234, 254, 0.6)');
+                    gradient.addColorStop(clampedZero, 'rgba(254, 226, 226, 0.6)');
+                    gradient.addColorStop(1, 'rgba(254, 226, 226, 0.6)');
+                    return gradient;
+                }
+            }];
+            this.instances.cumulative.update();
+
+            UI.elements.touPieChartContainer.style.display = inputs.billingMethod === 'tou' ? 'block' : 'none';
+            if (inputs.billingMethod === 'tou') {
+                this.instances.tou.data.labels = ['尖峰', '離峰', '假日'];
+                this.instances.tou.data.datasets = [{
+                    data: [inputs.touRatios.peak * 100, inputs.touRatios.offpeak * 100, inputs.touRatios.holiday * 100].map(v => v.toFixed(0)),
+                    backgroundColor: ['#ef4444', '#3b82f6', '#10b981']
+                }];
+                this.instances.tou.update();
+            }
+        }
+    };
+
+    /**
+     * =================================================================
+     * PERSISTENCE MODULE: Local Storage
+     * Handles saving and loading application state to and from
+     * the browser's local storage.
+     * =================================================================
+     */
+    const Persistence = {
+        STORAGE_KEY: 'chargingStationAnalysisData_v5',
+
+        save() {
+            const dataToSave = {
+                deviceSpecs: Config.deviceSpecs,
+                calculationParams: Config.calculationParams,
+                passwords: Config.passwords
+            };
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(dataToSave));
+        },
+
+        load() {
+            const savedData = localStorage.getItem(this.STORAGE_KEY);
+            if (savedData) {
+                const parsedData = JSON.parse(savedData);
+                if (parsedData.deviceSpecs) Object.assign(Config.deviceSpecs, parsedData.deviceSpecs);
+                if (parsedData.calculationParams) {
+                    Object.keys(Config.calculationParams).forEach(key => {
+                        if(parsedData.calculationParams[key]){
+                           Object.assign(Config.calculationParams[key], parsedData.calculationParams[key]);
+                        }
+                    });
+                }
+                if (parsedData.passwords) Object.assign(Config.passwords, parsedData.passwords);
+            }
+        }
+    };
+
+    // --- Initialize the Application ---
+    App.init();
 });
 </script>
 </body>
