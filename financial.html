@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>充電站投資效益分析 (v5.5 - 價格更新)</title>
+    <title>充電站投資效益分析 (v6.5 - 介面調整)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -11,7 +11,7 @@
     <style>
         body {
             font-family: 'Noto Sans TC', 'Inter', sans-serif;
-            background-color: #f1f5f9;
+            background-color: #f8fafc; /* Updated: slate-50 */
         }
         .input-field {
             background-color: white; 
@@ -39,7 +39,6 @@
             color: #374151; 
         }
         .card {
-            background-color: white;
             border-radius: 1rem; 
             box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.07);
             padding: 2rem; 
@@ -69,7 +68,7 @@
             margin-bottom: 0.25rem; 
         }
         .table-header { 
-            background-color: #f3f4f6; 
+            background-color: rgba(0,0,0,0.04);
             color: #374151; 
             font-weight: 700; 
         }
@@ -84,7 +83,7 @@
             text-align: left; 
         }
         #pnlTableBody tr:nth-child(even), #kwhStatsTableBody tr:nth-child(even) {
-            background-color: #f9fafb;
+             background-color: rgba(255, 255, 255, 0.6);
         }
         #pnlTableBody tr.pnl-row:hover, #kwhStatsTableBody tr:hover {
             background-color: #eff6ff; 
@@ -197,6 +196,11 @@
             border-color: #3b82f6;
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
         }
+        .modal-table-input.readonly {
+             background-color: #e5e7eb; 
+            color: #6b7280; 
+            cursor: not-allowed;
+        }
         .modal-action-button {
             background-color: #4f46e5; 
             color: white;
@@ -240,6 +244,53 @@
             vertical-align: middle;
         }
 
+        /* UPDATED: Explainer styles for alignment */
+        #explanationList li {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 1rem;
+        }
+        #explanationList li > div {
+            flex-grow: 1;
+        }
+        #explanationList li > span {
+            flex-shrink: 0;
+            text-align: right;
+        }
+        #explanationList li[data-target] {
+            cursor: pointer;
+            transition: color 0.2s ease, background-color 0.2s ease;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            margin-left: -0.5rem; /* Offset padding */
+        }
+        #explanationList li[data-target]:hover {
+            color: #4f46e5; /* indigo-600 */
+            background-color: #eef2ff; /* indigo-50 */
+        }
+        #explanationModalBody .explainer-grid {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 0 1.5rem;
+            align-items: baseline;
+        }
+        #explanationModalBody .explainer-grid > span { 
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        #explanationModalBody .explainer-grid > span:nth-child(3n+1) { font-weight: 500; color: #374151; }
+        #explanationModalBody .explainer-grid > span:nth-child(3n+2) { color: #6b7280; font-size: 0.875rem; }
+        #explanationModalBody .explainer-grid > span:nth-child(3n+3) { font-weight: 600; text-align: right; }
+        #explanationModalBody .explainer-total {
+            border-top: 2px solid #e5e7eb;
+            font-weight: 700;
+            font-size: 1.125rem;
+            color: #111827;
+            border-bottom: none;
+        }
+
+
         /* Animations */
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -252,14 +303,14 @@
     <div class="max-w-7xl mx-auto">
         <header class="text-center mb-10">
             <h1 class="text-5xl font-extrabold text-gray-800 leading-tight">充電站投資效益分析</h1>
-            <p class="text-xl text-gray-600 mt-3">互動式損益評估工具 (v5.5 - 價格更新)</p>
+            <p class="text-xl text-gray-600 mt-3">互動式損益評估工具 (v6.4 - 參數調整)</p>
         </header>
 
         <!-- Main Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Left Column: Inputs -->
             <div class="lg:col-span-1 flex flex-col gap-6">
-                <div class="card">
+                <div class="card bg-white">
                     <h2 class="text-2xl font-bold text-gray-800 mb-5 pb-3 border-b border-gray-200">設置參數</h2>
                     <div class="space-y-4">
                         <div class="grid grid-cols-3 items-center gap-2">
@@ -281,7 +332,16 @@
                             <span class="label-text">設備殘值</span>
                             <input type="text" id="salvageValueDisplay" class="input-field readonly" readonly>
                         </div>
-                        <hr class="border-gray-200"/>
+                        <div class="grid grid-cols-2 items-center gap-4">
+                            <span class="label-text">基礎設施工程</span>
+                            <input type="text" id="infrastructureCostMain" class="input-field" value="500,000">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card bg-white">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-5 pb-3 border-b border-gray-200">營運與成本假設</h2>
+                    <div class="space-y-4">
                         <div>
                             <span class="label-text mb-3 block">收費方式</span>
                             <div class="flex flex-wrap gap-3">
@@ -327,12 +387,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-5 pb-3 border-b border-gray-200">營運與成本假設</h2>
-                    <div class="space-y-4">
+                        <hr class="border-gray-200"/>
                         <div>
                             <span class="label-text mb-3 block">營收估算方式</span>
                             <div class="flex flex-wrap gap-3">
@@ -356,6 +411,14 @@
                         </div>
                         <div class="grid grid-cols-2 items-center gap-4">
                             <span class="label-text">預計營運期 (年)</span><input type="number" id="operationYears" class="input-field" value="15" min="1">
+                        </div>
+                        <hr class="border-gray-200"/>
+                        <div>
+                            <span class="label-text mb-3 block">折舊攤提方式</span>
+                            <div class="flex flex-wrap gap-3">
+                                <label class="radio-label"><input type="radio" name="depreciationMethod" value="straightLine" checked><span>直線法</span></label>
+                                <label class="radio-label"><input type="radio" name="depreciationMethod" value="syd"><span>年數合計法</span></label>
+                            </div>
                         </div>
                         <div class="grid grid-cols-2 items-center gap-4">
                             <span class="label-text">折舊攤提年限</span><input type="number" id="depreciationYears" class="input-field" value="5" min="1">
@@ -393,23 +456,29 @@
                         <div id="paybackPeriod" class="summary-value">N/A</div>
                     </div>
                 </div>
-                <div class="card">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-5">充電淨利圖表</h2>
+                <div class="card bg-sky-50">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-5">年度充電淨利</h2>
                     <div class="flex-grow h-80">
                         <canvas id="pnlChart"></canvas>
                     </div>
                 </div>
-                <div class="card">
+                <div class="card bg-sky-50">
                     <h2 class="text-2xl font-bold text-gray-800 mb-5">累積損益與回收年限</h2>
                     <div class="flex-grow h-80">
                         <canvas id="cumulativePnlChart"></canvas>
+                    </div>
+                </div>
+                <div class="card bg-sky-50">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-5">年度營收與成本圖表</h2>
+                    <div class="flex-grow h-80">
+                        <canvas id="revenueCostChart"></canvas>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="mt-8 space-y-8">
-            <div class="card">
+            <div class="card bg-teal-50">
                 <div class="flex justify-between items-center cursor-pointer" id="toggleKwhTableBtn">
                     <h2 class="text-2xl font-bold text-gray-800">預估充電度數</h2>
                     <div class="flex items-center gap-4">
@@ -437,7 +506,7 @@
                 </div>
             </div>
 
-            <div class="card">
+            <div class="card bg-teal-50">
                 <div class="flex justify-between items-center mb-5">
                     <h2 class="text-2xl font-bold text-gray-800">充電收支/年</h2>
                     <span class="text-sm font-medium text-gray-500">單位：元</span>
@@ -462,11 +531,23 @@
                     <div class="flex justify-between items-start">
                         <div>
                             <h3 class="text-xl font-bold text-gray-800 mb-3">計算方式說明</h3>
-                            <ul class="list-disc list-inside text-gray-700 space-y-2">
-                                <li><strong>總投資額：</strong> 建置充電站所需的所有初期花費。</li>
-                                <li><strong>總營收：</strong> 依據您選擇的營收模型與需求年增率計算的年度收入。</li>
-                                <li><strong>總成本：</strong> 年度營運的所有開銷，包含電費、維護、租金、金流、保險及折舊。</li>
-                                <li><strong>預計回收年限：</strong> 「累積稅前淨利」由負轉正的年度。</li>
+                            <ul id="explanationList" class="list-disc list-inside text-gray-700 space-y-2">
+                                <li data-target="investment">
+                                    <div><strong>總投資額：</strong>建置充電站所需的所有初期花費。</div>
+                                    <span id="explainerTotalInvestment" class="font-semibold text-blue-700"></span>
+                                </li>
+                                <li data-target="revenue">
+                                    <div><strong>總營收：</strong>年度收入，依營收模型與需求年增率計算。</div>
+                                    <span id="explainerTotalRevenue" class="font-semibold text-green-700"></span>
+                                </li>
+                                <li data-target="cost">
+                                    <div><strong>總成本：</strong>年度營運的所有開銷，含電費、維護、折舊等。</div>
+                                    <span id="explainerTotalCost" class="font-semibold text-red-700"></span>
+                                </li>
+                                <li>
+                                    <div><strong>預計回收年限：</strong>「累積稅前淨利」由負轉正的年度。</div>
+                                    <span id="explainerPaybackPeriod" class="font-semibold text-gray-700"></span>
+                                </li>
                             </ul>
                         </div>
                         <div class="text-right mt-2">
@@ -568,6 +649,20 @@
         </div>
     </div>
 
+    <!-- Explanation Modal -->
+    <div id="explanationModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="explanationModalTitle" class="modal-title">計算方式說明</h3>
+                <button id="closeExplanationModalBtn" class="modal-close-btn">&times;</button>
+            </div>
+            <div id="explanationModalBody" class="mt-4 text-gray-700">
+                <!-- Dynamic content goes here -->
+            </div>
+        </div>
+    </div>
+
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     /**
@@ -593,7 +688,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const inputsToWatch = [
                 'chargeFeePerKwh', 'peakRate', 'offPeakRate', 'holidayRate', 'carsPerGunPerDay', 
                 'kwhPerGunPerMonth', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 
-                'depreciationYears', 'rentPerSpace', 'rentPerLand'
+                'depreciationYears', 'rentPerSpace', 'rentPerLand', 'infrastructureCostMain'
             ];
             inputsToWatch.forEach(id => UI.elements[id]?.addEventListener('input', () => this.update()));
             
@@ -610,7 +705,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             // --- Radio Button Listeners ---
-            document.querySelectorAll('input[name="billingMethod"], input[name="revenueMethod"], input[name="rentMethod"]')
+            document.querySelectorAll('input[name="billingMethod"], input[name="revenueMethod"], input[name="rentMethod"], input[name="depreciationMethod"]')
                 .forEach(radio => radio.addEventListener('change', () => this.update()));
 
             // --- TOU Ratio Listeners ---
@@ -637,8 +732,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 btn.addEventListener('click', UI.handleTabSwitch);
             });
 
+            // --- Explainer Modal Listeners ---
+            UI.elements.explanationList.addEventListener('click', (e) => this.handleExplanationClick(e));
+            UI.elements.closeExplanationModalBtn.addEventListener('click', () => UI.closeModal(UI.elements.explanationModal));
+
+
             // --- Formatting Listeners ---
-            ['kwhPerGunPerMonth', 'rentPerSpace', 'rentPerLand'].forEach(id => {
+            ['kwhPerGunPerMonth', 'rentPerSpace', 'rentPerLand', 'infrastructureCostMain'].forEach(id => {
                 UI.elements[id]?.addEventListener('blur', (e) => UI.formatNumericInput(e.target));
             });
         },
@@ -737,7 +837,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             formulaCheckboxes.forEach(checkbox => {
                 const key = checkbox.dataset.key;
-                if (Config.calculationParams[key] && !Config.calculationParams[key].readonly) {
+                if (Config.calculationParams[key]) { // Allow saving readonly checkbox state
                     Config.calculationParams[key].enabled = checkbox.checked;
                 }
             });
@@ -773,6 +873,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 UI.elements.confirmNewPassword.value = '';
                 UI.elements.passwordChangeMessage.style.display = 'none';
             }, 2000);
+        },
+
+        handleExplanationClick(e) {
+            const targetLi = e.target.closest('li[data-target]');
+            if (!targetLi) return;
+            const type = targetLi.dataset.target;
+            UI.openExplanationModal(type, Calculator.getLastResults(), UI.getInputs());
         }
     };
 
@@ -800,11 +907,11 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         calculationParams: {
             // Initial Investment
-            deviceCost: { value: 0, label: '設備總成本', unit: '元', description: '所有充電樁的含稅總成本。', enabled: true, category: 'investment', readonly: true },
-            lineSubsidyPerKw: { value: 1300, label: '台電線路補助費/kW', unit: '元', description: '台電線補費，每kW收取的一次性費用。', enabled: true, category: 'investment' },
+            deviceCost: { value: 0, label: '設備總成本 (未稅)', unit: '元', description: '所有充電樁的未稅總成本 (自動計算)。', enabled: true, category: 'investment', readonly: true },
+            lineSubsidyPerKw: { value: 500, label: '台電線路補助費/kW', unit: '元', description: '台電線補費，每kW收取的一次性費用。', enabled: true, category: 'investment' },
             technicianFee: { value: 150000, label: '技師簽證費', unit: '元', description: '台電外包技師費用(一次性)。', enabled: true, category: 'investment' },
             distributionPanelFee: { value: 300000, label: '高/低壓配電盤', unit: '元', description: '高壓或低壓配電盤費用(一次性)。', enabled: true, category: 'investment' },
-            constructionFee: { value: 500000, label: '基礎設施工程', unit: '元', description: '場地土木、基礎、裝修等工程費用(一次性)。', enabled: true, category: 'investment' },
+            constructionFee: { value: 500000, label: '基礎設施工程', unit: '元', description: '場地土木、基礎、裝修等工程費用(一次性)。', enabled: true, category: 'investment', readonly: true },
             meterFeeBase: { value: 12000, label: '電錶費用(基本)', unit: '元', description: '台電電表基本費用(僅DC樁, 一次性)。', enabled: true, category: 'investment' },
             meterFeePerGun: { value: 1400, label: '電錶費用/槍', unit: '元', description: '每增加一槍的電表費用(僅DC樁, 一次性)。', enabled: true, category: 'investment' },
             taxRate: { value: 0.05, label: '營業稅率', unit: '%', description: '設備購買及相關服務的營業稅率。', enabled: true, category: 'investment' },
@@ -845,6 +952,7 @@ document.addEventListener('DOMContentLoaded', function () {
         cacheDOMElements() {
             const ids = [
                 'devicePowerSelect', 'pileCountGroup', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay',
+                'infrastructureCostMain',
                 'chargeFeePerKwh', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDay', 'kwhPerGunPerMonth',
                 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears',
                 'fixedRateSection', 'touRateSection',
@@ -852,12 +960,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'cumulativePnlChart', 'touPieChart',
                 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio',
                 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'pnlChart',
+                'revenueCostChart', // NEW
                 // Advanced Modal
                 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn',
                 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage',
                 'advancedContentSection', 'specsModalTableBody', 'formulaContainer',
                 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage',
-                'saveAdvancedBtn'
+                'saveAdvancedBtn',
+                // Explainer
+                'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost',
+                'explainerPaybackPeriod', // NEW
+                'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn'
             ];
             ids.forEach(id => this.elements[id] = document.getElementById(id));
         },
@@ -930,6 +1043,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 demandGrowthRate: this.getNumericValue('demandGrowthRate') / 100,
                 operationYears: this.getNumericValue('operationYears', 1),
                 depreciationYears: this.getNumericValue('depreciationYears', 1),
+                depreciationMethod: document.querySelector('input[name="depreciationMethod"]:checked').value,
+                infrastructureCostMain: this.getNumericValue('infrastructureCostMain'),
                 rentMethod, rentPerSpace, rentPerLand,
                 touRatios: {
                     peak: this.getNumericValue('peakUsageRatio') / 100,
@@ -1036,6 +1151,28 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td class="table-cell font-semibold ${data.cumulativePnl >= 0 ? 'text-blue-600' : 'text-orange-600'}">${this.formatCurrency(data.cumulativePnl, 0, false, true)}</td>
                 </tr>
             `);
+
+            // Update explainer section
+            this.elements.explainerTotalInvestment.textContent = this.formatCurrency(results.totalInvestment);
+            const firstYearData = results.annualData[0];
+            if (firstYearData) {
+                this.elements.explainerTotalRevenue.textContent = `${this.formatCurrency(firstYearData.revenue)} (第一年)`;
+                this.elements.explainerTotalCost.textContent = `${this.formatCurrency(firstYearData.cost)} (第一年)`;
+            } else {
+                this.elements.explainerTotalRevenue.textContent = 'N/A';
+                this.elements.explainerTotalCost.textContent = 'N/A';
+            }
+            this.elements.explainerPaybackPeriod.textContent = results.paybackPeriod;
+
+            // Update advanced settings modal if it's open
+            const advancedDeviceCostInput = document.getElementById('input_deviceCost');
+            if(advancedDeviceCostInput) {
+                advancedDeviceCostInput.value = this.formatCurrency(results.costBreakdown.totalDeviceCostUntaxed, 0, false, true);
+            }
+            const advancedInfraCostInput = document.getElementById('input_constructionFee');
+            if(advancedInfraCostInput) {
+                advancedInfraCostInput.value = this.formatCurrency(inputs.infrastructureCostMain, 0, false, true);
+            }
         },
         
         populateTable(tbody, data, rowTemplate) {
@@ -1101,9 +1238,12 @@ document.addEventListener('DOMContentLoaded', function () {
         openModal(modal) { modal.style.display = 'flex'; },
         closeModal(modal) {
             modal.style.display = 'none';
-            this.showAdvancedContent(false);
-            this.elements.advancedPassword.value = '';
-            this.showModalMessage(this.elements.advancedMessage, '', false, true);
+            // Specific cleanup for advanced modal
+            if (modal.id === 'advancedModal') {
+                this.showAdvancedContent(false);
+                this.elements.advancedPassword.value = '';
+                this.showModalMessage(this.elements.advancedMessage, '', false, true);
+            }
         },
         showModalMessage(element, message, isError = true, hide = false) {
             if (hide) {
@@ -1213,6 +1353,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const container = this.elements.formulaContainer;
             container.innerHTML = '';
             const categories = { investment: '總投資額項目', annual: '年度成本項目' };
+            const lastResults = Calculator.getLastResults();
+            const inputs = this.getInputs();
 
             Object.keys(categories).forEach(catKey => {
                 const header = document.createElement('h5');
@@ -1223,17 +1365,31 @@ document.addEventListener('DOMContentLoaded', function () {
                 Object.entries(calculationParams).forEach(([key, param]) => {
                     if (param.category === catKey) {
                         const isPercentage = param.unit === '%';
-                        const displayValue = isPercentage ? param.value * 100 : param.value;
-                        const formattedValue = isPercentage ? displayValue : displayValue.toLocaleString('en-US', {maximumFractionDigits: 2});
+                        
+                        let formattedValue;
+                        let isReadonly = param.readonly || false;
+                        let customClass = isReadonly ? 'readonly' : '';
+                        
+                        if (key === 'deviceCost') {
+                            const untaxedCost = lastResults.costBreakdown ? lastResults.costBreakdown.totalDeviceCostUntaxed : 0;
+                            formattedValue = this.formatCurrency(untaxedCost, 0, false, true);
+                        } else if (key === 'constructionFee') {
+                            formattedValue = this.formatCurrency(inputs.infrastructureCostMain, 0, false, true);
+                        }
+                        else {
+                            const displayValue = isPercentage ? param.value * 100 : param.value;
+                            formattedValue = isPercentage ? displayValue : displayValue.toLocaleString('en-US', {maximumFractionDigits: 2});
+                        }
+
                         container.insertAdjacentHTML('beforeend', `
                             <div class="grid grid-cols-1 md:grid-cols-12 items-center gap-2 border-b border-gray-100 pb-3">
                                 <div class="md:col-span-4 flex items-center">
-                                    <input type="checkbox" id="check_${key}" data-key="${key}" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-3" ${param.enabled ? 'checked' : ''} ${param.readonly ? 'disabled' : ''}>
+                                    <input type="checkbox" id="check_${key}" data-key="${key}" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-3" ${param.enabled ? 'checked' : ''}>
                                     <label for="check_${key}" class="font-medium text-gray-800">${param.label}</label>
                                 </div>
                                 <div class="md:col-span-5"><p class="text-sm text-gray-500">${param.description}</p></div>
                                 <div class="md:col-span-3 flex items-center">
-                                    <input type="text" id="input_${key}" data-key="${key}" value="${formattedValue}" class="modal-table-input flex-grow" ${param.readonly ? 'readonly' : ''}>
+                                    <input type="text" id="input_${key}" data-key="${key}" value="${formattedValue}" class="modal-table-input ${customClass}" ${isReadonly ? 'readonly' : ''}>
                                     <span class="ml-2 text-gray-600 w-10 text-left">${param.unit}</span>
                                 </div>
                             </div>`);
@@ -1248,7 +1404,7 @@ document.addEventListener('DOMContentLoaded', function () {
             container.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
                 checkbox.addEventListener('change', (e) => {
                     const key = e.target.dataset.key;
-                    if (Config.calculationParams[key] && !Config.calculationParams[key].readonly) {
+                    if (Config.calculationParams[key]) {
                         Config.calculationParams[key].enabled = e.target.checked;
                         Persistence.save();
                         App.update();
@@ -1307,6 +1463,65 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 });
             });
+        },
+        openExplanationModal(type, results, inputs) {
+            const { calculationParams } = Config;
+            const body = this.elements.explanationModalBody;
+            let title = '';
+            let contentHtml = '';
+            const firstYearData = results.annualData[0];
+
+            const buildGrid = (items, total) => {
+                let gridHtml = '<div class="explainer-grid">';
+                items.forEach(item => {
+                    gridHtml += `
+                        <span>${item.label}</span>
+                        <span>${item.formula}</span>
+                        <span>${this.formatCurrency(item.value)}</span>
+                    `;
+                });
+                gridHtml += `
+                    <span class="explainer-total">總計</span>
+                    <span class="explainer-total"></span>
+                    <span class="explainer-total">${this.formatCurrency(total)}</span>
+                `;
+                gridHtml += '</div>';
+                return gridHtml;
+            };
+
+            switch (type) {
+                case 'investment':
+                    title = '總投資額 計算說明';
+                    const investmentItems = Calculator.getInvestmentBreakdown(inputs, calculationParams);
+                    contentHtml = buildGrid(investmentItems, results.totalInvestment);
+                    break;
+
+                case 'revenue':
+                    title = '總營收 計算說明 (第一年)';
+                    if (firstYearData) {
+                        const revenueItems = Calculator.getRevenueBreakdown(firstYearData, inputs);
+                        contentHtml = buildGrid(revenueItems, firstYearData.revenue);
+                    } else {
+                        contentHtml = '<p>尚無第一年資料可供計算。</p>';
+                    }
+                    break;
+
+                case 'cost':
+                    title = '總成本 計算說明 (第一年)';
+                    if (firstYearData) {
+                        const totalKwhSold_yr1 = firstYearData.kwhPerYear;
+                        const numberOfTransactions_yr1 = inputs.avgKwhPerCar > 0 ? totalKwhSold_yr1 / inputs.avgKwhPerCar : 0;
+                        const costItems = Calculator.getCostBreakdown(results, inputs, 1, totalKwhSold_yr1, numberOfTransactions_yr1);
+                        contentHtml = buildGrid(costItems, firstYearData.cost);
+                    } else {
+                        contentHtml = '<p>尚無第一年資料可供計算。</p>';
+                    }
+                    break;
+            }
+
+            this.elements.explanationModalTitle.textContent = title;
+            body.innerHTML = contentHtml;
+            this.openModal(this.elements.explanationModal);
         }
     };
 
@@ -1331,36 +1546,17 @@ document.addEventListener('DOMContentLoaded', function () {
             };
 
             // --- Step 1: Calculate Initial Investment ---
-            const taxRate = params.taxRate.enabled ? params.taxRate.value : 0;
-            let totalDeviceCostUntaxed = 0;
-            let totalSalvageValue = 0;
-
-            if (inputs.spec.type === 'DC_360') {
-                totalDeviceCostUntaxed = (inputs.cabinetCount * inputs.spec.cabinetCost) + (inputs.gunCount * inputs.spec.terminalCost);
-                totalSalvageValue = (inputs.cabinetCount * inputs.spec.cabinetSalvage) + (inputs.gunCount * inputs.spec.terminalSalvage);
-            } else {
-                totalDeviceCostUntaxed = inputs.pileCount * inputs.spec.cost;
-                totalSalvageValue = inputs.pileCount * inputs.spec.salvage;
-            }
+            const investmentBreakdown = this.getInvestmentBreakdown(inputs, params);
+            results.totalInvestment = investmentBreakdown.reduce((sum, item) => sum + item.value, 0);
+            const equipmentCostItem = investmentBreakdown.find(i => i.key === 'deviceCost');
+            results.costBreakdown = { 
+                equipmentCost: equipmentCostItem ? equipmentCostItem.value : 0,
+                totalDeviceCostUntaxed: equipmentCostItem ? equipmentCostItem.untaxedValue : 0,
+                totalSalvageValue: this.calculateSalvageValue(inputs, deviceSpecs)
+            };
             
-            const totalDeviceCostTaxed = totalDeviceCostUntaxed * (1 + taxRate);
-            const totalPowerKw = inputs.spec.type === 'DC_360' ? inputs.cabinetCount * inputs.spec.power : inputs.pileCount * inputs.spec.power;
-            
-            let totalInvestment = 0;
-            if(params.deviceCost.enabled) totalInvestment += totalDeviceCostTaxed;
-            if(params.lineSubsidyPerKw.enabled) totalInvestment += params.lineSubsidyPerKw.value * totalPowerKw;
-            if(params.technicianFee.enabled) totalInvestment += params.technicianFee.value;
-            if(params.distributionPanelFee.enabled) totalInvestment += params.distributionPanelFee.value;
-            if(params.constructionFee.enabled) totalInvestment += params.constructionFee.value;
-            if (inputs.spec.type.startsWith('DC')) {
-                if(params.meterFeeBase.enabled) totalInvestment += params.meterFeeBase.value;
-                if(params.meterFeePerGun.enabled) totalInvestment += params.meterFeePerGun.value * inputs.gunCount;
-            }
-            results.totalInvestment = totalInvestment;
-            results.costBreakdown = { equipmentCost: totalDeviceCostTaxed, totalSalvageValue };
-
             // --- Step 2: Calculate Annual P&L ---
-            let cumulativePnl = -totalInvestment;
+            let cumulativePnl = -results.totalInvestment;
             let paybackFound = false;
 
             for (let year = 1; year <= inputs.operationYears; year++) {
@@ -1378,46 +1574,27 @@ document.addEventListener('DOMContentLoaded', function () {
                 const revenue = totalKwhSold * results.avgChargeFee;
 
                 // Calculate annual costs
-                const p = params; // shorthand
-                const electricityCost = totalKwhSold * (p.taipowerFee.enabled ? p.taipowerFee.value : 0) * (1 + (p.powerLossRate.enabled ? p.powerLossRate.value : 0));
-                let rentCost = 0;
-                if (inputs.rentMethod === 'bySpace') rentCost = inputs.rentPerSpace * inputs.parkingSpaces * 12;
-                if (inputs.rentMethod === 'byLand') rentCost = inputs.rentPerLand * 12;
-
-                const annualVariableCosts = {
-                    '台電電費': electricityCost,
-                    [p.transactionFeeRate.label]: p.transactionFeeRate.enabled ? revenue * p.transactionFeeRate.value : 0,
-                    [p.electronicInvoiceFeePerTransaction.label]: p.electronicInvoiceFeePerTransaction.enabled ? numberOfTransactions * p.electronicInvoiceFeePerTransaction.value : 0,
-                    [p.repairPartsRate.label]: p.repairPartsRate.enabled ? totalDeviceCostTaxed * p.repairPartsRate.value : 0,
-                };
-                const annualFixedCosts = {
-                    [p.electricalTechnicianFee.label]: p.electricalTechnicianFee.enabled ? p.electricalTechnicianFee.value : 0,
-                    [p.maintenanceFee.label]: p.maintenanceFee.enabled ? p.maintenanceFee.value : 0,
-                    [p.insuranceFee.label]: p.insuranceFee.enabled ? p.insuranceFee.value : 0,
-                    [p.extendedWarrantyPerPile.label]: p.extendedWarrantyPerPile.enabled ? inputs.pileCount * p.extendedWarrantyPerPile.value : 0,
-                    [p.laborCost.label]: p.laborCost.enabled ? p.laborCost.value : 0,
-                    '網路費': p.internetFee.enabled ? p.internetFee.value * 12 : 0,
-                    'TDX上傳費': p.tdxUploadFee.enabled ? p.tdxUploadFee.value * inputs.gunCount * 12 : 0,
-                    '租金': rentCost,
-                };
-                const depreciation = (year <= inputs.depreciationYears) ? (totalDeviceCostTaxed - totalSalvageValue) / inputs.depreciationYears : 0;
-                
-                const allCosts = { ...annualVariableCosts, ...annualFixedCosts, '折舊': depreciation };
-                const totalAnnualCost = Object.values(allCosts).reduce((sum, cost) => sum + cost, 0);
+                const costBreakdown = this.getCostBreakdown(results, inputs, year, totalKwhSold, numberOfTransactions);
+                const totalAnnualCost = costBreakdown.reduce((sum, item) => sum + item.value, 0);
                 
                 const pnl = revenue - totalAnnualCost;
                 cumulativePnl += pnl;
 
                 // Store annual data
+                const detailsCosts = costBreakdown.reduce((obj, item) => {
+                    obj[item.label] = item.value;
+                    return obj;
+                }, {});
+
                 results.annualData.push({
                     year, revenue, cost: totalAnnualCost, pnl, cumulativePnl,
                     kwhPerYear: totalKwhSold, kwhPerMonth: totalKwhSold / 12, kwhPerDay: totalKwhSold / 365,
-                    details: { revenue: {'充電總度數 (kWh)': totalKwhSold, '平均每度收費': results.avgChargeFee, '總營收': revenue}, costs: allCosts }
+                    details: { revenue: {'充電總度數 (kWh)': totalKwhSold, '平均每度收費': results.avgChargeFee, '總營收': revenue}, costs: detailsCosts }
                 });
 
                 // Check for payback period
                 if (cumulativePnl >= 0 && !paybackFound) {
-                    const prevCumulativePnl = results.annualData[year - 2]?.cumulativePnl || -totalInvestment;
+                    const prevCumulativePnl = results.annualData[year - 2]?.cumulativePnl || -results.totalInvestment;
                     const fractionOfYear = pnl > 0 ? (-prevCumulativePnl / pnl) : 0;
                     results.paybackPeriod = `${(year - 1 + fractionOfYear).toFixed(1)} 年`;
                     paybackFound = true;
@@ -1427,6 +1604,124 @@ document.addEventListener('DOMContentLoaded', function () {
             this.lastResults = results;
             return results;
         },
+
+        calculateSalvageValue(inputs, deviceSpecs) {
+            if (inputs.spec.type === 'DC_360') {
+                return (inputs.cabinetCount * inputs.spec.cabinetSalvage) + (inputs.gunCount * inputs.spec.terminalSalvage);
+            } else {
+                return inputs.pileCount * inputs.spec.salvage;
+            }
+        },
+
+        getInvestmentBreakdown(inputs, params) {
+            const items = [];
+            const { spec, pileCount, gunCount, cabinetCount } = inputs;
+            const taxRate = params.taxRate.enabled ? params.taxRate.value : 0;
+            const isAC = spec.type === 'AC';
+
+            let totalDeviceCostUntaxed = 0;
+            if (spec.type === 'DC_360') {
+                totalDeviceCostUntaxed = (cabinetCount * spec.cabinetCost) + (gunCount * spec.terminalCost);
+            } else {
+                totalDeviceCostUntaxed = pileCount * spec.cost;
+            }
+            const totalDeviceCostTaxed = totalDeviceCostUntaxed * (1 + taxRate);
+            if (params.deviceCost.enabled) items.push({ key: 'deviceCost', label: '設備總成本 (含稅)', value: totalDeviceCostTaxed, untaxedValue: totalDeviceCostUntaxed, formula: `(${UI.formatCurrency(totalDeviceCostUntaxed,0,false,true)}) x (1 + ${taxRate*100}%)`});
+            
+            if (!isAC) {
+                const totalPowerKw = spec.type === 'DC_360' ? cabinetCount * spec.power : pileCount * spec.power;
+                if (params.lineSubsidyPerKw.enabled) items.push({ key: 'lineSubsidyPerKw', label: params.lineSubsidyPerKw.label, value: params.lineSubsidyPerKw.value * totalPowerKw, formula: `${UI.formatCurrency(params.lineSubsidyPerKw.value,0,false,true)} x ${totalPowerKw} kW`});
+                if (params.technicianFee.enabled) items.push({ key: 'technicianFee', label: params.technicianFee.label, value: params.technicianFee.value, formula: '一次性費用' });
+                if (spec.type.startsWith('DC')) {
+                    if (params.meterFeeBase.enabled) items.push({ key: 'meterFeeBase', label: params.meterFeeBase.label, value: params.meterFeeBase.value, formula: '一次性費用' });
+                    if (params.meterFeePerGun.enabled) items.push({ key: 'meterFeePerGun', label: params.meterFeePerGun.label, value: params.meterFeePerGun.value * gunCount, formula: `${UI.formatCurrency(params.meterFeePerGun.value,0,false,true)} x ${gunCount} 槍` });
+                }
+            }
+
+            if (params.distributionPanelFee.enabled) {
+                const fee = isAC ? 30000 : params.distributionPanelFee.value;
+                const formula = isAC ? 'AC 專案費用' : '一次性費用';
+                items.push({ key: 'distributionPanelFee', label: params.distributionPanelFee.label, value: fee, formula: formula });
+            }
+
+            if (params.constructionFee.enabled) items.push({ key: 'constructionFee', label: params.constructionFee.label, value: inputs.infrastructureCostMain, formula: '由主畫面輸入' });
+            
+            return items;
+        },
+
+        getRevenueBreakdown(yearData, inputs) {
+            const items = [];
+            items.push({ label: '充電服務費', value: yearData.revenue, formula: `${UI.formatCurrency(yearData.kwhPerYear,0,false,true)} kWh x ${UI.formatCurrency(yearData.details.revenue['平均每度收費'],2,false,true)} 元/kWh` });
+            return items;
+        },
+
+        getCostBreakdown(results, inputs, year, totalKwhSold, numberOfTransactions) {
+            const items = [];
+            const p = Config.calculationParams;
+            const revenue = totalKwhSold * results.avgChargeFee;
+
+            if (p.taipowerFee.enabled) {
+                const val = totalKwhSold * p.taipowerFee.value * (1 + (p.powerLossRate.enabled ? p.powerLossRate.value : 0));
+                items.push({ label: p.taipowerFee.label, value: val, formula: `${UI.formatCurrency(totalKwhSold,0,false,true)} kWh x ${p.taipowerFee.value}元 x (1 + ${p.powerLossRate.value*100}%)` });
+            }
+            if (p.transactionFeeRate.enabled) {
+                items.push({ label: p.transactionFeeRate.label, value: revenue * p.transactionFeeRate.value, formula: `${UI.formatCurrency(revenue)} x ${p.transactionFeeRate.value*100}%` });
+            }
+            if (p.electronicInvoiceFeePerTransaction.enabled) {
+                items.push({ label: p.electronicInvoiceFeePerTransaction.label, value: numberOfTransactions * p.electronicInvoiceFeePerTransaction.value, formula: `${UI.formatCurrency(numberOfTransactions,0,false,true)} 張 x ${p.electronicInvoiceFeePerTransaction.value} 元` });
+            }
+            if (p.repairPartsRate.enabled) {
+                items.push({ label: p.repairPartsRate.label, value: results.costBreakdown.equipmentCost * p.repairPartsRate.value, formula: `${UI.formatCurrency(results.costBreakdown.equipmentCost)} x ${p.repairPartsRate.value*100}%` });
+            }
+            if (p.electricalTechnicianFee.enabled && inputs.spec.type !== 'AC') {
+                 items.push({ label: p.electricalTechnicianFee.label, value: p.electricalTechnicianFee.value, formula: '固定年費' });
+            }
+            if (p.maintenanceFee.enabled) items.push({ label: p.maintenanceFee.label, value: p.maintenanceFee.value, formula: '固定年費' });
+            if (p.insuranceFee.enabled) items.push({ label: p.insuranceFee.label, value: p.insuranceFee.value, formula: '固定年費' });
+            if (p.extendedWarrantyPerPile.enabled) {
+                items.push({ label: p.extendedWarrantyPerPile.label, value: inputs.pileCount * p.extendedWarrantyPerPile.value, formula: `${UI.formatCurrency(p.extendedWarrantyPerPile.value,0,false,true)} x ${inputs.pileCount} 樁` });
+            }
+            if (p.laborCost.enabled) items.push({ label: p.laborCost.label, value: p.laborCost.value, formula: '固定年費' });
+            if (p.internetFee.enabled) {
+                 items.push({ label: '網路費', value: p.internetFee.value * 12, formula: `${UI.formatCurrency(p.internetFee.value,0,false,true)} x 12 個月` });
+            }
+            if (p.tdxUploadFee.enabled) {
+                items.push({ label: 'TDX上傳費', value: p.tdxUploadFee.value * inputs.gunCount * 12, formula: `${UI.formatCurrency(p.tdxUploadFee.value,0,false,true)} x ${inputs.gunCount} 槍 x 12 個月` });
+            }
+            if (inputs.rentMethod !== 'none') {
+                let rentCost = 0;
+                let formula = '';
+                if (inputs.rentMethod === 'bySpace') {
+                    rentCost = inputs.rentPerSpace * inputs.parkingSpaces * 12;
+                    formula = `${UI.formatCurrency(inputs.rentPerSpace,0,false,true)} x ${inputs.parkingSpaces} 車位 x 12 個月`;
+                } else {
+                    rentCost = inputs.rentPerLand * 12;
+                    formula = `${UI.formatCurrency(inputs.rentPerLand,0,false,true)} x 12 個月`;
+                }
+                items.push({ label: '租金', value: rentCost, formula });
+            }
+            
+            // Depreciation Calculation
+            if (year <= inputs.depreciationYears) {
+                const depreciableBase = results.totalInvestment - results.costBreakdown.totalSalvageValue;
+                let depreciation = 0;
+                let formula = '';
+                if (inputs.depreciationMethod === 'straightLine') {
+                    depreciation = depreciableBase / inputs.depreciationYears;
+                    formula = `(${UI.formatCurrency(results.totalInvestment)} - ${UI.formatCurrency(results.costBreakdown.totalSalvageValue)}) / ${inputs.depreciationYears} 年`;
+                } else { // syd
+                    const n = inputs.depreciationYears;
+                    const sydDenominator = n * (n + 1) / 2;
+                    const remainingLife = n - year + 1;
+                    depreciation = depreciableBase * (remainingLife / sydDenominator);
+                    formula = `(${UI.formatCurrency(results.totalInvestment)} - ${UI.formatCurrency(results.costBreakdown.totalSalvageValue)}) x ${remainingLife}/${sydDenominator}`;
+                }
+                items.push({ label: '折舊', value: depreciation, formula });
+            }
+
+            return items;
+        },
+
 
         getLastResults() {
             return this.lastResults;
@@ -1443,21 +1738,43 @@ document.addEventListener('DOMContentLoaded', function () {
         instances: {},
 
         init() {
+            const yAxisTickFormatter = (value) => {
+                if (isNaN(value) || value === null) return '';
+                const num = Number(value);
+                if (Math.abs(num) >= 1e6) return `${(num / 1e6).toFixed(1)}M`;
+                if (Math.abs(num) >= 1e3) return `${(num / 1e3).toFixed(0)}K`;
+                return num.toLocaleString('en-US');
+            };
+
             const commonOptions = {
                 responsive: true, maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
                 plugins: {
                     legend: { position: 'top' },
-                    tooltip: { callbacks: { label: context => `${context.dataset.label}: ${UI.formatCurrency(context.raw)}` } }
+                    tooltip: { callbacks: { label: context => `${context.dataset.label}: ${UI.formatCurrency(context.raw)}` } },
+                    title: {
+                        display: true,
+                        text: '單位：元',
+                        position: 'top',
+                        align: 'start',
+                        font: {
+                            weight: 'normal'
+                        },
+                        color: '#6b7280'
+                    }
                 }
             };
             this.instances.pnl = new Chart(UI.elements.pnlChart, {
                 type: 'bar', data: { labels: [], datasets: [] },
-                options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: value => UI.formatCurrency(value, 0, true) } } } }
+                options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } }
+            });
+            this.instances.revenueCost = new Chart(UI.elements.revenueCostChart, {
+                type: 'bar', data: { labels: [], datasets: [] },
+                options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } }
             });
             this.instances.cumulative = new Chart(UI.elements.cumulativePnlChart, {
                 type: 'line', data: { labels: [], datasets: [] },
-                options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: value => UI.formatCurrency(value, 0, true) } } } }
+                options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } }
             });
             this.instances.tou = new Chart(UI.elements.touPieChart, {
                 type: 'doughnut', data: { labels: [], datasets: [] },
@@ -1473,14 +1790,28 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const labels = results.annualData.map(d => `第 ${d.year} 年`);
             
+            // PNL Chart (Only Net Profit)
             this.instances.pnl.data.labels = labels;
             this.instances.pnl.data.datasets = [
-                { type: 'bar', label: '總營收', data: results.annualData.map(d => d.revenue), backgroundColor: 'rgba(75, 192, 192, 0.6)' },
-                { type: 'bar', label: '總成本', data: results.annualData.map(d => d.cost), backgroundColor: 'rgba(255, 159, 64, 0.6)' },
-                { type: 'line', label: '充電淨利', data: results.annualData.map(d => d.pnl), borderColor: 'rgba(153, 102, 255, 1)', tension: 0.1, fill: false }
+                { 
+                    label: '充電淨利', 
+                    data: results.annualData.map(d => d.pnl), 
+                    backgroundColor: results.annualData.map(d => d.pnl >= 0 ? 'rgba(22, 163, 74, 0.6)' : 'rgba(220, 38, 38, 0.6)'),
+                    borderColor: results.annualData.map(d => d.pnl >= 0 ? 'rgba(22, 163, 74, 1)' : 'rgba(220, 38, 38, 1)'),
+                    borderWidth: 1
+                }
             ];
             this.instances.pnl.update();
 
+            // Revenue vs Cost Chart
+            this.instances.revenueCost.data.labels = labels;
+            this.instances.revenueCost.data.datasets = [
+                { label: '總營收', data: results.annualData.map(d => d.revenue), backgroundColor: 'rgba(75, 192, 192, 0.6)' },
+                { label: '總成本', data: results.annualData.map(d => d.cost), backgroundColor: 'rgba(255, 159, 64, 0.6)' }
+            ];
+            this.instances.revenueCost.update();
+
+            // Cumulative PNL Chart
             this.instances.cumulative.data.labels = ['投資額', ...labels];
             this.instances.cumulative.data.datasets = [{
                 label: '累積稅前淨利', data: [-results.totalInvestment, ...results.annualData.map(d => d.cumulativePnl)],
@@ -1502,6 +1833,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }];
             this.instances.cumulative.update();
 
+            // TOU Pie Chart
             UI.elements.touPieChartContainer.style.display = inputs.billingMethod === 'tou' ? 'block' : 'none';
             if (inputs.billingMethod === 'tou') {
                 this.instances.tou.data.labels = ['尖峰', '離峰', '假日'];
@@ -1522,7 +1854,7 @@ document.addEventListener('DOMContentLoaded', function () {
      * =================================================================
      */
     const Persistence = {
-        STORAGE_KEY: 'chargingStationAnalysisData_v5',
+        STORAGE_KEY: 'chargingStationAnalysisData_v6.2', // Updated version key
 
         save() {
             const dataToSave = {
