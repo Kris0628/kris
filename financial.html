@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>充電站投資效益分析 (v6.9 - 介面優化)</title>
+    <title>充電站投資效益分析 (v7.0 - 智慧限制)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -55,12 +55,17 @@
             box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
         }
         .summary-value {
-            font-size: 1.75rem; /* text-2xl */
+            font-size: 2.25rem; /* text-4xl */
             font-weight: 700;
             line-height: 1.2;
         }
+        .summary-value .unit {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 500;
+            margin-left: 0.25rem;
+        }
         .summary-label {
-            font-size: 1rem; /* text-base */
+            font-size: 1.25rem; /* text-xl */
             opacity: 0.9;
             font-weight: 500; 
             margin-bottom: 0.5rem; 
@@ -456,7 +461,7 @@
                     </div>
                     <div class="summary-card">
                         <div class="summary-label">營運年期</div>
-                        <div id="operationPeriodSummary" class="summary-value">0 年</div>
+                        <div id="operationPeriodSummary" class="summary-value">0<span class="unit"> 年</span></div>
                     </div>
                     <div class="summary-card">
                         <div class="summary-label">預計回收年限</div>
@@ -464,11 +469,11 @@
                     </div>
                     <div class="summary-card">
                         <div class="summary-label">ROI (投資報酬率)</div>
-                        <div id="roiSummary" class="summary-value">0%</div>
+                        <div id="roiSummary" class="summary-value">0<span class="unit">%</span></div>
                     </div>
                     <div class="summary-card">
                         <div class="summary-label">IRR (內部報酬率)</div>
-                        <div id="irrSummary" class="summary-value">0%</div>
+                        <div id="irrSummary" class="summary-value">0<span class="unit">%</span></div>
                     </div>
                 </div>
                 <div class="card bg-sky-50">
@@ -764,16 +769,22 @@ document.addEventListener('DOMContentLoaded', function () {
         update() {
             const inputs = UI.getInputs(this.previousRentValues);
             
+            // Apply special logic for AC 7kW
+            UI.applyAcLimitations(inputs.spec.type === 'AC');
+
+            // Re-get inputs after potential limitations
+            const finalInputs = UI.getInputs(this.previousRentValues);
+            
             // Update linked inputs (e.g., cars vs. kWh)
-            UI.updateLinkedInputs(inputs);
+            UI.updateLinkedInputs(finalInputs);
             
             // Store previous rent values for smart restoration
-            if (inputs.rentMethod === 'bySpace') this.previousRentValues.bySpace = inputs.rentPerSpace;
-            if (inputs.rentMethod === 'byLand') this.previousRentValues.byLand = inputs.rentPerLand;
+            if (finalInputs.rentMethod === 'bySpace') this.previousRentValues.bySpace = finalInputs.rentPerSpace;
+            if (finalInputs.rentMethod === 'byLand') this.previousRentValues.byLand = finalInputs.rentPerLand;
             
-            const results = Calculator.run(inputs, Config.calculationParams, Config.deviceSpecs);
-            UI.updateDisplay(inputs, results);
-            Charts.update(inputs, results);
+            const results = Calculator.run(finalInputs, Config.calculationParams, Config.deviceSpecs);
+            UI.updateDisplay(finalInputs, results);
+            Charts.update(finalInputs, results);
         },
 
         /**
@@ -1132,6 +1143,36 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         },
         
+        applyAcLimitations(isAC) {
+            const demandInput = this.elements.demandGrowthRate;
+            const carsInput = this.elements.carsPerGunPerDay;
+            const kwhInput = this.elements.kwhPerGunPerMonth;
+
+            if (isAC) {
+                if (this.getNumericValue('demandGrowthRate') > 5) {
+                    demandInput.value = 5;
+                }
+                demandInput.readOnly = true;
+                demandInput.classList.add('readonly');
+
+                if (this.getNumericValue('carsPerGunPerDay') > 2) {
+                    carsInput.value = 2;
+                }
+                carsInput.max = 2;
+
+                if (this.getNumericValue('kwhPerGunPerMonth') > 1000) {
+                    kwhInput.value = 1000;
+                }
+                kwhInput.max = 1000;
+
+            } else {
+                demandInput.readOnly = false;
+                demandInput.classList.remove('readonly');
+                carsInput.removeAttribute('max');
+                kwhInput.removeAttribute('max');
+            }
+        },
+
         updateLinkedInputs(inputs) {
             if (inputs.revenueMethod === 'byCars') {
                 const calculatedKwh = inputs.carsPerGunPerDay * inputs.avgKwhPerCar * 30;
@@ -1146,12 +1187,12 @@ document.addEventListener('DOMContentLoaded', function () {
             this.updateUIVisibility();
 
             // Update summary cards
-            this.elements.totalInvestment.textContent = this.formatCurrency(results.totalInvestment);
-            this.elements.paybackPeriod.textContent = results.paybackPeriod;
-            this.elements.operationPeriodSummary.textContent = `${inputs.operationYears} 年`;
-            this.elements.totalRevenueSummary.textContent = this.formatCurrency(results.totalChargingRevenue);
-            this.elements.roiSummary.textContent = isNaN(results.roi) ? 'N/A' : `${results.roi.toFixed(1)}%`;
-            this.elements.irrSummary.textContent = isNaN(results.irr) ? 'N/A' : `${results.irr.toFixed(2)}%`;
+            this.elements.totalInvestment.innerHTML = this.formatCurrency(results.totalInvestment).replace('NT$ ', '');
+            this.elements.paybackPeriod.innerHTML = results.paybackPeriod.replace(' 年', '<span class="unit"> 年</span>');
+            this.elements.operationPeriodSummary.innerHTML = `${inputs.operationYears}<span class="unit"> 年</span>`;
+            this.elements.totalRevenueSummary.innerHTML = this.formatCurrency(results.totalChargingRevenue, 0, true);
+            this.elements.roiSummary.innerHTML = isNaN(results.roi) ? 'N/A' : `${results.roi.toFixed(1)}<span class="unit">%</span>`;
+            this.elements.irrSummary.innerHTML = isNaN(results.irr) ? 'N/A' : `${results.irr.toFixed(2)}<span class="unit">%</span>`;
 
 
             // Update derived input fields
