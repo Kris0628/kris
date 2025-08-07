@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>充電站投資效益分析 (v7.0 - 智慧限制)</title>
+    <title>充電站投資效益分析 (v7.1 - 版面微調)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -306,7 +306,7 @@
     <div class="max-w-7xl mx-auto">
         <header class="text-center mb-10">
             <h1 class="text-5xl font-extrabold text-gray-800 leading-tight">充電站投資效益分析</h1>
-            <p class="text-xl text-gray-600 mt-3">互動式損益評估工具 (v7.0 - 智慧限制)</p>
+            <p class="text-xl text-gray-600 mt-3">互動式損益評估工具 (v7.1 - 版面微調)</p>
         </header>
 
         <!-- Main Grid -->
@@ -361,23 +361,26 @@
                                   <span class="label-text font-bold text-indigo-600">尖離峰均價</span>
                                   <input type="text" id="avgTouRate" class="input-field readonly font-bold text-indigo-600" readonly>
                              </div>
-                             <div>
-                                <div class="grid grid-cols-2 items-center gap-4">
-                                    <span class="label-text">尖峰費率 (元)</span><input type="number" id="peakRate" class="input-field" value="13.5" step="0.1">
+                            <div class="grid grid-cols-2 items-center gap-4">
+                                <div>
+                                    <span class="label-text block">尖峰費率 (元)</span>
+                                    <span class="text-xs text-gray-500">時段 15:00 ~ 21:00</span>
                                 </div>
-                                <p class="text-xs text-gray-500 text-right mt-1 pr-2">時段 15:00 ~ 21:00</p>
+                                <input type="number" id="peakRate" class="input-field" value="13.5" step="0.1">
                             </div>
-                             <div>
-                                <div class="grid grid-cols-2 items-center gap-4">
-                                    <span class="label-text">離峰費率 (元)</span><input type="number" id="offPeakRate" class="input-field" value="6.9" step="0.1">
+                            <div class="grid grid-cols-2 items-center gap-4">
+                                <div>
+                                    <span class="label-text block">離峰費率 (元)</span>
+                                    <span class="text-xs text-gray-500">時段 21:00 ~ 15:00</span>
                                 </div>
-                                <p class="text-xs text-gray-500 text-right mt-1 pr-2">時段 21:00 ~ 15:00</p>
+                                <input type="number" id="offPeakRate" class="input-field" value="6.9" step="0.1">
                             </div>
-                             <div>
-                                <div class="grid grid-cols-2 items-center gap-4">
-                                    <span class="label-text">假日費率 (元)</span><input type="number" id="holidayRate" class="input-field" value="8.5" step="0.1">
+                            <div class="grid grid-cols-2 items-center gap-4">
+                                <div>
+                                    <span class="label-text block">假日費率 (元)</span>
+                                    <span class="text-xs text-gray-500">時段 00:00 ~ 24:00</span>
                                 </div>
-                                <p class="text-xs text-gray-500 text-right mt-1 pr-2">時段 00:00 ~ 24:00</p>
+                                <input type="number" id="holidayRate" class="input-field" value="8.5" step="0.1">
                             </div>
                             <div class="flex items-center gap-4 mt-2">
                                 <div id="touPieChartContainer" class="w-24 h-24 flex-shrink-0">
