@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>充電站投資效益分析 (v6.5 - 介面調整)</title>
+    <title>充電站投資效益分析 (v6.7 - 摘要排序)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -50,22 +50,20 @@
             background: linear-gradient(135deg, #4f46e5, #3b82f6); 
             color: white;
             border-radius: 1rem; 
-            padding: 2rem; 
+            padding: 1.5rem; 
             display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
             box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
         }
         .summary-value {
             font-size: 1.75rem; 
-            font-weight: 800;
+            font-weight: 700;
             line-height: 1.2;
-            margin-top: 0.25rem; 
         }
         .summary-label {
-            font-size: 2.25rem; 
+            font-size: 1rem; 
             opacity: 0.9;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
-            font-weight: 700; 
-            margin-bottom: 0.25rem; 
+            font-weight: 500; 
+            margin-bottom: 0.5rem; 
         }
         .table-header { 
             background-color: rgba(0,0,0,0.04);
@@ -303,7 +301,7 @@
     <div class="max-w-7xl mx-auto">
         <header class="text-center mb-10">
             <h1 class="text-5xl font-extrabold text-gray-800 leading-tight">充電站投資效益分析</h1>
-            <p class="text-xl text-gray-600 mt-3">互動式損益評估工具 (v6.4 - 參數調整)</p>
+            <p class="text-xl text-gray-600 mt-3">互動式損益評估工具 (v6.6 - 功能更新)</p>
         </header>
 
         <!-- Main Grid -->
@@ -325,7 +323,7 @@
                             <input type="number" id="parkingSpaces" class="input-field readonly" readonly>
                         </div>
                          <div class="grid grid-cols-2 items-center gap-4">
-                            <span class="label-text">設備費用</span>
+                            <span class="label-text">設備費用(含稅)</span>
                             <input type="text" id="equipmentCostDisplayMain" class="input-field readonly" readonly>
                         </div>
                         <div class="grid grid-cols-2 items-center gap-4">
@@ -418,6 +416,7 @@
                             <div class="flex flex-wrap gap-3">
                                 <label class="radio-label"><input type="radio" name="depreciationMethod" value="straightLine" checked><span>直線法</span></label>
                                 <label class="radio-label"><input type="radio" name="depreciationMethod" value="syd"><span>年數合計法</span></label>
+                                <label class="radio-label"><input type="radio" name="depreciationMethod" value="none"><span>無</span></label>
                             </div>
                         </div>
                         <div class="grid grid-cols-2 items-center gap-4">
@@ -446,10 +445,18 @@
 
             <!-- Right Column -->
             <div class="lg:col-span-2 flex flex-col gap-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-2 gap-6">
                     <div class="summary-card">
                         <div class="summary-label">總投資額</div>
                         <div id="totalInvestment" class="summary-value">NT$ 0</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">總充電營收</div>
+                        <div id="totalRevenueSummary" class="summary-value">NT$ 0</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">營運年期</div>
+                        <div id="operationPeriodSummary" class="summary-value">0 年</div>
                     </div>
                     <div class="summary-card">
                         <div class="summary-label">預計回收年限</div>
@@ -961,6 +968,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio',
                 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'pnlChart',
                 'revenueCostChart', // NEW
+                'operationPeriodSummary', 'totalRevenueSummary', // NEW
                 // Advanced Modal
                 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn',
                 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage',
@@ -1118,6 +1126,9 @@ document.addEventListener('DOMContentLoaded', function () {
             // Update summary cards
             this.elements.totalInvestment.textContent = this.formatCurrency(results.totalInvestment);
             this.elements.paybackPeriod.textContent = results.paybackPeriod;
+            this.elements.operationPeriodSummary.textContent = `${inputs.operationYears} 年`;
+            this.elements.totalRevenueSummary.textContent = this.formatCurrency(results.totalChargingRevenue);
+
 
             // Update derived input fields
             this.elements.parkingSpaces.value = inputs.parkingSpaces;
@@ -1543,6 +1554,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 paybackPeriod: 'N/A',
                 costBreakdown: {},
                 avgChargeFee: 0,
+                totalChargingRevenue: 0,
             };
 
             // --- Step 1: Calculate Initial Investment ---
@@ -1558,6 +1570,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // --- Step 2: Calculate Annual P&L ---
             let cumulativePnl = -results.totalInvestment;
             let paybackFound = false;
+            let totalChargingRevenue = 0;
 
             for (let year = 1; year <= inputs.operationYears; year++) {
                 const demandMultiplier = Math.pow(1 + inputs.demandGrowthRate, year - 1);
@@ -1572,6 +1585,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     : (inputs.peakRate * inputs.touRatios.peak) + (inputs.offPeakRate * inputs.touRatios.offpeak) + (inputs.holidayRate * inputs.touRatios.holiday);
                 
                 const revenue = totalKwhSold * results.avgChargeFee;
+                totalChargingRevenue += revenue;
 
                 // Calculate annual costs
                 const costBreakdown = this.getCostBreakdown(results, inputs, year, totalKwhSold, numberOfTransactions);
@@ -1600,7 +1614,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     paybackFound = true;
                 }
             }
-            
+            results.totalChargingRevenue = totalChargingRevenue;
             this.lastResults = results;
             return results;
         },
@@ -1702,7 +1716,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             
             // Depreciation Calculation
-            if (year <= inputs.depreciationYears) {
+            if (year <= inputs.depreciationYears && inputs.depreciationMethod !== 'none') {
                 const depreciableBase = results.totalInvestment - results.costBreakdown.totalSalvageValue;
                 let depreciation = 0;
                 let formula = '';
