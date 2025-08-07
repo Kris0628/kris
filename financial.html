@@ -55,17 +55,17 @@
             box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
         }
         .summary-value {
-            font-size: 2.25rem; /* text-4xl */
+            font-size: 1.875rem; /* text-3xl */
             font-weight: 700;
             line-height: 1.2;
         }
         .summary-value .unit {
-            font-size: 1.25rem; /* text-xl */
+            font-size: 1rem; /* text-base */
             font-weight: 500;
             margin-left: 0.25rem;
         }
         .summary-label {
-            font-size: 1.25rem; /* text-xl */
+            font-size: 1.125rem; /* text-lg */
             opacity: 0.9;
             font-weight: 500; 
             margin-bottom: 0.5rem; 
@@ -306,7 +306,7 @@
     <div class="max-w-7xl mx-auto">
         <header class="text-center mb-10">
             <h1 class="text-5xl font-extrabold text-gray-800 leading-tight">充電站投資效益分析</h1>
-            <p class="text-xl text-gray-600 mt-3">互動式損益評估工具 (v6.9 - 介面優化)</p>
+            <p class="text-xl text-gray-600 mt-3">互動式損益評估工具 (v7.0 - 智慧限制)</p>
         </header>
 
         <!-- Main Grid -->
@@ -361,14 +361,23 @@
                                   <span class="label-text font-bold text-indigo-600">尖離峰均價</span>
                                   <input type="text" id="avgTouRate" class="input-field readonly font-bold text-indigo-600" readonly>
                              </div>
-                            <div class="grid grid-cols-2 items-center gap-4">
-                                <span class="label-text">尖峰費率 (元)</span><input type="number" id="peakRate" class="input-field" value="12" step="0.1">
+                             <div>
+                                <div class="grid grid-cols-2 items-center gap-4">
+                                    <span class="label-text">尖峰費率 (元)</span><input type="number" id="peakRate" class="input-field" value="13.5" step="0.1">
+                                </div>
+                                <p class="text-xs text-gray-500 text-right mt-1 pr-2">時段 15:00 ~ 21:00</p>
                             </div>
-                            <div class="grid grid-cols-2 items-center gap-4">
-                                <span class="label-text">離峰費率 (元)</span><input type="number" id="offPeakRate" class="input-field" value="8" step="0.1">
+                             <div>
+                                <div class="grid grid-cols-2 items-center gap-4">
+                                    <span class="label-text">離峰費率 (元)</span><input type="number" id="offPeakRate" class="input-field" value="6.9" step="0.1">
+                                </div>
+                                <p class="text-xs text-gray-500 text-right mt-1 pr-2">時段 21:00 ~ 15:00</p>
                             </div>
-                            <div class="grid grid-cols-2 items-center gap-4">
-                                <span class="label-text">假日費率 (元)</span><input type="number" id="holidayRate" class="input-field" value="10" step="0.1">
+                             <div>
+                                <div class="grid grid-cols-2 items-center gap-4">
+                                    <span class="label-text">假日費率 (元)</span><input type="number" id="holidayRate" class="input-field" value="8.5" step="0.1">
+                                </div>
+                                <p class="text-xs text-gray-500 text-right mt-1 pr-2">時段 00:00 ~ 24:00</p>
                             </div>
                             <div class="flex items-center gap-4 mt-2">
                                 <div id="touPieChartContainer" class="w-24 h-24 flex-shrink-0">
@@ -377,15 +386,15 @@
                                 <div class="flex-grow space-y-2">
                                     <div class="grid grid-cols-3 items-center gap-2">
                                         <label for="peakUsageRatio" class="text-sm font-medium">尖峰 %</label>
-                                        <input type="number" id="peakUsageRatio" data-tou="peak" class="input-field col-span-2 tou-ratio-input" value="10" min="0" max="100">
+                                        <input type="number" id="peakUsageRatio" data-tou="peak" class="input-field col-span-2 tou-ratio-input" value="18" min="0" max="100">
                                     </div>
                                     <div class="grid grid-cols-3 items-center gap-2">
                                         <label for="offPeakUsageRatio" class="text-sm font-medium">離峰 %</label>
-                                        <input type="number" id="offPeakUsageRatio" data-tou="offpeak" class="input-field col-span-2 tou-ratio-input" value="80" min="0" max="100">
+                                        <input type="number" id="offPeakUsageRatio" data-tou="offpeak" class="input-field col-span-2 tou-ratio-input" value="54" min="0" max="100">
                                     </div>
                                     <div class="grid grid-cols-3 items-center gap-2">
                                         <label for="holidayUsageRatio" class="text-sm font-medium">假日 %</label>
-                                        <input type="number" id="holidayUsageRatio" data-tou="holiday" class="input-field col-span-2 tou-ratio-input" value="10" min="0" max="100">
+                                        <input type="number" id="holidayUsageRatio" data-tou="holiday" class="input-field col-span-2 tou-ratio-input" value="28" min="0" max="100">
                                     </div>
                                 </div>
                             </div>
@@ -1187,10 +1196,10 @@ document.addEventListener('DOMContentLoaded', function () {
             this.updateUIVisibility();
 
             // Update summary cards
-            this.elements.totalInvestment.innerHTML = this.formatCurrency(results.totalInvestment).replace('NT$ ', '');
-            this.elements.paybackPeriod.innerHTML = results.paybackPeriod.replace(' 年', '<span class="unit"> 年</span>');
+            this.elements.totalInvestment.innerHTML = this.formatCurrency(results.totalInvestment, 0, true).replace('NT$', '<span class="unit">NT$</span>');
+            this.elements.totalRevenueSummary.innerHTML = this.formatCurrency(results.totalChargingRevenue, 0, true).replace('NT$', '<span class="unit">NT$</span>');
             this.elements.operationPeriodSummary.innerHTML = `${inputs.operationYears}<span class="unit"> 年</span>`;
-            this.elements.totalRevenueSummary.innerHTML = this.formatCurrency(results.totalChargingRevenue, 0, true);
+            this.elements.paybackPeriod.innerHTML = results.paybackPeriod === 'N/A' ? '無法回收' : results.paybackPeriod.replace(' 年', '<span class="unit"> 年</span>');
             this.elements.roiSummary.innerHTML = isNaN(results.roi) ? 'N/A' : `${results.roi.toFixed(1)}<span class="unit">%</span>`;
             this.elements.irrSummary.innerHTML = isNaN(results.irr) ? 'N/A' : `${results.irr.toFixed(2)}<span class="unit">%</span>`;
 
@@ -1294,19 +1303,35 @@ document.addEventListener('DOMContentLoaded', function () {
         },
 
         createDetailsHtml(details) {
-            const createSection = (title, data) => {
+            const createSection = (title, data, totalLabel, totalValue) => {
                 let itemsHtml = Object.entries(data)
+                    .filter(([key]) => key !== '總營收')
                     .filter(([, value]) => value > 0)
                     .map(([key, value]) => `
-                        <div class="details-item">
-                            <span>${key.replace(/\/.*$/, '')}</span>
-                            <span>${this.formatCurrency(value, 0, false, true)}</span>
-                        </div>
-                    `).join('');
+                    <div class="details-item">
+                        <span>${key.replace(/\/.*$/, '')}</span>
+                        <span>${this.formatCurrency(value, 0, false, true)}</span>
+                    </div>
+                `).join('');
+                
+                itemsHtml += `
+                    <div class="details-item" style="border-top: 1px solid #e5e7eb; margin-top: 0.5rem; padding-top: 0.5rem;">
+                        <span class="font-bold">${totalLabel}</span>
+                        <span class="font-bold">${this.formatCurrency(totalValue, 0, false, true)}</span>
+                    </div>
+                `;
+
                 return `<div class="details-section"><h4>${title}</h4>${itemsHtml}</div>`;
             };
-            const revenueHtml = createSection('總營收細項', details.revenue);
-            const costsHtml = createSection('總成本細項', details.costs);
+
+            const revenueData = { ...details.revenue };
+            const totalRevenueValue = revenueData['總營收'];
+            delete revenueData['總營收'];
+            const revenueHtml = createSection('總營收細項', revenueData, '總營收', totalRevenueValue);
+            
+            const totalCostValue = Object.values(details.costs).reduce((sum, v) => sum + v, 0);
+            const costsHtml = createSection('總成本細項', details.costs, '總成本', totalCostValue);
+
             return `<div class="details-container"><div class="details-grid">${revenueHtml}${costsHtml}</div></div>`;
         },
 
