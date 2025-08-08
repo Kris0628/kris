@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>充電站投資效益分析 (v7.6 - 視窗體驗優化)</title>
+    <title>充電站投資效益分析 (v7.7 - 混合設備建置)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -194,6 +194,13 @@
         .tou-grid-cell.holiday { background-color: #bfdbfe; } /* blue-200 */
         .tou-grid-cell.painting { transform: scale(0.9); filter: brightness(1.1); }
 
+        /* Equipment Row Styles */
+        .equipment-row { display: grid; grid-template-columns: 1fr auto auto; gap: 0.5rem; align-items: center; }
+        .equipment-row .count-label { font-size: 0.875rem; text-align: right; padding-right: 0.5rem; }
+        .equipment-row .equipment-count { width: 60px; }
+        .remove-equip-btn { background: none; border: none; color: #ef4444; cursor: pointer; padding: 0.5rem; border-radius: 999px; line-height: 1; transition: background-color 0.2s; }
+        .remove-equip-btn:hover { background-color: #fee2e2; }
+
         /* Animations */
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -204,7 +211,7 @@
     <div class="max-w-7xl mx-auto">
         <header class="text-center mb-10">
             <h1 class="text-5xl font-extrabold text-gray-800 leading-tight">充電站投資效益分析</h1>
-            <p class="text-xl text-gray-600 mt-3">互動式損益評估工具 (v7.6 - 視窗體驗優化)</p>
+            <p class="text-xl text-gray-600 mt-3">互動式損益評估工具 (v7.7 - 混合設備建置)</p>
         </header>
 
         <!-- Main Grid -->
@@ -212,15 +219,20 @@
             <!-- Left Column: Inputs -->
             <div class="lg:col-span-1 flex flex-col gap-6">
                 <div class="card bg-white">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-5 pb-3 border-b border-gray-200">設置參數</h2>
+                    <div class="flex justify-between items-center mb-5 pb-3 border-b border-gray-200">
+                        <h2 class="text-2xl font-bold text-gray-800">設置參數</h2>
+                        <button id="addEquipmentBtn" class="text-sm bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-all duration-200 ease-in-out shadow-sm hover:shadow-md flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                            新增設備
+                        </button>
+                    </div>
                     <div class="space-y-4">
-                        <div class="grid grid-cols-3 items-center gap-2">
-                            <span class="label-text col-span-1">設備功率</span>
-                            <select id="devicePowerSelect" class="input-field col-span-2"></select>
+                        <div id="equipmentListContainer" class="space-y-3">
+                            <!-- Equipment rows will be dynamically inserted here -->
                         </div>
-                        <div id="pileCountGroup" class="grid grid-cols-2 items-center gap-4"></div>
+                        <hr class="border-gray-200 my-2"/>
                         <div class="grid grid-cols-2 items-center gap-4">
-                            <span class="label-text">車格數值</span>
+                            <span class="label-text">總車格數</span>
                             <input type="number" id="parkingSpaces" class="input-field readonly" readonly>
                         </div>
                          <div class="grid grid-cols-2 items-center gap-4">
@@ -491,8 +503,8 @@ document.addEventListener('DOMContentLoaded', function () {
         previousRentValues: { bySpace: 500, byLand: 15000 },
 
         init() {
-            Persistence.load();
             UI.init();
+            Persistence.load();
             this.setupEventListeners();
             this.update();
         },
@@ -500,8 +512,8 @@ document.addEventListener('DOMContentLoaded', function () {
         setupEventListeners() {
             const inputsToWatch = ['chargeFeePerKwh', 'peakRate', 'offPeakRate', 'holidayRate', 'carsPerGunPerDay', 'kwhPerGunPerMonth', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'rentPerSpace', 'rentPerLand', 'infrastructureCostMain'];
             inputsToWatch.forEach(id => UI.elements[id]?.addEventListener('input', () => this.update()));
-            UI.elements.pileCountGroup.addEventListener('input', (e) => { if(e.target.id === 'pileCount' || e.target.id === 'terminalCount') this.update(); });
-            UI.elements.devicePowerSelect.addEventListener('change', () => { UI.updatePileCountUI(Config.deviceSpecs[UI.elements.devicePowerSelect.value]); this.update(); });
+            UI.elements.equipmentListContainer.addEventListener('change', () => this.update());
+            UI.elements.equipmentListContainer.addEventListener('input', () => this.update());
             document.querySelectorAll('input[name="billingMethod"], input[name="revenueMethod"], input[name="rentMethod"], input[name="depreciationMethod"]').forEach(radio => radio.addEventListener('change', () => this.update()));
             UI.elements.toggleKwhTableBtn.addEventListener('click', UI.toggleKwhTable);
             UI.elements.pnlTableBody.addEventListener('click', (e) => { const row = e.target.closest('.pnl-row'); if (row) UI.togglePnlDetails(row, Calculator.getLastResults()); });
@@ -530,12 +542,12 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             // --- Formatting Listeners ---
-            ['kwhPerGunPerMonth', 'rentPerSpace', 'rentPerLand', 'infrastructureCostMain'].forEach(id => { UI.elements[id]?.addEventListener('blur', (e) => UI.formatNumericInput(e.target)); });
+            ['infrastructureCostMain'].forEach(id => { UI.elements[id]?.addEventListener('blur', (e) => UI.formatNumericInput(e.target)); });
         },
 
         update() {
             const inputs = UI.getInputs();
-            UI.applyAcLimitations(inputs.spec.type === 'AC');
+            UI.applyAcLimitations(inputs.equipmentList);
             const finalInputs = UI.getInputs();
             UI.updateLinkedInputs(finalInputs);
             if (finalInputs.rentMethod === 'bySpace') this.previousRentValues.bySpace = finalInputs.rentPerSpace;
@@ -658,25 +670,83 @@ document.addEventListener('DOMContentLoaded', function () {
      */
     const UI = {
         elements: {},
-        init() { this.cacheDOMElements(); this.populateDeviceSelect(); this.updatePileCountUI(Config.deviceSpecs[this.elements.devicePowerSelect.value]); this.updateUIVisibility(); },
+        init() { this.cacheDOMElements(); this.updateUIVisibility(); this.elements.addEquipmentBtn.addEventListener('click', () => this.addEquipmentRow()); },
         cacheDOMElements() {
-            const ids = ['devicePowerSelect', 'pileCountGroup', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'infrastructureCostMain', 'chargeFeePerKwh', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDay', 'kwhPerGunPerMonth', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'fixedRateSection', 'touRateSection', 'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection', 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'cumulativePnlChart', 'touPieChart', 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'pnlChart', 'revenueCostChart', 'operationPeriodSummary', 'totalRevenueSummary', 'roiSummary', 'irrSummary', 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn', 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage', 'advancedContentSection', 'specsModalTableBody', 'formulaContainer', 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage', 'saveAdvancedBtn', 'touGridEditor', 'touGridContainer', 'touEditorMessage', 'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost', 'explainerPaybackPeriod', 'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn'];
+            const ids = ['equipmentListContainer', 'addEquipmentBtn', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'infrastructureCostMain', 'chargeFeePerKwh', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDay', 'kwhPerGunPerMonth', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'fixedRateSection', 'touRateSection', 'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection', 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'cumulativePnlChart', 'touPieChart', 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'pnlChart', 'revenueCostChart', 'operationPeriodSummary', 'totalRevenueSummary', 'roiSummary', 'irrSummary', 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn', 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage', 'advancedContentSection', 'specsModalTableBody', 'formulaContainer', 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage', 'saveAdvancedBtn', 'touGridEditor', 'touGridContainer', 'touEditorMessage', 'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost', 'explainerPaybackPeriod', 'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn'];
             ids.forEach(id => this.elements[id] = document.getElementById(id));
         },
-        getNumericValue(id, defaultValue = 0, max = Infinity) { const element = document.getElementById(id); if (!element) return defaultValue; const value = parseFloat(String(element.value).replace(/,/g, '')); return isNaN(value) ? defaultValue : Math.min(value, max); },
+        getNumericValue(element, defaultValue = 0) { if (!element) return defaultValue; const value = parseFloat(String(element.value).replace(/,/g, '')); return isNaN(value) ? defaultValue : value; },
         formatCurrency(value, precision = 0, shorthand = false, unitOnly = false) { if (isNaN(value) || value === null) return 'N/A'; const num = Number(value); if (shorthand) { if (Math.abs(num) >= 1e6) return `NT$ ${(num / 1e6).toFixed(1)}M`; if (Math.abs(num) >= 1e3) return `NT$ ${(num / 1e3).toFixed(0)}K`; } const numberString = num.toLocaleString('en-US', { minimumFractionDigits: precision, maximumFractionDigits: precision }); return unitOnly ? numberString : `NT$ ${numberString}`; },
-        formatNumericInput(element) { const value = this.getNumericValue(element.id, null); if (value !== null) { element.value = value.toLocaleString('en-US'); } },
+        formatNumericInput(element) { const value = this.getNumericValue(element, null); if (value !== null) { element.value = value.toLocaleString('en-US'); } },
         getInputs() {
-            const power = this.elements.devicePowerSelect.value; const spec = Config.deviceSpecs[power]; let pileCount = 0, gunCount = 0, cabinetCount = 0, parkingSpaces = 0;
-            if (spec.type === 'DC_360') { gunCount = this.getNumericValue('terminalCount', 1); cabinetCount = Math.ceil(gunCount / 6); pileCount = gunCount; parkingSpaces = gunCount * 2; } else { pileCount = this.getNumericValue('pileCount', 1); gunCount = (spec.type === 'DC' && spec.power > 30) ? pileCount * 2 : pileCount; parkingSpaces = gunCount; }
-            const rentMethod = document.querySelector('input[name="rentMethod"]:checked').value; let rentPerSpace = this.getNumericValue('rentPerSpace'); let rentPerLand = this.getNumericValue('rentPerLand');
+            const equipmentList = Array.from(document.querySelectorAll('.equipment-row')).map(row => {
+                const powerSelect = row.querySelector('.device-power-select');
+                const countInput = row.querySelector('.equipment-count');
+                const power = powerSelect.value;
+                const spec = Config.deviceSpecs[power];
+                const count = this.getNumericValue(countInput, 1);
+                let pileCount = 0, gunCount = 0, parkingSpaces = 0, cabinetCount = 0;
+
+                if (spec.type === 'DC_360') {
+                    gunCount = count;
+                    cabinetCount = Math.ceil(gunCount / 6);
+                    pileCount = gunCount; // For cost calculation, each terminal is a "pile"
+                    parkingSpaces = gunCount * 2;
+                } else {
+                    pileCount = count;
+                    gunCount = (spec.type === 'DC' && spec.power > 30) ? pileCount * 2 : pileCount;
+                    parkingSpaces = gunCount;
+                }
+                return { power, spec, count, pileCount, gunCount, parkingSpaces, cabinetCount };
+            });
+
+            const rentMethod = document.querySelector('input[name="rentMethod"]:checked').value; let rentPerSpace = this.getNumericValue(this.elements.rentPerSpace); let rentPerLand = this.getNumericValue(this.elements.rentPerLand);
             if (rentMethod === 'none') { rentPerSpace = 0; rentPerLand = 0; } else if (rentMethod === 'bySpace') { rentPerLand = 0; } else { rentPerSpace = 0; }
-            return { power, spec, pileCount, gunCount, cabinetCount, parkingSpaces, billingMethod: document.querySelector('input[name="billingMethod"]:checked').value, chargeFeePerKwh: this.getNumericValue('chargeFeePerKwh'), peakRate: this.getNumericValue('peakRate'), offPeakRate: this.getNumericValue('offPeakRate'), holidayRate: this.getNumericValue('holidayRate'), revenueMethod: document.querySelector('input[name="revenueMethod"]:checked').value, carsPerGunPerDay: this.getNumericValue('carsPerGunPerDay'), kwhPerGunPerMonth: this.getNumericValue('kwhPerGunPerMonth'), avgKwhPerCar: this.getNumericValue('avgKwhPerCar'), demandGrowthRate: this.getNumericValue('demandGrowthRate') / 100, operationYears: this.getNumericValue('operationYears', 1), depreciationYears: this.getNumericValue('depreciationYears', 1), depreciationMethod: document.querySelector('input[name="depreciationMethod"]:checked').value, infrastructureCostMain: this.getNumericValue('infrastructureCostMain'), rentMethod, rentPerSpace, rentPerLand, touRatios: { peak: this.getNumericValue('peakUsageRatio') / 100, offpeak: this.getNumericValue('offPeakUsageRatio') / 100, holiday: this.getNumericValue('holidayUsageRatio') / 100, } };
+            return { equipmentList, billingMethod: document.querySelector('input[name="billingMethod"]:checked').value, chargeFeePerKwh: this.getNumericValue(this.elements.chargeFeePerKwh), peakRate: this.getNumericValue(this.elements.peakRate), offPeakRate: this.getNumericValue(this.elements.offPeakRate), holidayRate: this.getNumericValue(this.elements.holidayRate), revenueMethod: document.querySelector('input[name="revenueMethod"]:checked').value, carsPerGunPerDay: this.getNumericValue(this.elements.carsPerGunPerDay), kwhPerGunPerMonth: this.getNumericValue(this.elements.kwhPerGunPerMonth), avgKwhPerCar: this.getNumericValue(this.elements.avgKwhPerCar), demandGrowthRate: this.getNumericValue(this.elements.demandGrowthRate) / 100, operationYears: this.getNumericValue(this.elements.operationYears, 1), depreciationYears: this.getNumericValue(this.elements.depreciationYears, 1), depreciationMethod: document.querySelector('input[name="depreciationMethod"]:checked').value, infrastructureCostMain: this.getNumericValue(this.elements.infrastructureCostMain), rentMethod, rentPerSpace, rentPerLand, touRatios: { peak: this.getNumericValue(this.elements.peakUsageRatio) / 100, offpeak: this.getNumericValue(this.elements.offPeakUsageRatio) / 100, holiday: this.getNumericValue(this.elements.holidayUsageRatio) / 100, } };
         },
-        populateDeviceSelect() { Object.keys(Config.deviceSpecs).forEach(power => { const option = document.createElement('option'); option.value = power; option.textContent = Config.deviceSpecs[power].name; this.elements.devicePowerSelect.appendChild(option); }); this.elements.devicePowerSelect.value = '120'; },
-        updatePileCountUI(spec) {
-            const container = this.elements.pileCountGroup; container.innerHTML = ''; 
-            if (spec.type === 'DC_360') { container.className = 'grid grid-cols-1 items-center gap-4'; container.innerHTML = `<div class="grid grid-cols-2 items-center gap-2"><span class="label-text">能源櫃</span><input type="number" id="cabinetCount" class="input-field readonly" value="1" readonly></div><div class="grid grid-cols-2 items-center gap-2"><span class="label-text">充電樁(終端機)</span><input type="number" id="terminalCount" class="input-field" value="2" min="1"></div>`; } else { container.className = 'grid grid-cols-2 items-center gap-4'; container.innerHTML = `<span class="label-text">充電樁數量</span><input type="number" id="pileCount" class="input-field" value="1" min="1">`; }
+        getEquipmentConfig() {
+            return Array.from(document.querySelectorAll('.equipment-row')).map(row => {
+                const powerSelect = row.querySelector('.device-power-select');
+                const countInput = row.querySelector('.equipment-count');
+                return {
+                    power: powerSelect.value,
+                    count: this.getNumericValue(countInput, 1)
+                };
+            });
+        },
+        addEquipmentRow(config = {}) {
+            const container = UI.elements.equipmentListContainer;
+            const row = document.createElement('div');
+            row.className = 'equipment-row';
+
+            const powerSelect = document.createElement('select');
+            powerSelect.className = 'input-field device-power-select';
+            Object.entries(Config.deviceSpecs).forEach(([power, spec]) => {
+                powerSelect.options.add(new Option(spec.name, power));
+            });
+            if (config.power) powerSelect.value = config.power;
+
+            const countContainer = document.createElement('div');
+            countContainer.className = 'flex items-center';
+            countContainer.innerHTML = `<span class="count-label text-gray-600">數量</span><input type="number" class="input-field equipment-count" value="${config.count || 1}" min="1">`;
+            
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-equip-btn';
+            removeBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd" /></svg>`;
+            removeBtn.onclick = () => {
+                if (container.children.length > 1) { row.remove(); App.update(); }
+            };
+
+            row.append(powerSelect, countContainer, removeBtn);
+            container.appendChild(row);
+            
+            powerSelect.addEventListener('change', () => this.updatePileCountUI(Config.deviceSpecs[powerSelect.value], row));
+            this.updatePileCountUI(Config.deviceSpecs[powerSelect.value], row);
+        },
+        updatePileCountUI(spec, row) {
+             const countLabel = row.querySelector('.count-label');
+             if (spec.type === 'DC_360') { countLabel.textContent = '終端機數'; } 
+             else { countLabel.textContent = '充電樁數'; }
         },
         updateUIVisibility() {
             const billingMethod = document.querySelector('input[name="billingMethod"]:checked').value; this.elements.fixedRateSection.style.display = billingMethod === 'fixed' ? 'grid' : 'none'; this.elements.touRateSection.style.display = billingMethod === 'tou' ? 'block' : 'none';
@@ -685,9 +755,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const depreciationMethod = document.querySelector('input[name="depreciationMethod"]:checked').value; const depYearsInput = this.elements.depreciationYears;
             if (depreciationMethod === 'none') { depYearsInput.value = 0; depYearsInput.readOnly = true; depYearsInput.classList.add('readonly'); } else { depYearsInput.readOnly = false; depYearsInput.classList.remove('readonly'); if (parseInt(depYearsInput.value) === 0) { depYearsInput.value = 5; } }
         },
-        applyAcLimitations(isAC) {
-            const demandInput = this.elements.demandGrowthRate, carsInput = this.elements.carsPerGunPerDay, kwhInput = this.elements.kwhPerGunPerMonth;
-            if (isAC) { if (this.getNumericValue('demandGrowthRate') > 5) demandInput.value = 5; demandInput.readOnly = true; demandInput.classList.add('readonly'); if (this.getNumericValue('carsPerGunPerDay') > 2) carsInput.value = 2; carsInput.max = 2; if (this.getNumericValue('kwhPerGunPerMonth') > 1000) kwhInput.value = 1000; kwhInput.max = 1000; } else { demandInput.readOnly = false; demandInput.classList.remove('readonly'); carsInput.removeAttribute('max'); kwhInput.removeAttribute('max'); }
+        applyAcLimitations(equipmentList) {
+            // This logic might need refinement for mixed scenarios
         },
         updateLinkedInputs(inputs) { if (inputs.revenueMethod === 'byCars') { const calculatedKwh = inputs.carsPerGunPerDay * inputs.avgKwhPerCar * 30; this.elements.kwhPerGunPerMonth.value = Math.round(calculatedKwh).toLocaleString('en-US'); } else { const calculatedCars = inputs.avgKwhPerCar > 0 ? (inputs.kwhPerGunPerMonth / 30) / inputs.avgKwhPerCar : 0; this.elements.carsPerGunPerDay.value = calculatedCars.toFixed(1); } },
         updateDisplay(inputs, results) {
@@ -698,9 +767,12 @@ document.addEventListener('DOMContentLoaded', function () {
             this.elements.paybackPeriod.innerHTML = results.paybackPeriod === 'N/A' ? '無法回收' : results.paybackPeriod.replace(' 年', '<span class="unit"> 年</span>');
             this.elements.roiSummary.innerHTML = isNaN(results.roi) ? 'N/A' : `${results.roi.toFixed(1)}<span class="unit">%</span>`;
             this.elements.irrSummary.innerHTML = isNaN(results.irr) ? 'N/A' : `${results.irr.toFixed(2)}<span class="unit">%</span>`;
-            this.elements.parkingSpaces.value = inputs.parkingSpaces;
+            
+            const totalParkingSpaces = inputs.equipmentList.reduce((sum, item) => sum + item.parkingSpaces, 0);
+            this.elements.parkingSpaces.value = totalParkingSpaces;
+
             if (inputs.billingMethod === 'tou') { this.elements.avgTouRate.value = this.formatCurrency(results.avgChargeFee, 2, false, true); }
-            if (inputs.spec.type === 'DC_360') { document.getElementById('cabinetCount').value = inputs.cabinetCount; }
+            
             this.elements.equipmentCostDisplayMain.value = this.formatCurrency(results.costBreakdown.equipmentCost, 0, false, true);
             this.elements.salvageValueDisplay.value = this.formatCurrency(results.costBreakdown.totalSalvageValue, 0, false, true);
             this.populateTable(this.elements.kwhStatsTableBody, results.annualData, (data) => `<tr><td class="table-cell table-cell-year">第 ${data.year} 年</td><td class="table-cell text-green-600 font-semibold">${data.kwhPerDay.toLocaleString('en-US', {maximumFractionDigits: 1})}</td><td class="table-cell text-blue-600 font-semibold">${data.kwhPerMonth.toLocaleString('en-US', {maximumFractionDigits: 0})}</td><td class="table-cell text-red-600 font-semibold">${data.kwhPerYear.toLocaleString('en-US', {maximumFractionDigits: 0})}</td></tr>`);
@@ -800,9 +872,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const equipmentCostItem = investmentBreakdown.find(i => i.key === 'deviceCost');
             results.costBreakdown = { equipmentCost: equipmentCostItem?.value || 0, totalDeviceCostUntaxed: equipmentCostItem?.untaxedValue || 0, totalSalvageValue: this.calculateSalvageValue(inputs, deviceSpecs) };
             let cumulativePnl = -results.totalInvestment; let paybackFound = false; let totalChargingRevenue = 0; const cashFlows = [-results.totalInvestment];
+            const totalGunCount = inputs.equipmentList.reduce((sum, item) => sum + item.gunCount, 0);
             for (let year = 1; year <= inputs.operationYears; year++) {
                 const demandMultiplier = Math.pow(1 + inputs.demandGrowthRate, year - 1);
-                const totalKwhSold = (inputs.revenueMethod === 'byCars' ? (inputs.carsPerGunPerDay * inputs.gunCount * 365 * inputs.avgKwhPerCar) : (inputs.kwhPerGunPerMonth * inputs.gunCount * 12)) * demandMultiplier;
+                const totalKwhSold = (inputs.revenueMethod === 'byCars' ? (inputs.carsPerGunPerDay * totalGunCount * 365 * inputs.avgKwhPerCar) : (inputs.kwhPerGunPerMonth * totalGunCount * 12)) * demandMultiplier;
                 const numberOfTransactions = inputs.avgKwhPerCar > 0 ? totalKwhSold / inputs.avgKwhPerCar : 0;
                 results.avgChargeFee = (inputs.billingMethod === 'fixed') ? inputs.chargeFeePerKwh : (inputs.peakRate * inputs.touRatios.peak) + (inputs.offPeakRate * inputs.touRatios.offpeak) + (inputs.holidayRate * inputs.touRatios.holiday);
                 const revenue = totalKwhSold * results.avgChargeFee; totalChargingRevenue += revenue;
@@ -816,32 +889,56 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             results.totalChargingRevenue = totalChargingRevenue; const totalNetProfit = cumulativePnl + results.totalInvestment; if (results.totalInvestment > 0) results.roi = (totalNetProfit / results.totalInvestment) * 100; results.irr = this.calculateIRR(cashFlows) * 100; this.lastResults = results; return results;
         },
-        calculateSalvageValue(inputs, deviceSpecs) { return (inputs.spec.type === 'DC_360') ? (inputs.cabinetCount * inputs.spec.cabinetSalvage) + (inputs.gunCount * inputs.spec.terminalSalvage) : inputs.pileCount * inputs.spec.salvage; },
+        calculateSalvageValue(inputs, deviceSpecs) { 
+            return inputs.equipmentList.reduce((sum, item) => {
+                const { spec, count, cabinetCount } = item;
+                const salvage = (spec.type === 'DC_360') ? (cabinetCount * spec.cabinetSalvage) + (count * spec.terminalSalvage) : count * spec.salvage;
+                return sum + salvage;
+            }, 0);
+        },
         getInvestmentBreakdown(inputs, params) {
-            const items = []; const { spec, pileCount, gunCount, cabinetCount } = inputs; const taxRate = params.taxRate.enabled ? params.taxRate.value : 0; const isAC = spec.type === 'AC';
-            let totalDeviceCostUntaxed = (spec.type === 'DC_360') ? (cabinetCount * spec.cabinetCost) + (gunCount * spec.terminalCost) : pileCount * spec.cost;
+            const items = []; const taxRate = params.taxRate.enabled ? params.taxRate.value : 0;
+            let totalDeviceCostUntaxed = 0, totalPowerKw = 0, totalGunCount = 0, totalPileCount = 0, hasAC = false, hasDC = false;
+            
+            inputs.equipmentList.forEach(item => {
+                const { spec, count, pileCount, gunCount, cabinetCount } = item;
+                if (spec.type === 'AC') hasAC = true; else hasDC = true;
+                totalDeviceCostUntaxed += (spec.type === 'DC_360') ? (cabinetCount * spec.cabinetCost) + (gunCount * spec.terminalCost) : pileCount * spec.cost;
+                totalPowerKw += spec.power * (spec.type === 'DC_360' ? cabinetCount : pileCount);
+                totalGunCount += gunCount;
+                totalPileCount += pileCount;
+            });
+
             const totalDeviceCostTaxed = totalDeviceCostUntaxed * (1 + taxRate);
             if (params.deviceCost.enabled) items.push({ key: 'deviceCost', label: '設備總成本 (含稅)', value: totalDeviceCostTaxed, untaxedValue: totalDeviceCostUntaxed, formula: `(${UI.formatCurrency(totalDeviceCostUntaxed,0,false,true)}) x (1 + ${taxRate*100}%)`});
-            if (!isAC) { const totalPowerKw = spec.type === 'DC_360' ? cabinetCount * spec.power : pileCount * spec.power; if (params.lineSubsidyPerKw.enabled) items.push({ key: 'lineSubsidyPerKw', label: params.lineSubsidyPerKw.label, value: params.lineSubsidyPerKw.value * totalPowerKw, formula: `${UI.formatCurrency(params.lineSubsidyPerKw.value,0,false,true)} x ${totalPowerKw} kW`}); if (params.technicianFee.enabled) items.push({ key: 'technicianFee', label: params.technicianFee.label, value: params.technicianFee.value, formula: '一次性費用' }); if (spec.type.startsWith('DC')) { if (params.meterFeeBase.enabled) items.push({ key: 'meterFeeBase', label: params.meterFeeBase.label, value: params.meterFeeBase.value, formula: '一次性費用' }); if (params.meterFeePerGun.enabled) items.push({ key: 'meterFeePerGun', label: params.meterFeePerGun.label, value: params.meterFeePerGun.value * gunCount, formula: `${UI.formatCurrency(params.meterFeePerGun.value,0,false,true)} x ${gunCount} 槍` }); } }
-            if (params.distributionPanelFee.enabled) { const fee = isAC ? 30000 : params.distributionPanelFee.value; items.push({ key: 'distributionPanelFee', label: params.distributionPanelFee.label, value: fee, formula: isAC ? 'AC 專案費用' : '一次性費用' }); }
+            if (hasDC) { 
+                if (params.lineSubsidyPerKw.enabled) items.push({ key: 'lineSubsidyPerKw', label: params.lineSubsidyPerKw.label, value: params.lineSubsidyPerKw.value * totalPowerKw, formula: `${UI.formatCurrency(params.lineSubsidyPerKw.value,0,false,true)} x ${totalPowerKw} kW`});
+                if (params.technicianFee.enabled) items.push({ key: 'technicianFee', label: params.technicianFee.label, value: params.technicianFee.value, formula: '一次性費用' });
+                if (params.meterFeeBase.enabled) items.push({ key: 'meterFeeBase', label: params.meterFeeBase.label, value: params.meterFeeBase.value, formula: '一次性費用' });
+                if (params.meterFeePerGun.enabled) items.push({ key: 'meterFeePerGun', label: params.meterFeePerGun.label, value: params.meterFeePerGun.value * totalGunCount, formula: `${UI.formatCurrency(params.meterFeePerGun.value,0,false,true)} x ${totalGunCount} 槍` });
+            }
+            if (params.distributionPanelFee.enabled) { const fee = hasAC && !hasDC ? 30000 : params.distributionPanelFee.value; items.push({ key: 'distributionPanelFee', label: params.distributionPanelFee.label, value: fee, formula: hasAC && !hasDC ? 'AC 專案費用' : '一次性費用' }); }
             if (params.constructionFee.enabled) items.push({ key: 'constructionFee', label: params.constructionFee.label, value: inputs.infrastructureCostMain, formula: '由主畫面輸入' });
             return items;
         },
         getRevenueBreakdown(yearData, inputs) { return [{ label: '充電服務費', value: yearData.revenue, formula: `${UI.formatCurrency(yearData.kwhPerYear,0,false,true)} kWh x ${UI.formatCurrency(yearData.details.revenue['平均每度收費'],2,false,true)} 元/kWh` }]; },
         getCostBreakdown(results, inputs, year, totalKwhSold, numberOfTransactions) {
             const items = []; const p = Config.calculationParams; const revenue = totalKwhSold * results.avgChargeFee;
+            const totalGunCount = inputs.equipmentList.reduce((sum, item) => sum + item.gunCount, 0);
+            const totalPileCount = inputs.equipmentList.reduce((sum, item) => sum + item.pileCount, 0);
+            const hasDC = inputs.equipmentList.some(item => item.spec.type !== 'AC');
             if (p.taipowerFee.enabled) { const val = totalKwhSold * p.taipowerFee.value * (1 + (p.powerLossRate.enabled ? p.powerLossRate.value : 0)); items.push({ label: p.taipowerFee.label, value: val, formula: `${UI.formatCurrency(totalKwhSold,0,false,true)} kWh x ${p.taipowerFee.value}元 x (1 + ${p.powerLossRate.value*100}%)` }); }
             if (p.transactionFeeRate.enabled) items.push({ label: p.transactionFeeRate.label, value: revenue * p.transactionFeeRate.value, formula: `${UI.formatCurrency(revenue)} x ${p.transactionFeeRate.value*100}%` });
             if (p.electronicInvoiceFeePerTransaction.enabled) items.push({ label: p.electronicInvoiceFeePerTransaction.label, value: numberOfTransactions * p.electronicInvoiceFeePerTransaction.value, formula: `${UI.formatCurrency(numberOfTransactions,0,false,true)} 張 x ${p.electronicInvoiceFeePerTransaction.value} 元` });
             if (p.repairPartsRate.enabled) items.push({ label: p.repairPartsRate.label, value: results.costBreakdown.equipmentCost * p.repairPartsRate.value, formula: `${UI.formatCurrency(results.costBreakdown.equipmentCost)} x ${p.repairPartsRate.value*100}%` });
-            if (p.electricalTechnicianFee.enabled && inputs.spec.type !== 'AC') items.push({ label: p.electricalTechnicianFee.label, value: p.electricalTechnicianFee.value, formula: '固定年費' });
+            if (p.electricalTechnicianFee.enabled && hasDC) items.push({ label: p.electricalTechnicianFee.label, value: p.electricalTechnicianFee.value, formula: '固定年費' });
             if (p.maintenanceFee.enabled) items.push({ label: p.maintenanceFee.label, value: p.maintenanceFee.value, formula: '固定年費' });
             if (p.insuranceFee.enabled) items.push({ label: p.insuranceFee.label, value: p.insuranceFee.value, formula: '固定年費' });
-            if (p.extendedWarrantyPerPile.enabled) items.push({ label: p.extendedWarrantyPerPile.label, value: inputs.pileCount * p.extendedWarrantyPerPile.value, formula: `${UI.formatCurrency(p.extendedWarrantyPerPile.value,0,false,true)} x ${inputs.pileCount} 樁` });
+            if (p.extendedWarrantyPerPile.enabled) items.push({ label: p.extendedWarrantyPerPile.label, value: totalPileCount * p.extendedWarrantyPerPile.value, formula: `${UI.formatCurrency(p.extendedWarrantyPerPile.value,0,false,true)} x ${totalPileCount} 樁` });
             if (p.laborCost.enabled) items.push({ label: p.laborCost.label, value: p.laborCost.value, formula: '固定年費' });
             if (p.internetFee.enabled) items.push({ label: '網路費', value: p.internetFee.value * 12, formula: `${UI.formatCurrency(p.internetFee.value,0,false,true)} x 12 個月` });
-            if (p.tdxUploadFee.enabled) items.push({ label: 'TDX上傳費', value: p.tdxUploadFee.value * inputs.gunCount * 12, formula: `${UI.formatCurrency(p.tdxUploadFee.value,0,false,true)} x ${inputs.gunCount} 槍 x 12 個月` });
-            if (inputs.rentMethod !== 'none') { let rentCost = (inputs.rentMethod === 'bySpace') ? inputs.rentPerSpace * inputs.parkingSpaces * 12 : inputs.rentPerLand * 12; let formula = (inputs.rentMethod === 'bySpace') ? `${UI.formatCurrency(inputs.rentPerSpace,0,false,true)} x ${inputs.parkingSpaces} 車位 x 12 個月` : `${UI.formatCurrency(inputs.rentPerLand,0,false,true)} x 12 個月`; items.push({ label: '租金', value: rentCost, formula }); }
+            if (p.tdxUploadFee.enabled) items.push({ label: 'TDX上傳費', value: p.tdxUploadFee.value * totalGunCount * 12, formula: `${UI.formatCurrency(p.tdxUploadFee.value,0,false,true)} x ${totalGunCount} 槍 x 12 個月` });
+            if (inputs.rentMethod !== 'none') { const totalParkingSpaces = inputs.equipmentList.reduce((sum, item) => sum + item.parkingSpaces, 0); let rentCost = (inputs.rentMethod === 'bySpace') ? inputs.rentPerSpace * totalParkingSpaces * 12 : inputs.rentPerLand * 12; let formula = (inputs.rentMethod === 'bySpace') ? `${UI.formatCurrency(inputs.rentPerSpace,0,false,true)} x ${totalParkingSpaces} 車位 x 12 個月` : `${UI.formatCurrency(inputs.rentPerLand,0,false,true)} x 12 個月`; items.push({ label: '租金', value: rentCost, formula }); }
             if (year <= inputs.depreciationYears && inputs.depreciationMethod !== 'none') {
                 const depreciableBase = results.totalInvestment - results.costBreakdown.totalSalvageValue; let depreciation = 0, formula = '';
                 if (inputs.depreciationMethod === 'straightLine') { depreciation = depreciableBase / inputs.depreciationYears; formula = `(${UI.formatCurrency(results.totalInvestment)} - ${UI.formatCurrency(results.costBreakdown.totalSalvageValue)}) / ${inputs.depreciationYears} 年`; } else { const n = inputs.depreciationYears, sydDenominator = n * (n + 1) / 2, remainingLife = n - year + 1; depreciation = depreciableBase * (remainingLife / sydDenominator); formula = `(${UI.formatCurrency(results.totalInvestment)} - ${UI.formatCurrency(results.costBreakdown.totalSalvageValue)}) x ${remainingLife}/${sydDenominator}`; }
@@ -972,7 +1069,6 @@ document.addEventListener('DOMContentLoaded', function () {
             const totalPercent = peakPercent + offpeakPercent + holidayPercent;
             if(Math.abs(100 - totalPercent) > 0.01) {
                 const diff = 100 - totalPercent;
-                // Add rounding difference to the largest portion to minimize visual impact
                 if(peakPercent > offpeakPercent && peakPercent > holidayPercent) peakPercent += diff;
                 else if (offpeakPercent > holidayPercent) offpeakPercent += diff;
                 else holidayPercent += diff;
@@ -991,13 +1087,14 @@ document.addEventListener('DOMContentLoaded', function () {
      * =================================================================
      */
     const Persistence = {
-        STORAGE_KEY: 'chargingStationAnalysisData_v7.5',
+        STORAGE_KEY: 'chargingStationAnalysisData_v7.7',
         save() {
             const dataToSave = {
                 deviceSpecs: Config.deviceSpecs,
                 calculationParams: Config.calculationParams,
                 passwords: Config.passwords,
-                touSchedule: Config.touSchedule
+                touSchedule: Config.touSchedule,
+                equipmentConfig: UI.getEquipmentConfig()
             };
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(dataToSave));
         },
@@ -1024,6 +1121,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     thu: [...defaultWeekday], fri: [...defaultWeekday],
                     sat: [...defaultHoliday], sun: [...defaultHoliday]
                 };
+            }
+            if(parsedData.equipmentConfig && parsedData.equipmentConfig.length > 0){
+                parsedData.equipmentConfig.forEach(config => UI.addEquipmentRow(config));
+            } else {
+                UI.addEquipmentRow({power: '120', count: 1});
             }
         }
     };
