@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>充電站投資效益分析 (v7.5 - 視覺化更新)</title>
+    <title>充電站投資效益分析 (v7.6 - 視窗體驗優化)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -204,7 +204,7 @@
     <div class="max-w-7xl mx-auto">
         <header class="text-center mb-10">
             <h1 class="text-5xl font-extrabold text-gray-800 leading-tight">充電站投資效益分析</h1>
-            <p class="text-xl text-gray-600 mt-3">互動式損益評估工具 (v7.5 - 視覺化更新)</p>
+            <p class="text-xl text-gray-600 mt-3">互動式損益評估工具 (v7.6 - 視窗體驗優化)</p>
         </header>
 
         <!-- Main Grid -->
@@ -505,14 +505,31 @@ document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('input[name="billingMethod"], input[name="revenueMethod"], input[name="rentMethod"], input[name="depreciationMethod"]').forEach(radio => radio.addEventListener('change', () => this.update()));
             UI.elements.toggleKwhTableBtn.addEventListener('click', UI.toggleKwhTable);
             UI.elements.pnlTableBody.addEventListener('click', (e) => { const row = e.target.closest('.pnl-row'); if (row) UI.togglePnlDetails(row, Calculator.getLastResults()); });
+            
+            // --- Modal Listeners ---
             UI.elements.openAdvancedModalBtn.addEventListener('click', () => UI.openModal(UI.elements.advancedModal));
             UI.elements.closeAdvancedModalBtn.addEventListener('click', () => UI.closeModal(UI.elements.advancedModal));
+            UI.elements.closeExplanationModalBtn.addEventListener('click', () => UI.closeModal(UI.elements.explanationModal));
+            
             UI.elements.loginAdvancedBtn.addEventListener('click', () => this.handleAdvancedLogin());
             UI.elements.advancedPassword.addEventListener('keydown', (e) => { if (e.key === 'Enter') this.handleAdvancedLogin(); });
             UI.elements.saveAdvancedBtn.addEventListener('click', () => this.saveAdvancedSettings());
             UI.elements.changePasswordBtn.addEventListener('click', () => this.changePassword());
             document.querySelectorAll('.modal-tab-btn').forEach(btn => btn.addEventListener('click', UI.handleTabSwitch));
             UI.elements.explanationList.addEventListener('click', (e) => this.handleExplanationClick(e));
+            
+            // --- Enhanced Modal Closing ---
+            [UI.elements.advancedModal, UI.elements.explanationModal].forEach(modal => {
+                modal.addEventListener('click', (e) => { if (e.target === modal) UI.closeModal(modal); });
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    if (UI.elements.advancedModal.style.display === 'flex') UI.closeModal(UI.elements.advancedModal);
+                    if (UI.elements.explanationModal.style.display === 'flex') UI.closeModal(UI.elements.explanationModal);
+                }
+            });
+
+            // --- Formatting Listeners ---
             ['kwhPerGunPerMonth', 'rentPerSpace', 'rentPerLand', 'infrastructureCostMain'].forEach(id => { UI.elements[id]?.addEventListener('blur', (e) => UI.formatNumericInput(e.target)); });
         },
 
@@ -974,7 +991,7 @@ document.addEventListener('DOMContentLoaded', function () {
      * =================================================================
      */
     const Persistence = {
-        STORAGE_KEY: 'chargingStationAnalysisData_v7.4',
+        STORAGE_KEY: 'chargingStationAnalysisData_v7.5',
         save() {
             const dataToSave = {
                 deviceSpecs: Config.deviceSpecs,
