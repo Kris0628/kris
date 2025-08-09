@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>充電站投資效益分析 (v7.7 - 混合設備建置)</title>
+    <title>充電站投資效益分析 (v7.9 - 介面優化)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -201,6 +201,26 @@
         .remove-equip-btn { background: none; border: none; color: #ef4444; cursor: pointer; padding: 0.5rem; border-radius: 999px; line-height: 1; transition: background-color 0.2s; }
         .remove-equip-btn:hover { background-color: #fee2e2; }
 
+        /* Header Action Buttons */
+        .header-actions button {
+            background-color: #fff; border: 1px solid #d1d5db; color: #374151;
+            padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600;
+            transition: all 0.2s ease; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        }
+        .header-actions button:hover {
+            border-color: #4f46e5; color: #4f46e5; background-color: #eef2ff;
+        }
+
+        /* Records List */
+        .record-list-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0.75rem 1rem; border-radius: 0.5rem; transition: background-color 0.2s;
+        }
+        .record-list-item:nth-child(odd) { background-color: #f9fafb; }
+        .record-list-item:hover { background-color: #eff6ff; }
+        .record-name { font-weight: 600; cursor: pointer; color: #374151; }
+        .record-name:hover { color: #4f46e5; }
+
         /* Animations */
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -209,9 +229,21 @@
 </head>
 <body class="p-4 md:p-8">
     <div class="max-w-7xl mx-auto">
-        <header class="text-center mb-10">
-            <h1 class="text-5xl font-extrabold text-gray-800 leading-tight">充電站投資效益分析</h1>
-            <p class="text-xl text-gray-600 mt-3">互動式損益評估工具 (v7.7 - 混合設備建置)</p>
+        <header class="mb-10">
+            <div class="text-center">
+                <h1 class="text-5xl font-extrabold text-gray-800 leading-tight">充電站投資效益分析</h1>
+                <p class="text-xl text-gray-600 mt-3">互動式損益評估工具 (v7.9 - 介面優化)</p>
+            </div>
+            <div class="flex justify-between items-center mt-6 bg-gray-100 p-3 rounded-xl shadow-sm">
+                <div>
+                    <h2 id="siteNameDisplay" class="text-xl font-bold text-gray-700">未命名站點</h2>
+                </div>
+                <div class="flex gap-2 header-actions">
+                    <button id="saveBtn">儲存</button>
+                    <button id="recordsBtn">紀錄</button>
+                    <button id="newAnalysisBtn">重置分析</button>
+                </div>
+            </div>
         </header>
 
         <!-- Main Grid -->
@@ -416,7 +448,7 @@
                             </ul>
                         </div>
                         <div class="text-right mt-2">
-                            <button id="openAdvancedModalBtn" class="text-sm bg-indigo-600 text-white px-5 py-2.5 rounded-lg hover:bg-indigo-700 transition-all duration-200 ease-in-out shadow-md hover:shadow-lg">⚙️ 進階設定</button>
+                            <button id="openAdvancedModalBtn" class="text-sm bg-indigo-600 text-white px-5 py-2.5 rounded-lg hover:bg-indigo-700 transition-all duration-200 ease-in-out shadow-md hover:shadow-md">⚙️ 進階設定</button>
                         </div>
                     </div>
                 </div>
@@ -424,7 +456,7 @@
         </div>
     </div>
     
-    <!-- Advanced Settings Modal -->
+    <!-- Modals -->
     <div id="advancedModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header"><h3 class="modal-title">進階設定</h3><button id="closeAdvancedModalBtn" class="modal-close-btn">&times;</button></div>
@@ -484,11 +516,40 @@
         </div>
     </div>
 
-    <!-- Explanation Modal -->
     <div id="explanationModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header"><h3 id="explanationModalTitle" class="modal-title">計算方式說明</h3><button id="closeExplanationModalBtn" class="modal-close-btn">&times;</button></div>
             <div id="explanationModalBody" class="mt-4 text-gray-700"></div>
+        </div>
+    </div>
+    
+    <div id="saveRecordModal" class="modal-overlay">
+        <div class="modal-content max-w-sm">
+            <div class="modal-header"><h3 class="modal-title">儲存紀錄</h3><button id="closeSaveModalBtn" class="modal-close-btn">&times;</button></div>
+            <p class="text-gray-600 mb-4">請輸入此分析表的站點名稱，之後即可從「紀錄」中讀取。</p>
+            <input type="text" id="recordNameInput" class="input-field w-full text-left" placeholder="例如：總部B1停車場 - 方案A">
+            <div id="saveRecordMessage" class="modal-message"></div>
+            <div class="mt-6 text-right">
+                <button id="confirmSaveBtn" class="modal-action-button">確認儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="recordsModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header"><h3 class="modal-title">已儲存的紀錄</h3><button id="closeRecordsModalBtn" class="modal-close-btn">&times;</button></div>
+            <div id="recordsList" class="space-y-2"></div>
+        </div>
+    </div>
+
+    <div id="newAnalysisConfirmModal" class="modal-overlay">
+        <div class="modal-content max-w-sm text-center">
+            <h3 class="modal-title mb-4">確認重置</h3>
+            <p class="text-gray-600 mb-6">您確定要清空目前的分析表並開始一個新的分析嗎？所有未儲存的變更將會遺失。</p>
+            <div class="flex justify-center gap-4">
+                <button id="cancelNewAnalysisBtn" class="header-actions">取消</button>
+                <button id="confirmNewAnalysisBtn" class="modal-action-button bg-red-600 hover:bg-red-700">確認重置</button>
+            </div>
         </div>
     </div>
 
@@ -518,10 +579,13 @@ document.addEventListener('DOMContentLoaded', function () {
             UI.elements.toggleKwhTableBtn.addEventListener('click', UI.toggleKwhTable);
             UI.elements.pnlTableBody.addEventListener('click', (e) => { const row = e.target.closest('.pnl-row'); if (row) UI.togglePnlDetails(row, Calculator.getLastResults()); });
             
-            // --- Modal Listeners ---
+            // --- Header & Modal Listeners ---
+            UI.elements.saveBtn.addEventListener('click', () => UI.openModal(UI.elements.saveRecordModal));
+            UI.elements.recordsBtn.addEventListener('click', () => { UI.renderRecordsList(); UI.openModal(UI.elements.recordsModal); });
+            UI.elements.newAnalysisBtn.addEventListener('click', () => UI.openModal(UI.elements.newAnalysisConfirmModal));
+            
             UI.elements.openAdvancedModalBtn.addEventListener('click', () => UI.openModal(UI.elements.advancedModal));
-            UI.elements.closeAdvancedModalBtn.addEventListener('click', () => UI.closeModal(UI.elements.advancedModal));
-            UI.elements.closeExplanationModalBtn.addEventListener('click', () => UI.closeModal(UI.elements.explanationModal));
+            [UI.elements.closeAdvancedModalBtn, UI.elements.closeExplanationModalBtn, UI.elements.closeSaveModalBtn, UI.elements.closeRecordsModalBtn, UI.elements.cancelNewAnalysisBtn].forEach(btn => btn.addEventListener('click', (e) => UI.closeModal(e.target.closest('.modal-overlay'))));
             
             UI.elements.loginAdvancedBtn.addEventListener('click', () => this.handleAdvancedLogin());
             UI.elements.advancedPassword.addEventListener('keydown', (e) => { if (e.key === 'Enter') this.handleAdvancedLogin(); });
@@ -530,14 +594,18 @@ document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('.modal-tab-btn').forEach(btn => btn.addEventListener('click', UI.handleTabSwitch));
             UI.elements.explanationList.addEventListener('click', (e) => this.handleExplanationClick(e));
             
+            UI.elements.confirmSaveBtn.addEventListener('click', () => this.saveRecord());
+            UI.elements.confirmNewAnalysisBtn.addEventListener('click', () => this.newAnalysis());
+            
             // --- Enhanced Modal Closing ---
-            [UI.elements.advancedModal, UI.elements.explanationModal].forEach(modal => {
+            [UI.elements.advancedModal, UI.elements.explanationModal, UI.elements.saveRecordModal, UI.elements.recordsModal, UI.elements.newAnalysisConfirmModal].forEach(modal => {
                 modal.addEventListener('click', (e) => { if (e.target === modal) UI.closeModal(modal); });
             });
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
-                    if (UI.elements.advancedModal.style.display === 'flex') UI.closeModal(UI.elements.advancedModal);
-                    if (UI.elements.explanationModal.style.display === 'flex') UI.closeModal(UI.elements.explanationModal);
+                    document.querySelectorAll('.modal-overlay').forEach(modal => {
+                        if (modal.style.display === 'flex') UI.closeModal(modal);
+                    });
                 }
             });
 
@@ -547,7 +615,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         update() {
             const inputs = UI.getInputs();
-            UI.applyAcLimitations(inputs.equipmentList);
             const finalInputs = UI.getInputs();
             UI.updateLinkedInputs(finalInputs);
             if (finalInputs.rentMethod === 'bySpace') this.previousRentValues.bySpace = finalInputs.rentPerSpace;
@@ -555,6 +622,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const results = Calculator.run(finalInputs, Config.calculationParams, Config.deviceSpecs);
             UI.updateDisplay(finalInputs, results);
             Charts.update(finalInputs, results);
+            Persistence.saveSession(); // Auto-save on every update
         },
         
         handleAdvancedLogin() {
@@ -595,7 +663,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     Config.calculationParams[key].enabled = checkbox.checked;
                 }
             });
-            Persistence.save();
+            Persistence.saveSession();
             this.update();
             UI.closeModal(UI.elements.advancedModal);
         },
@@ -608,7 +676,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!newPass || newPass.length < 4) { UI.showModalMessage(UI.elements.passwordChangeMessage, '新密碼長度至少需要4位數。'); return; }
             if (newPass !== confirmPass) { UI.showModalMessage(UI.elements.passwordChangeMessage, '新密碼與確認密碼不相符。'); return; }
             Config.passwords.advanced = newPass;
-            Persistence.save();
+            Persistence.saveSession();
             UI.showModalMessage(UI.elements.passwordChangeMessage, '密碼已成功更新！', false);
             setTimeout(() => {
                 ['oldPassword', 'newPassword', 'confirmNewPassword'].forEach(id => UI.elements[id].value = '');
@@ -621,6 +689,25 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!targetLi) return;
             const type = targetLi.dataset.target;
             UI.openExplanationModal(type, Calculator.getLastResults(), UI.getInputs());
+        },
+
+        saveRecord() {
+            const nameInput = UI.elements.recordNameInput;
+            const name = nameInput.value.trim();
+            if (!name) {
+                UI.showModalMessage(UI.elements.saveRecordMessage, '站點名稱不能為空。');
+                return;
+            }
+            const allData = Persistence.getCurrentState();
+            Persistence.saveRecord(name, allData);
+            UI.elements.siteNameDisplay.textContent = name;
+            UI.closeModal(UI.elements.saveRecordModal);
+            nameInput.value = '';
+        },
+
+        newAnalysis() {
+            localStorage.removeItem(`${Persistence.STORAGE_KEY_PREFIX}lastSession`);
+            location.reload();
         }
     };
 
@@ -670,9 +757,9 @@ document.addEventListener('DOMContentLoaded', function () {
      */
     const UI = {
         elements: {},
-        init() { this.cacheDOMElements(); this.updateUIVisibility(); this.elements.addEquipmentBtn.addEventListener('click', () => this.addEquipmentRow()); },
+        init() { this.cacheDOMElements(); this.updateUIVisibility(); this.elements.addEquipmentBtn.addEventListener('click', () => { this.addEquipmentRow(); App.update(); }); },
         cacheDOMElements() {
-            const ids = ['equipmentListContainer', 'addEquipmentBtn', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'infrastructureCostMain', 'chargeFeePerKwh', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDay', 'kwhPerGunPerMonth', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'fixedRateSection', 'touRateSection', 'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection', 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'cumulativePnlChart', 'touPieChart', 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'pnlChart', 'revenueCostChart', 'operationPeriodSummary', 'totalRevenueSummary', 'roiSummary', 'irrSummary', 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn', 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage', 'advancedContentSection', 'specsModalTableBody', 'formulaContainer', 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage', 'saveAdvancedBtn', 'touGridEditor', 'touGridContainer', 'touEditorMessage', 'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost', 'explainerPaybackPeriod', 'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn'];
+            const ids = ['siteNameDisplay', 'saveBtn', 'recordsBtn', 'newAnalysisBtn', 'newAnalysisConfirmModal', 'cancelNewAnalysisBtn', 'confirmNewAnalysisBtn', 'saveRecordModal', 'closeSaveModalBtn', 'recordNameInput', 'saveRecordMessage', 'confirmSaveBtn', 'recordsModal', 'closeRecordsModalBtn', 'recordsList', 'equipmentListContainer', 'addEquipmentBtn', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'infrastructureCostMain', 'chargeFeePerKwh', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDay', 'kwhPerGunPerMonth', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'fixedRateSection', 'touRateSection', 'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection', 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'cumulativePnlChart', 'touPieChart', 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'pnlChart', 'revenueCostChart', 'operationPeriodSummary', 'totalRevenueSummary', 'roiSummary', 'irrSummary', 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn', 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage', 'advancedContentSection', 'specsModalTableBody', 'formulaContainer', 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage', 'saveAdvancedBtn', 'touGridEditor', 'touGridContainer', 'touEditorMessage', 'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost', 'explainerPaybackPeriod', 'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn'];
             ids.forEach(id => this.elements[id] = document.getElementById(id));
         },
         getNumericValue(element, defaultValue = 0) { if (!element) return defaultValue; const value = parseFloat(String(element.value).replace(/,/g, '')); return isNaN(value) ? defaultValue : value; },
@@ -755,14 +842,23 @@ document.addEventListener('DOMContentLoaded', function () {
             const depreciationMethod = document.querySelector('input[name="depreciationMethod"]:checked').value; const depYearsInput = this.elements.depreciationYears;
             if (depreciationMethod === 'none') { depYearsInput.value = 0; depYearsInput.readOnly = true; depYearsInput.classList.add('readonly'); } else { depYearsInput.readOnly = false; depYearsInput.classList.remove('readonly'); if (parseInt(depYearsInput.value) === 0) { depYearsInput.value = 5; } }
         },
-        applyAcLimitations(equipmentList) {
-            // This logic might need refinement for mixed scenarios
+        applyAcLimitations() { /* This logic is now handled in the calculator */ },
+        updateLinkedInputs(inputs) { 
+            const totalGunCount = inputs.equipmentList.reduce((sum, item) => sum + item.gunCount, 0);
+            if(totalGunCount === 0) return;
+
+            if (inputs.revenueMethod === 'byCars') { 
+                const calculatedKwh = inputs.carsPerGunPerDay * inputs.avgKwhPerCar * 30;
+                this.elements.kwhPerGunPerMonth.value = Math.round(calculatedKwh).toLocaleString('en-US'); 
+            } else { 
+                const calculatedCars = inputs.avgKwhPerCar > 0 ? (inputs.kwhPerGunPerMonth / 30) / inputs.avgKwhPerCar : 0;
+                this.elements.carsPerGunPerDay.value = calculatedCars.toFixed(1); 
+            } 
         },
-        updateLinkedInputs(inputs) { if (inputs.revenueMethod === 'byCars') { const calculatedKwh = inputs.carsPerGunPerDay * inputs.avgKwhPerCar * 30; this.elements.kwhPerGunPerMonth.value = Math.round(calculatedKwh).toLocaleString('en-US'); } else { const calculatedCars = inputs.avgKwhPerCar > 0 ? (inputs.kwhPerGunPerMonth / 30) / inputs.avgKwhPerCar : 0; this.elements.carsPerGunPerDay.value = calculatedCars.toFixed(1); } },
         updateDisplay(inputs, results) {
             this.updateUIVisibility();
-            this.elements.totalInvestment.innerHTML = this.formatCurrency(results.totalInvestment, 0, true).replace('NT$', '<span class="unit">NT$</span>');
-            this.elements.totalRevenueSummary.innerHTML = this.formatCurrency(results.totalChargingRevenue, 0, true).replace('NT$', '<span class="unit">NT$</span>');
+            this.elements.totalInvestment.innerHTML = this.formatCurrency(results.totalInvestment, 0, false).replace('NT$', '<span class="unit">NT$</span>');
+            this.elements.totalRevenueSummary.innerHTML = this.formatCurrency(results.totalChargingRevenue, 0, false).replace('NT$', '<span class="unit">NT$</span>');
             this.elements.operationPeriodSummary.innerHTML = `${inputs.operationYears}<span class="unit"> 年</span>`;
             this.elements.paybackPeriod.innerHTML = results.paybackPeriod === 'N/A' ? '無法回收' : results.paybackPeriod.replace(' 年', '<span class="unit"> 年</span>');
             this.elements.roiSummary.innerHTML = isNaN(results.roi) ? 'N/A' : `${results.roi.toFixed(1)}<span class="unit">%</span>`;
@@ -832,14 +928,14 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         addFormulaInputListeners() {
             const container = this.elements.formulaContainer;
-            container.querySelectorAll('input[type="checkbox"]').forEach(checkbox => { checkbox.addEventListener('change', (e) => { const key = e.target.dataset.key; if (Config.calculationParams[key]) { Config.calculationParams[key].enabled = e.target.checked; Persistence.save(); App.update(); } }); });
+            container.querySelectorAll('input[type="checkbox"]').forEach(checkbox => { checkbox.addEventListener('change', (e) => { const key = e.target.dataset.key; if (Config.calculationParams[key]) { Config.calculationParams[key].enabled = e.target.checked; Persistence.saveSession(); App.update(); } }); });
             const textInputs = container.querySelectorAll('input[type="text"]:not([readonly])');
             textInputs.forEach((input) => {
                 input.addEventListener('focus', (e) => e.target.dataset.originalValue = e.target.value);
                 input.addEventListener('keydown', (e) => {
                     const focusable = Array.from(textInputs); const currentIndex = focusable.indexOf(e.target);
                     switch (e.key) {
-                        case 'Enter': case 'ArrowDown': e.preventDefault(); if (e.key === 'Enter') { const key = e.target.dataset.key; const param = Config.calculationParams[key]; if (param) { const isPercentage = param.unit === '%'; const numericValue = parseFloat(e.target.value.replace(/,/g, '')); if (!isNaN(numericValue)) { param.value = isPercentage ? numericValue / 100 : numericValue; e.target.value = isPercentage ? numericValue : numericValue.toLocaleString('en-US', { maximumFractionDigits: 2 }); Persistence.save(); App.update(); e.target.style.transition = 'border-color 0.1s ease-in-out'; e.target.style.borderColor = '#10b981'; setTimeout(() => { e.target.style.borderColor = ''; }, 1000); } } } focusable[(currentIndex + 1) % focusable.length].focus(); focusable[(currentIndex + 1) % focusable.length].select(); break;
+                        case 'Enter': case 'ArrowDown': e.preventDefault(); if (e.key === 'Enter') { const key = e.target.dataset.key; const param = Config.calculationParams[key]; if (param) { const isPercentage = param.unit === '%'; const numericValue = parseFloat(e.target.value.replace(/,/g, '')); if (!isNaN(numericValue)) { param.value = isPercentage ? numericValue / 100 : numericValue; e.target.value = isPercentage ? numericValue : numericValue.toLocaleString('en-US', { maximumFractionDigits: 2 }); Persistence.saveSession(); App.update(); e.target.style.transition = 'border-color 0.1s ease-in-out'; e.target.style.borderColor = '#10b981'; setTimeout(() => { e.target.style.borderColor = ''; }, 1000); } } } focusable[(currentIndex + 1) % focusable.length].focus(); focusable[(currentIndex + 1) % focusable.length].select(); break;
                         case 'ArrowUp': e.preventDefault(); focusable[(currentIndex - 1 + focusable.length) % focusable.length].focus(); focusable[(currentIndex - 1 + focusable.length) % focusable.length].select(); break;
                         case 'Escape': e.preventDefault(); e.target.value = e.target.dataset.originalValue; e.target.blur(); break;
                     }
@@ -855,6 +951,34 @@ document.addEventListener('DOMContentLoaded', function () {
                 case 'cost': title = '總成本 計算說明 (第一年)'; if (firstYearData) { const totalKwhSold_yr1 = firstYearData.kwhPerYear; const numberOfTransactions_yr1 = inputs.avgKwhPerCar > 0 ? totalKwhSold_yr1 / inputs.avgKwhPerCar : 0; const costItems = Calculator.getCostBreakdown(results, inputs, 1, totalKwhSold_yr1, numberOfTransactions_yr1); contentHtml = buildGrid(costItems, firstYearData.cost); } else { contentHtml = '<p>尚無第一年資料可供計算。</p>'; } break;
             }
             this.elements.explanationModalTitle.textContent = title; body.innerHTML = contentHtml; this.openModal(this.elements.explanationModal);
+        },
+        renderRecordsList() {
+            const container = UI.elements.recordsList;
+            container.innerHTML = '';
+            const records = Persistence.getRecordList();
+            if (records.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center">尚無儲存紀錄。</p>';
+                return;
+            }
+            records.forEach(name => {
+                const item = document.createElement('div');
+                item.className = 'record-list-item';
+                item.innerHTML = `
+                    <span class="record-name">${name}</span>
+                    <button class="remove-equip-btn" data-name="${name}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                    </button>
+                `;
+                item.querySelector('.record-name').addEventListener('click', () => {
+                    Persistence.loadRecord(name);
+                    UI.closeModal(UI.elements.recordsModal);
+                });
+                item.querySelector('button').addEventListener('click', (e) => {
+                    Persistence.deleteRecord(e.target.dataset.name);
+                    this.renderRecordsList();
+                });
+                container.appendChild(item);
+            });
         }
     };
 
@@ -872,10 +996,30 @@ document.addEventListener('DOMContentLoaded', function () {
             const equipmentCostItem = investmentBreakdown.find(i => i.key === 'deviceCost');
             results.costBreakdown = { equipmentCost: equipmentCostItem?.value || 0, totalDeviceCostUntaxed: equipmentCostItem?.untaxedValue || 0, totalSalvageValue: this.calculateSalvageValue(inputs, deviceSpecs) };
             let cumulativePnl = -results.totalInvestment; let paybackFound = false; let totalChargingRevenue = 0; const cashFlows = [-results.totalInvestment];
-            const totalGunCount = inputs.equipmentList.reduce((sum, item) => sum + item.gunCount, 0);
+            
+            const acGuns = inputs.equipmentList.filter(e => e.spec.type === 'AC').reduce((sum, e) => sum + e.gunCount, 0);
+            const dcGuns = inputs.equipmentList.filter(e => e.spec.type !== 'AC').reduce((sum, e) => sum + e.gunCount, 0);
+
             for (let year = 1; year <= inputs.operationYears; year++) {
                 const demandMultiplier = Math.pow(1 + inputs.demandGrowthRate, year - 1);
-                const totalKwhSold = (inputs.revenueMethod === 'byCars' ? (inputs.carsPerGunPerDay * totalGunCount * 365 * inputs.avgKwhPerCar) : (inputs.kwhPerGunPerMonth * totalGunCount * 12)) * demandMultiplier;
+                
+                let totalKwhSold = 0;
+                if (inputs.revenueMethod === 'byCars') {
+                    const totalDailyCars = inputs.carsPerGunPerDay * (acGuns + dcGuns);
+                    const acDailyCars = Math.min(inputs.carsPerGunPerDay, 2) * acGuns;
+                    const dcDailyCars = totalDailyCars - acDailyCars;
+                    const acKwh = acDailyCars * inputs.avgKwhPerCar * 365;
+                    const dcKwh = (dcGuns > 0 ? dcDailyCars * inputs.avgKwhPerCar * 365 : 0);
+                    totalKwhSold = (acKwh + dcKwh) * demandMultiplier;
+                } else { // byKwh
+                    const totalMonthlyKwh = inputs.kwhPerGunPerMonth * (acGuns + dcGuns);
+                    const acMonthlyKwh = Math.min(inputs.kwhPerGunPerMonth, 1800) * acGuns;
+                    const dcMonthlyKwh = totalMonthlyKwh - acMonthlyKwh;
+                    const acKwh = acMonthlyKwh * 12;
+                    const dcKwh = (dcGuns > 0 ? dcMonthlyKwh * 12 : 0);
+                    totalKwhSold = (acKwh + dcKwh) * demandMultiplier;
+                }
+
                 const numberOfTransactions = inputs.avgKwhPerCar > 0 ? totalKwhSold / inputs.avgKwhPerCar : 0;
                 results.avgChargeFee = (inputs.billingMethod === 'fixed') ? inputs.chargeFeePerKwh : (inputs.peakRate * inputs.touRatios.peak) + (inputs.offPeakRate * inputs.touRatios.offpeak) + (inputs.holidayRate * inputs.touRatios.holiday);
                 const revenue = totalKwhSold * results.avgChargeFee; totalChargingRevenue += revenue;
@@ -1087,32 +1231,66 @@ document.addEventListener('DOMContentLoaded', function () {
      * =================================================================
      */
     const Persistence = {
-        STORAGE_KEY: 'chargingStationAnalysisData_v7.7',
-        save() {
-            const dataToSave = {
-                deviceSpecs: Config.deviceSpecs,
-                calculationParams: Config.calculationParams,
-                passwords: Config.passwords,
-                touSchedule: Config.touSchedule,
-                equipmentConfig: UI.getEquipmentConfig()
+        STORAGE_KEY_PREFIX: 'chargingStationAnalysis_',
+        
+        getCurrentState() {
+            return {
+                inputs: UI.getInputs(),
+                siteName: UI.elements.siteNameDisplay.textContent,
+                config: {
+                    deviceSpecs: Config.deviceSpecs,
+                    calculationParams: Config.calculationParams,
+                    passwords: Config.passwords,
+                    touSchedule: Config.touSchedule
+                }
             };
-            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(dataToSave));
         },
-        load() {
-            const savedData = localStorage.getItem(this.STORAGE_KEY);
-            let parsedData = savedData ? JSON.parse(savedData) : {};
-            
-            if (parsedData.deviceSpecs) Object.assign(Config.deviceSpecs, parsedData.deviceSpecs);
-            if (parsedData.calculationParams) {
-                Object.keys(Config.calculationParams).forEach(key => {
-                    if(parsedData.calculationParams[key]) Object.assign(Config.calculationParams[key], parsedData.calculationParams[key]);
-                });
+
+        saveSession() {
+            localStorage.setItem(`${this.STORAGE_KEY_PREFIX}lastSession`, JSON.stringify(this.getCurrentState()));
+        },
+
+        saveRecord(name, data) {
+            let recordList = this.getRecordList();
+            if (!recordList.includes(name)) {
+                recordList.push(name);
             }
-            if (parsedData.passwords) Object.assign(Config.passwords, parsedData.passwords);
-            
-            if (parsedData.touSchedule && Object.keys(parsedData.touSchedule).length === 7) {
-                Config.touSchedule = parsedData.touSchedule;
+            localStorage.setItem(`${this.STORAGE_KEY_PREFIX}recordList`, JSON.stringify(recordList));
+            localStorage.setItem(`${this.STORAGE_KEY_PREFIX}record_${name}`, JSON.stringify(data));
+        },
+
+        loadRecord(name) {
+            const savedData = localStorage.getItem(`${this.STORAGE_KEY_PREFIX}record_${name}`);
+            if (savedData) {
+                const parsedData = JSON.parse(savedData);
+                this.applyState(parsedData);
+                UI.elements.siteNameDisplay.textContent = name;
+                App.update();
+            }
+        },
+
+        deleteRecord(name) {
+            let recordList = this.getRecordList();
+            const index = recordList.indexOf(name);
+            if (index > -1) {
+                recordList.splice(index, 1);
+            }
+            localStorage.setItem(`${this.STORAGE_KEY_PREFIX}recordList`, JSON.stringify(recordList));
+            localStorage.removeItem(`${this.STORAGE_KEY_PREFIX}record_${name}`);
+        },
+
+        getRecordList() {
+            const list = localStorage.getItem(`${this.STORAGE_KEY_PREFIX}recordList`);
+            return list ? JSON.parse(list) : [];
+        },
+        
+        load() {
+            const lastSession = localStorage.getItem(`${this.STORAGE_KEY_PREFIX}lastSession`);
+            if (lastSession) {
+                const parsedData = JSON.parse(lastSession);
+                this.applyState(parsedData);
             } else {
+                UI.addEquipmentRow({power: '120', count: 1});
                 const defaultWeekday = Array(24).fill('offpeak');
                 for(let i=15; i<21; i++) defaultWeekday[i] = 'peak';
                 const defaultHoliday = Array(24).fill('holiday');
@@ -1122,11 +1300,84 @@ document.addEventListener('DOMContentLoaded', function () {
                     sat: [...defaultHoliday], sun: [...defaultHoliday]
                 };
             }
-            if(parsedData.equipmentConfig && parsedData.equipmentConfig.length > 0){
-                parsedData.equipmentConfig.forEach(config => UI.addEquipmentRow(config));
-            } else {
-                UI.addEquipmentRow({power: '120', count: 1});
+        },
+
+        applyState(state) {
+            if (state.config) {
+                 if (state.config.deviceSpecs) Object.assign(Config.deviceSpecs, state.config.deviceSpecs);
+                if (state.config.calculationParams) {
+                    Object.keys(Config.calculationParams).forEach(key => {
+                        if(state.config.calculationParams[key]) Object.assign(Config.calculationParams[key], state.config.calculationParams[key]);
+                    });
+                }
+                if (state.config.passwords) Object.assign(Config.passwords, state.config.passwords);
+                if (state.config.touSchedule) Config.touSchedule = state.config.touSchedule;
             }
+
+            if (state.inputs) {
+                const { inputs } = state;
+                document.querySelector(`input[name="billingMethod"][value="${inputs.billingMethod}"]`).checked = true;
+                document.querySelector(`input[name="revenueMethod"][value="${inputs.revenueMethod}"]`).checked = true;
+                document.querySelector(`input[name="rentMethod"][value="${inputs.rentMethod}"]`).checked = true;
+                document.querySelector(`input[name="depreciationMethod"][value="${inputs.depreciationMethod}"]`).checked = true;
+
+                Object.keys(inputs).forEach(key => {
+                    const el = UI.elements[key];
+                    if (el && typeof inputs[key] !== 'object' && typeof inputs[key] !== 'undefined') {
+                        if (key === 'demandGrowthRate') {
+                            el.value = inputs[key] * 100;
+                        } else {
+                            el.value = inputs[key];
+                        }
+                    }
+                });
+                
+                UI.elements.equipmentListContainer.innerHTML = '';
+                if(inputs.equipmentList && inputs.equipmentList.length > 0){
+                    inputs.equipmentList.forEach(equip => {
+                        UI.addEquipmentRow({ power: equip.power, count: equip.count });
+                    });
+                } else {
+                     UI.addEquipmentRow({power: '120', count: 1});
+                }
+            }
+            
+            if (state.siteName) {
+                UI.elements.siteNameDisplay.textContent = state.siteName;
+            }
+        }
+    };
+
+    /**
+     * =================================================================
+     * EXPORTER MODULE: Handles CSV export
+     * =================================================================
+     */
+    const Exporter = {
+        downloadCSV(results, siteName) {
+            if (!results || !results.annualData || results.annualData.length === 0) {
+                alert('沒有可匯出的資料。');
+                return;
+            }
+
+            const headers = ['年度', '總營收', '總成本', '充電淨利', '累積稅前淨利'];
+            const rows = results.annualData.map(d => [d.year, Math.round(d.revenue), Math.round(d.cost), Math.round(d.pnl), Math.round(d.cumulativePnl)]);
+            
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // \uFEFF for BOM
+            csvContent += headers.join(',') + '\r\n';
+            rows.forEach(rowArray => {
+                let row = rowArray.join(',');
+                csvContent += row + '\r\n';
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            const fileName = `${siteName.replace(/\s+/g, '_')}_效益分析.csv`;
+            link.setAttribute("download", fileName);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     };
 
