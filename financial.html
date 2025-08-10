@@ -216,12 +216,23 @@
         #explanationList li > span { flex-shrink: 0; text-align: right; }
         #explanationList li[data-target] { cursor: pointer; transition: color 0.2s ease, background-color 0.2s ease; padding: 0.25rem 0.5rem; border-radius: 0.375rem; margin-left: -0.5rem; }
         #explanationList li[data-target]:hover { color: #4f46e5; background-color: #eef2ff; }
-        #explanationModalBody .explainer-grid { display: grid; grid-template-columns: auto 1fr auto; gap: 0 1.5rem; align-items: baseline; }
-        #explanationModalBody .explainer-grid > span { padding: 0.75rem 0; border-bottom: 1px solid #f3f4f6; }
-        #explanationModalBody .explainer-grid > span:nth-child(3n+1) { font-weight: 500; color: #374151; }
-        #explanationModalBody .explainer-grid > span:nth-child(3n+2) { color: #6b7280; font-size: 0.875rem; }
-        #explanationModalBody .explainer-grid > span:nth-child(3n+3) { font-weight: 600; text-align: right; }
-        #explanationModalBody .explainer-total { border-top: 2px solid #e5e7eb; font-weight: 700; font-size: 1.125rem; color: #111827; border-bottom: none; }
+        .explainer-grid { display: grid; grid-template-columns: auto 1fr auto; gap: 0 1.5rem; align-items: baseline; }
+        .explainer-grid > span { padding: 0.75rem 0; border-bottom: 1px solid #f3f4f6; }
+        .explainer-grid > span:nth-child(3n+1) { font-weight: 500; color: #374151; }
+        .explainer-grid > span:nth-child(3n+2) { color: #6b7280; font-size: 0.875rem; }
+        .explainer-grid > span:nth-child(3n+3) { font-weight: 600; text-align: right; }
+        .explainer-total-row {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding-top: 0.75rem;
+            margin-top: 0.75rem;
+            border-top: 2px solid #e5e7eb;
+            font-weight: 700;
+            font-size: 1.125rem;
+            color: #111827;
+        }
 
         /* TOU Grid Editor Styles */
         #touGridEditor { user-select: none; }
@@ -284,7 +295,7 @@
         <header class="mb-10">
             <div class="text-center">
                  <h1 class="text-3xl md:text-5xl font-extrabold text-gray-800 leading-tight">充電站投資效益分析</h1>
-                 <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v9.5 - 瀏覽器存檔)</p>
+                 <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v9.6 - 穩定版)</p>
             </div>
             <div class="flex flex-col sm:flex-row justify-between items-center mt-6 bg-gray-100 p-3 rounded-xl shadow-sm gap-4">
                 <div>
@@ -1024,11 +1035,31 @@ document.addEventListener('DOMContentLoaded', function () {
         togglePnlDetails(row, results) {
             const year = parseInt(row.dataset.year); const existingDetailsRow = this.elements.pnlTableBody.querySelector(`.details-row[data-year="${year}"]`);
             this.elements.pnlTableBody.querySelectorAll('.details-row').forEach(dr => { if (dr !== existingDetailsRow) dr.remove(); });
-            if (existingDetailsRow) { existingDetailsRow.remove(); } else { const yearData = results.annualData.find(d => d.year === year); if (yearData && yearData.details) { const detailsHtml = this.createDetailsHtml(yearData.details); const newRow = document.createElement('tr'); newRow.className = 'details-row'; newRow.dataset.year = year; newRow.innerHTML = `<td colspan="5">${detailsHtml}</td>`; row.after(newRow); } }
+            if (existingDetailsRow) { existingDetailsRow.remove(); } else { const yearData = results.annualData.find(d => d.year === year); if (yearData && yearData.details) { const detailsHtml = this.createDetailsHtml(yearData, results); const newRow = document.createElement('tr'); newRow.className = 'details-row'; newRow.dataset.year = year; newRow.innerHTML = `<td colspan="5">${detailsHtml}</td>`; row.after(newRow); } }
         },
-        createDetailsHtml(details) {
-            const createSection = (title, data, totalLabel, totalValue) => { let itemsHtml = Object.entries(data).filter(([key, value]) => key !== '總營收' && value > 0).map(([key, value]) => `<div class="details-item"><span>${key.replace(/\/.*$/, '')}</span><span>${this.formatCurrency(value, 0, false, true)}</span></div>`).join(''); itemsHtml += `<div class="details-item" style="border-top: 1px solid #e5e7eb; margin-top: 0.5rem; padding-top: 0.5rem;"><span class="font-bold">${totalLabel}</span><span class="font-bold">${this.formatCurrency(totalValue, 0, false, true)}</span></div>`; return `<div class="details-section"><h4>${title}</h4>${itemsHtml}</div>`; };
-            const revenueData = { ...details.revenue }; const totalRevenueValue = revenueData['總營收']; delete revenueData['總營收']; const revenueHtml = createSection('總營收細項', revenueData, '總營收', totalRevenueValue); const totalCostValue = Object.values(details.costs).reduce((s, v) => s + v, 0); const costsHtml = createSection('總成本細項', details.costs, '總成本', totalCostValue); return `<div class="details-container"><div class="details-grid">${revenueHtml}${costsHtml}</div></div>`;
+        createDetailsHtml(yearData, results) {
+            const { details } = yearData;
+            const inputs = this.getInputs();
+
+            const buildGrid = (items, total) => {
+                let gridHtml = '<div class="explainer-grid">';
+                items.forEach(item => {
+                    gridHtml += `<span>${item.label}</span><span>${item.formula}</span><span class="font-semibold">${this.formatCurrency(item.value, 0, false, true)}</span>`;
+                });
+                gridHtml += '</div>';
+                gridHtml += `<div class="explainer-total-row"><span>總計</span><span>${this.formatCurrency(total, 0, false, true)}</span></div>`;
+                return gridHtml;
+            };
+
+            const revenueItems = Calculator.getRevenueBreakdown(yearData, inputs, results);
+            const revenueHtml = `<div class="details-section"><h4>總營收細項</h4>${buildGrid(revenueItems, details.revenue['總營收'])}</div>`;
+
+            const totalKwhSold_yr = yearData.kwhPerYear;
+            const numberOfTransactions_yr = inputs.avgKwhPerCar > 0 ? totalKwhSold_yr / inputs.avgKwhPerCar : 0;
+            const costItems = Calculator.getCostBreakdown(results, inputs, yearData.year, totalKwhSold_yr, numberOfTransactions_yr);
+            const costsHtml = `<div class="details-section"><h4>總成本細項</h4>${buildGrid(costItems, yearData.cost)}</div>`;
+
+            return `<div class="details-container"><div class="details-grid">${revenueHtml}${costsHtml}</div></div>`;
         },
         openModal(modal) { modal.style.display = 'flex'; },
         closeModal(modal) { modal.style.display = 'none'; if (modal.id === 'advancedModal') { this.showAdvancedContent(false); this.elements.advancedPassword.value = ''; this.showModalMessage(this.elements.advancedMessage, '', false, true); } },
@@ -1092,10 +1123,18 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         openExplanationModal(type, results, inputs) {
             const { calculationParams } = Config; const body = this.elements.explanationModalBody; let title = ''; let contentHtml = ''; const firstYearData = results.annualData[0];
-            const buildGrid = (items, total) => { let gridHtml = '<div class="explainer-grid">'; items.forEach(item => { gridHtml += `<span>${item.label}</span><span>${item.formula}</span><span>${this.formatCurrency(item.value)}</span>`; }); gridHtml += `<span class="explainer-total">總計</span><span class="explainer-total"></span><span class="explainer-total">${this.formatCurrency(total)}</span>`; gridHtml += '</div>'; return gridHtml; };
+            const buildGrid = (items, total) => { 
+                let gridHtml = '<div class="explainer-grid">';
+                items.forEach(item => {
+                    gridHtml += `<span>${item.label}</span><span>${item.formula}</span><span class="font-semibold">${this.formatCurrency(item.value, 0, false, true)}</span>`;
+                });
+                gridHtml += '</div>';
+                gridHtml += `<div class="explainer-total-row"><span>總計</span><span>${this.formatCurrency(total, 0, false, true)}</span></div>`;
+                return gridHtml;
+            };
             switch (type) {
                 case 'investment': title = '總投資額 計算說明'; const investmentItems = Calculator.getInvestmentBreakdown(inputs, calculationParams); contentHtml = buildGrid(investmentItems, results.totalInvestment); break;
-                case 'revenue': title = '總營收 計算說明 (第一年)'; if (firstYearData) { const revenueItems = Calculator.getRevenueBreakdown(firstYearData, inputs); contentHtml = buildGrid(revenueItems, firstYearData.revenue); } else { contentHtml = '<p>尚無第一年資料可供計算。</p>'; } break;
+                case 'revenue': title = '總營收 計算說明 (第一年)'; if (firstYearData) { const revenueItems = Calculator.getRevenueBreakdown(firstYearData, inputs, results); contentHtml = buildGrid(revenueItems, firstYearData.revenue); } else { contentHtml = '<p>尚無第一年資料可供計算。</p>'; } break;
                 case 'cost': title = '總成本 計算說明 (第一年)'; if (firstYearData) { const totalKwhSold_yr1 = firstYearData.kwhPerYear; const numberOfTransactions_yr1 = inputs.avgKwhPerCar > 0 ? totalKwhSold_yr1 / inputs.avgKwhPerCar : 0; const costItems = Calculator.getCostBreakdown(results, inputs, 1, totalKwhSold_yr1, numberOfTransactions_yr1); contentHtml = buildGrid(costItems, firstYearData.cost); } else { contentHtml = '<p>尚無第一年資料可供計算。</p>'; } break;
             }
             this.elements.explanationModalTitle.textContent = title; body.innerHTML = contentHtml; this.openModal(this.elements.explanationModal);
@@ -1188,7 +1227,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const depreciation = costBreakdown.find(item => item.label === '折舊')?.value || 0;
                 const pnl = revenue - totalAnnualCost; cumulativePnl += pnl; cashFlows.push(pnl + depreciation);
                 const detailsCosts = costBreakdown.reduce((obj, item) => ({...obj, [item.label]: item.value }), {});
-                results.annualData.push({ year, revenue, cost: totalAnnualCost, pnl, cumulativePnl, kwhPerYear: totalKwhSold, kwhPerMonth: totalKwhSold / 12, kwhPerDay: totalKwhSold / 365, details: { revenue: {'AC 充電服務費': revenueAC, 'DC 充電服務費': revenueDC, '總營收': revenue}, costs: detailsCosts } });
+                results.annualData.push({ year, revenue, cost: totalAnnualCost, pnl, cumulativePnl, kwhPerYear: totalKwhSold, kwhPerMonth: totalKwhSold / 12, kwhPerDay: totalKwhSold / 365, details: { revenue: {'AC 充電服務費': revenueAC, 'DC 充電服務費': revenueDC, '總營收': revenue}, kwh: { ac: annualKwhAC, dc: annualKwhDC }, costs: detailsCosts } });
                 if (cumulativePnl >= 0 && !paybackFound) { const prevCumulativePnl = results.annualData[year - 2]?.cumulativePnl || -results.totalInvestment; const fractionOfYear = pnl > 0 ? (-prevCumulativePnl / pnl) : 0; results.paybackPeriod = `${(year - 1 + fractionOfYear).toFixed(1)} 年`; paybackFound = true; }
             }
             results.totalChargingRevenue = totalChargingRevenue; const totalNetProfit = cumulativePnl + results.totalInvestment; if (results.totalInvestment > 0) results.roi = (totalNetProfit / results.totalInvestment) * 100; results.irr = this.calculateIRR(cashFlows) * 100; this.lastResults = results; return results;
@@ -1225,37 +1264,51 @@ document.addEventListener('DOMContentLoaded', function () {
             if (params.constructionFee.enabled) items.push({ key: 'constructionFee', label: params.constructionFee.label, value: inputs.infrastructureCostMain, formula: '由主畫面輸入' });
             return items;
         },
-        getRevenueBreakdown(yearData, inputs) { 
+        getRevenueBreakdown(yearData, inputs, results) { 
             const items = [];
-            if (yearData.details.revenue['AC 充電服務費'] > 0) {
-                items.push({ label: 'AC 充電服務費', value: yearData.details.revenue['AC 充電服務費'], formula: 'AC 設備營收' });
+            const { details } = yearData;
+            if (details.revenue['AC 充電服務費'] > 0) {
+                items.push({
+                    label: 'AC 充電服務費',
+                    value: details.revenue['AC 充電服務費'],
+                    formula: `${this.formatCurrencyForFormula(details.kwh.ac, 0)} kWh x ${this.formatCurrencyForFormula(results.avgChargeFeeAC, 2)}元`
+                });
             }
-            if (yearData.details.revenue['DC 充電服務費'] > 0) {
-                items.push({ label: 'DC 充電服務費', value: yearData.details.revenue['DC 充電服務費'], formula: 'DC 設備營收' });
+            if (details.revenue['DC 充電服務費'] > 0) {
+                items.push({
+                    label: 'DC 充電服務費',
+                    value: details.revenue['DC 充電服務費'],
+                    formula: `${this.formatCurrencyForFormula(details.kwh.dc, 0)} kWh x ${this.formatCurrencyForFormula(results.avgChargeFeeDC, 2)}元`
+                });
             }
             return items;
            },
+        formatCurrencyForFormula(value, precision = 0) {
+            if (isNaN(value) || value === null) return 'N/A';
+            const num = Number(value);
+            return num.toLocaleString('en-US', { minimumFractionDigits: precision, maximumFractionDigits: precision });
+        },
         getCostBreakdown(results, inputs, year, totalKwhSold, numberOfTransactions) {
             const items = []; const p = Config.calculationParams; 
             const revenue = (results.annualData[year-1] && results.annualData[year-1].revenue) ? results.annualData[year-1].revenue : 0;
             const totalGunCount = inputs.equipmentList.reduce((sum, item) => sum + item.gunCount, 0);
             const totalPileCount = inputs.equipmentList.reduce((sum, item) => sum + item.pileCount, 0);
             const hasDC = inputs.equipmentList.some(item => item.spec.type !== 'AC');
-            if (p.taipowerFee.enabled) { const val = totalKwhSold * p.taipowerFee.value * (1 + (p.powerLossRate.enabled ? p.powerLossRate.value : 0)); items.push({ label: p.taipowerFee.label, value: val, formula: `${UI.formatCurrency(totalKwhSold,0,false,true)} kWh x ${p.taipowerFee.value}元 x (1 + ${p.powerLossRate.value*100}%)` }); }
-            if (p.transactionFeeRate.enabled) items.push({ label: p.transactionFeeRate.label, value: revenue * p.transactionFeeRate.value, formula: `${UI.formatCurrency(revenue)} x ${p.transactionFeeRate.value*100}%` });
-            if (p.electronicInvoiceFeePerTransaction.enabled) items.push({ label: p.electronicInvoiceFeePerTransaction.label, value: numberOfTransactions * p.electronicInvoiceFeePerTransaction.value, formula: `${UI.formatCurrency(numberOfTransactions,0,false,true)} 張 x ${p.electronicInvoiceFeePerTransaction.value} 元` });
-            if (p.repairPartsRate.enabled) items.push({ label: p.repairPartsRate.label, value: results.costBreakdown.equipmentCost * p.repairPartsRate.value, formula: `${UI.formatCurrency(results.costBreakdown.equipmentCost)} x ${p.repairPartsRate.value*100}%` });
+            if (p.taipowerFee.enabled) { const val = totalKwhSold * p.taipowerFee.value * (1 + (p.powerLossRate.enabled ? p.powerLossRate.value : 0)); items.push({ label: p.taipowerFee.label, value: val, formula: `${this.formatCurrencyForFormula(totalKwhSold,0)} kWh x ${p.taipowerFee.value}元 x (1 + ${p.powerLossRate.value*100}%)` }); }
+            if (p.transactionFeeRate.enabled) items.push({ label: p.transactionFeeRate.label, value: revenue * p.transactionFeeRate.value, formula: `${this.formatCurrencyForFormula(revenue)} x ${p.transactionFeeRate.value*100}%` });
+            if (p.electronicInvoiceFeePerTransaction.enabled) items.push({ label: p.electronicInvoiceFeePerTransaction.label, value: numberOfTransactions * p.electronicInvoiceFeePerTransaction.value, formula: `${this.formatCurrencyForFormula(numberOfTransactions,0)} 張 x ${p.electronicInvoiceFeePerTransaction.value} 元` });
+            if (p.repairPartsRate.enabled) items.push({ label: p.repairPartsRate.label, value: results.costBreakdown.equipmentCost * p.repairPartsRate.value, formula: `${this.formatCurrencyForFormula(results.costBreakdown.equipmentCost)} x ${p.repairPartsRate.value*100}%` });
             if (p.electricalTechnicianFee.enabled && hasDC) items.push({ label: p.electricalTechnicianFee.label, value: p.electricalTechnicianFee.value, formula: '固定年費' });
             if (p.maintenanceFee.enabled) items.push({ label: p.maintenanceFee.label, value: p.maintenanceFee.value, formula: '固定年費' });
             if (p.insuranceFee.enabled) items.push({ label: p.insuranceFee.label, value: p.insuranceFee.value, formula: '固定年費' });
-            if (p.extendedWarrantyPerPile.enabled) items.push({ label: p.extendedWarrantyPerPile.label, value: totalPileCount * p.extendedWarrantyPerPile.value, formula: `${UI.formatCurrency(p.extendedWarrantyPerPile.value,0,false,true)} x ${totalPileCount} 樁` });
+            if (p.extendedWarrantyPerPile.enabled) items.push({ label: p.extendedWarrantyPerPile.label, value: totalPileCount * p.extendedWarrantyPerPile.value, formula: `${this.formatCurrencyForFormula(p.extendedWarrantyPerPile.value,0)} x ${totalPileCount} 樁` });
             if (p.laborCost.enabled) items.push({ label: p.laborCost.label, value: p.laborCost.value, formula: '固定年費' });
-            if (p.internetFee.enabled) items.push({ label: '網路費', value: p.internetFee.value * 12, formula: `${UI.formatCurrency(p.internetFee.value,0,false,true)} x 12 個月` });
-            if (p.tdxUploadFee.enabled) items.push({ label: 'TDX上傳費', value: p.tdxUploadFee.value * totalGunCount * 12, formula: `${UI.formatCurrency(p.tdxUploadFee.value,0,false,true)} x ${totalGunCount} 槍 x 12 個月` });
-            if (inputs.rentMethod !== 'none') { const totalParkingSpaces = inputs.equipmentList.reduce((sum, item) => sum + item.parkingSpaces, 0); let rentCost = (inputs.rentMethod === 'bySpace') ? inputs.rentPerSpace * totalParkingSpaces * 12 : inputs.rentPerLand * 12; let formula = (inputs.rentMethod === 'bySpace') ? `${UI.formatCurrency(inputs.rentPerSpace,0,false,true)} x ${totalParkingSpaces} 車位 x 12 個月` : `${UI.formatCurrency(inputs.rentPerLand,0,false,true)} x 12 個月`; items.push({ label: '租金', value: rentCost, formula }); }
+            if (p.internetFee.enabled) items.push({ label: '網路費', value: p.internetFee.value * 12, formula: `${this.formatCurrencyForFormula(p.internetFee.value,0)} x 12 個月` });
+            if (p.tdxUploadFee.enabled) items.push({ label: 'TDX上傳費', value: p.tdxUploadFee.value * totalGunCount * 12, formula: `${this.formatCurrencyForFormula(p.tdxUploadFee.value,0)} x ${totalGunCount} 槍 x 12 個月` });
+            if (inputs.rentMethod !== 'none') { const totalParkingSpaces = inputs.equipmentList.reduce((sum, item) => sum + item.parkingSpaces, 0); let rentCost = (inputs.rentMethod === 'bySpace') ? inputs.rentPerSpace * totalParkingSpaces * 12 : inputs.rentPerLand * 12; let formula = (inputs.rentMethod === 'bySpace') ? `${this.formatCurrencyForFormula(inputs.rentPerSpace,0)} x ${totalParkingSpaces} 車位 x 12 個月` : `${this.formatCurrencyForFormula(inputs.rentPerLand,0)} x 12 個月`; items.push({ label: '租金', value: rentCost, formula }); }
             if (year <= inputs.depreciationYears && inputs.depreciationMethod !== 'none') {
                 const depreciableBase = results.totalInvestment - results.costBreakdown.totalSalvageValue; let depreciation = 0, formula = '';
-                if (inputs.depreciationMethod === 'straightLine') { depreciation = depreciableBase / inputs.depreciationYears; formula = `(${UI.formatCurrency(results.totalInvestment)} - ${UI.formatCurrency(results.costBreakdown.totalSalvageValue)}) / ${inputs.depreciationYears} 年`; } else { const n = inputs.depreciationYears, sydDenominator = n * (n + 1) / 2, remainingLife = n - year + 1; depreciation = depreciableBase * (remainingLife / sydDenominator); formula = `(${UI.formatCurrency(results.totalInvestment)} - ${UI.formatCurrency(results.costBreakdown.totalSalvageValue)}) x ${remainingLife}/${sydDenominator}`; }
+                if (inputs.depreciationMethod === 'straightLine') { depreciation = depreciableBase / inputs.depreciationYears; formula = `(${this.formatCurrencyForFormula(results.totalInvestment)} - ${this.formatCurrencyForFormula(results.costBreakdown.totalSalvageValue)}) / ${inputs.depreciationYears} 年`; } else { const n = inputs.depreciationYears, sydDenominator = n * (n + 1) / 2, remainingLife = n - year + 1; depreciation = depreciableBase * (remainingLife / sydDenominator); formula = `(${this.formatCurrencyForFormula(results.totalInvestment)} - ${this.formatCurrencyForFormula(results.costBreakdown.totalSalvageValue)}) x ${remainingLife}/${sydDenominator}`; }
                 items.push({ label: '折舊', value: depreciation, formula });
             }
             return items;
