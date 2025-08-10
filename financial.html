@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>充電站投資效益分析 (v9.4 - 本機檔案存取)</title>
+    <title>充電站投資效益分析 (v9.6 - 穩定版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -263,6 +263,16 @@
             border-color: #4f46e5; color: #4f46e5; background-color: #eef2ff;
         }
 
+        /* Records List */
+        .record-list-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0.75rem 1rem; border-radius: 0.5rem; transition: background-color 0.2s;
+        }
+        .record-list-item:nth-child(odd) { background-color: #f9fafb; }
+        .record-list-item:hover { background-color: #eff6ff; }
+        .record-name { font-weight: 600; cursor: pointer; color: #374151; }
+        .record-name:hover { color: #4f46e5; }
+
         /* Animations */
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -274,17 +284,16 @@
         <header class="mb-10">
             <div class="text-center">
                  <h1 class="text-3xl md:text-5xl font-extrabold text-gray-800 leading-tight">充電站投資效益分析</h1>
-                 <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v9.4 - 本機檔案存取)</p>
+                 <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v9.5 - 瀏覽器存檔)</p>
             </div>
             <div class="flex flex-col sm:flex-row justify-between items-center mt-6 bg-gray-100 p-3 rounded-xl shadow-sm gap-4">
                 <div>
                     <h2 id="siteNameDisplay" class="text-lg sm:text-xl font-bold text-gray-700">未命名站點</h2>
                 </div>
                 <div class="flex gap-2 header-actions">
-                    <button id="saveBtn">另存為檔案</button>
-                    <button id="loadBtn">讀取檔案</button>
+                    <button id="saveBtn">儲存</button>
+                    <button id="recordsBtn">紀錄</button>
                     <button id="newAnalysisBtn">重置分析</button>
-                    <input type="file" id="fileInput" class="hidden" accept=".json">
                 </div>
             </div>
         </header>
@@ -617,13 +626,21 @@
     
     <div id="saveRecordModal" class="modal-overlay">
         <div class="modal-content max-w-sm">
-            <div class="modal-header"><h3 class="modal-title">另存為檔案</h3><button id="closeSaveModalBtn" class="modal-close-btn">&times;</button></div>
-            <p class="text-gray-600 mb-4">請輸入此分析表的站點名稱，將作為預設檔名。</p>
+            <div class="modal-header"><h3 class="modal-title">儲存分析</h3><button id="closeSaveModalBtn" class="modal-close-btn">&times;</button></div>
+            <p class="text-gray-600 mb-4">請輸入此分析表的站點名稱。</p>
             <input type="text" id="recordNameInput" class="input-field w-full text-left" placeholder="例如：總部B1停車場 - 方案A">
             <div id="saveRecordMessage" class="modal-message"></div>
-            <div class="mt-6 text-right">
+            <div class="mt-6 flex justify-end gap-3">
+                 <button id="cancelSaveBtn" class="header-actions">取消</button>
                 <button id="confirmSaveBtn" class="modal-action-button">確認儲存</button>
             </div>
+        </div>
+    </div>
+
+    <div id="recordsModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header"><h3 class="modal-title">已儲存的紀錄</h3><button id="closeRecordsModalBtn" class="modal-close-btn">&times;</button></div>
+            <div id="recordsList" class="space-y-2"></div>
         </div>
     </div>
 
@@ -666,12 +683,11 @@ document.addEventListener('DOMContentLoaded', function () {
             
             // --- Header & Modal Listeners ---
             UI.elements.saveBtn.addEventListener('click', () => UI.openModal(UI.elements.saveRecordModal));
-            UI.elements.loadBtn.addEventListener('click', () => UI.elements.fileInput.click());
-            UI.elements.fileInput.addEventListener('change', (e) => Persistence.loadRecord(e));
-            UI.elements.newAnalysisBtn.addEventListener('click', () => UI.openModal(UI.elements.newAnalysisConfirmModal));
+            UI.elements.recordsBtn.addEventListener('click', () => { UI.renderRecordsList(); UI.openModal(UI.elements.recordsModal); });
+            UI.elements.newAnalysisBtn.addEventListener('click', () => this.newAnalysis());
             
             UI.elements.openAdvancedModalBtn.addEventListener('click', () => UI.openModal(UI.elements.advancedModal));
-            [UI.elements.closeAdvancedModalBtn, UI.elements.closeExplanationModalBtn, UI.elements.closeSaveModalBtn, UI.elements.cancelNewAnalysisBtn].forEach(btn => btn.addEventListener('click', (e) => UI.closeModal(e.target.closest('.modal-overlay'))));
+            [UI.elements.closeAdvancedModalBtn, UI.elements.closeExplanationModalBtn, UI.elements.closeSaveModalBtn, UI.elements.closeRecordsModalBtn, UI.elements.cancelSaveBtn].forEach(btn => btn?.addEventListener('click', (e) => UI.closeModal(e.target.closest('.modal-overlay'))));
             
             UI.elements.loginAdvancedBtn.addEventListener('click', () => this.handleAdvancedLogin());
             UI.elements.advancedPassword.addEventListener('keydown', (e) => { if (e.key === 'Enter') this.handleAdvancedLogin(); });
@@ -681,7 +697,6 @@ document.addEventListener('DOMContentLoaded', function () {
             UI.elements.explanationList.addEventListener('click', (e) => this.handleExplanationClick(e));
             
             UI.elements.confirmSaveBtn.addEventListener('click', () => this.saveRecord());
-            UI.elements.confirmNewAnalysisBtn.addEventListener('click', () => this.newAnalysis());
 
             const enforceMax = (element, max) => {
                 if (UI.getNumericValue(element, 0) > max) {
@@ -692,7 +707,7 @@ document.addEventListener('DOMContentLoaded', function () {
             UI.elements.kwhPerGunPerMonthAC.addEventListener('input', () => enforceMax(UI.elements.kwhPerGunPerMonthAC, 1800));
             
             // --- Enhanced Modal Closing ---
-            [UI.elements.advancedModal, UI.elements.explanationModal, UI.elements.saveRecordModal, UI.elements.newAnalysisConfirmModal].forEach(modal => {
+            [UI.elements.advancedModal, UI.elements.explanationModal, UI.elements.saveRecordModal, UI.elements.recordsModal].forEach(modal => {
                 modal.addEventListener('click', (e) => { if (e.target === modal) UI.closeModal(modal); });
             });
             document.addEventListener('keydown', (e) => {
@@ -716,6 +731,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const results = Calculator.run(finalInputs, Config.calculationParams, Config.deviceSpecs);
             UI.updateDisplay(finalInputs, results);
             Charts.update(finalInputs, results);
+            Persistence.saveSession();
         },
         
         handleAdvancedLogin() {
@@ -784,20 +800,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
         saveRecord() {
             const nameInput = UI.elements.recordNameInput;
-            const name = nameInput.value.trim() || UI.elements.siteNameDisplay.textContent;
+            const name = nameInput.value.trim();
             if (!name) {
                 UI.showModalMessage(UI.elements.saveRecordMessage, '站點名稱不能為空。');
                 return;
             }
             const allData = Persistence.getCurrentState();
-            Persistence.saveRecordToFile(name, allData);
+            allData.siteName = name; // Ensure the new name is in the data object
+            Persistence.saveRecord(name, allData);
             UI.elements.siteNameDisplay.textContent = name;
             UI.closeModal(UI.elements.saveRecordModal);
             nameInput.value = '';
         },
 
         newAnalysis() {
-            location.reload();
+            Persistence.deleteSession();
+            UI.elements.equipmentListContainer.innerHTML = '';
+            Persistence.loadDefaultState();
+            App.update();
         }
     };
 
@@ -849,7 +869,7 @@ document.addEventListener('DOMContentLoaded', function () {
         elements: {},
         init() { this.cacheDOMElements(); this.updateUIVisibility(); this.elements.addEquipmentBtn.addEventListener('click', () => { this.addEquipmentRow(); App.update(); }); },
         cacheDOMElements() {
-            const ids = ['siteNameDisplay', 'saveBtn', 'loadBtn', 'fileInput', 'newAnalysisBtn', 'newAnalysisConfirmModal', 'cancelNewAnalysisBtn', 'confirmNewAnalysisBtn', 'saveRecordModal', 'closeSaveModalBtn', 'recordNameInput', 'saveRecordMessage', 'confirmSaveBtn', 'equipmentListContainer', 'addEquipmentBtn', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'infrastructureCostMain', 'chargeFeePerKwhAC', 'chargeFeePerKwhDC', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'dcRevenueSection', 'acRevenueSection', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'acBillingSection', 'dcBillingSection', 'fixedRateSectionDC', 'touRateSectionDC', 'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection', 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'cumulativePnlChart', 'touPieChart', 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'pnlChart', 'revenueCostChart', 'operationPeriodSummary', 'totalRevenueSummary', 'roiSummary', 'irrSummary', 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn', 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage', 'advancedContentSection', 'specsModalTableBody', 'formulaContainer', 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage', 'saveAdvancedBtn', 'touGridEditor', 'touGridContainer', 'touEditorMessage', 'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost', 'explainerPaybackPeriod', 'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn'];
+            const ids = ['siteNameDisplay', 'saveBtn', 'recordsBtn', 'newAnalysisBtn', 'saveRecordModal', 'closeSaveModalBtn', 'cancelSaveBtn', 'recordNameInput', 'saveRecordMessage', 'confirmSaveBtn', 'recordsModal', 'closeRecordsModalBtn', 'recordsList', 'equipmentListContainer', 'addEquipmentBtn', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'infrastructureCostMain', 'chargeFeePerKwhAC', 'chargeFeePerKwhDC', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'dcRevenueSection', 'acRevenueSection', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'acBillingSection', 'dcBillingSection', 'fixedRateSectionDC', 'touRateSectionDC', 'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection', 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'cumulativePnlChart', 'touPieChart', 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'pnlChart', 'revenueCostChart', 'operationPeriodSummary', 'totalRevenueSummary', 'roiSummary', 'irrSummary', 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn', 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage', 'advancedContentSection', 'specsModalTableBody', 'formulaContainer', 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage', 'saveAdvancedBtn', 'touGridEditor', 'touGridContainer', 'touEditorMessage', 'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost', 'explainerPaybackPeriod', 'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn'];
             ids.forEach(id => this.elements[id] = document.getElementById(id));
         },
         getNumericValue(element, defaultValue = 0) { if (!element) return defaultValue; const value = parseFloat(String(element.value).replace(/,/g, '')); return isNaN(value) ? defaultValue : value; },
@@ -1047,7 +1067,16 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         addFormulaInputListeners() {
             const container = this.elements.formulaContainer;
-            container.querySelectorAll('input[type="checkbox"]').forEach(checkbox => { checkbox.addEventListener('change', (e) => { const key = e.target.dataset.key; if (Config.calculationParams[key]) { Config.calculationParams[key].enabled = e.target.checked; Persistence.saveSession(); App.update(); } }); });
+            container.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    const key = e.target.dataset.key;
+                    if (Config.calculationParams[key]) {
+                        Config.calculationParams[key].enabled = e.target.checked;
+                        Persistence.saveSession();
+                        App.update();
+                    }
+                });
+            });
             const textInputs = container.querySelectorAll('input[type="text"]:not([readonly])');
             textInputs.forEach((input) => {
                 input.addEventListener('focus', (e) => e.target.dataset.originalValue = e.target.value);
@@ -1071,6 +1100,34 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             this.elements.explanationModalTitle.textContent = title; body.innerHTML = contentHtml; this.openModal(this.elements.explanationModal);
         },
+        renderRecordsList() {
+            const container = UI.elements.recordsList;
+            container.innerHTML = '';
+            const records = Persistence.getRecordList();
+            if (records.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center">尚無儲存紀錄。</p>';
+                return;
+            }
+            records.forEach(name => {
+                const item = document.createElement('div');
+                item.className = 'record-list-item';
+                item.innerHTML = `
+                    <span class="record-name">${name}</span>
+                    <button class="remove-equip-btn" data-name="${name}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                    </button>
+                `;
+                item.querySelector('.record-name').addEventListener('click', () => {
+                    Persistence.loadRecord(name);
+                    UI.closeModal(UI.elements.recordsModal);
+                });
+                item.querySelector('button').addEventListener('click', (e) => {
+                    Persistence.deleteRecord(e.target.dataset.name);
+                    this.renderRecordsList();
+                });
+                container.appendChild(item);
+            });
+        }
     };
 
     /**
@@ -1340,12 +1397,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /**
      * =================================================================
-     * PERSISTENCE MODULE: Local File Access
+     * PERSISTENCE MODULE: Local Storage Access
      * =================================================================
      */
     const Persistence = {
+        STORAGE_KEY_PREFIX: 'chargingStationAnalysis_',
+        
         init() {
-            this.loadDefaultState();
+            const lastSession = localStorage.getItem(`${this.STORAGE_KEY_PREFIX}lastSession`);
+            if (lastSession) {
+                this.applyState(JSON.parse(lastSession));
+            } else {
+                this.loadDefaultState();
+            }
         },
 
         getCurrentState() {
@@ -1361,37 +1425,47 @@ document.addEventListener('DOMContentLoaded', function () {
             };
         },
 
-        saveRecordToFile(name, data) {
-            const dataStr = JSON.stringify(data, null, 2);
-            const blob = new Blob([dataStr], {type: "application/json"});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${name}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+        saveSession() {
+            localStorage.setItem(`${this.STORAGE_KEY_PREFIX}lastSession`, JSON.stringify(this.getCurrentState()));
+        },
+        
+        deleteSession() {
+            localStorage.removeItem(`${this.STORAGE_KEY_PREFIX}lastSession`);
         },
 
-        loadRecord(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+        saveRecord(name, data) {
+            let recordList = this.getRecordList();
+            if (!recordList.includes(name)) {
+                recordList.push(name);
+            }
+            localStorage.setItem(`${this.STORAGE_KEY_PREFIX}recordList`, JSON.stringify(recordList));
+            localStorage.setItem(`${this.STORAGE_KEY_PREFIX}record_${name}`, JSON.stringify(data));
+        },
 
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const content = e.target.result;
-                    const parsedData = JSON.parse(content);
-                    this.applyState(parsedData);
-                    App.update();
-                } catch (error) {
-                    console.error("Error parsing JSON file:", error);
-                    alert("讀取檔案失敗，請確認檔案格式是否正確。");
-                }
-            };
-            reader.readAsText(file);
-            event.target.value = null; // Reset file input
+        loadRecord(name) {
+            const savedData = localStorage.getItem(`${this.STORAGE_KEY_PREFIX}record_${name}`);
+            if (savedData) {
+                const parsedData = JSON.parse(savedData);
+                this.applyState(parsedData);
+                // Ensure the site name is updated from the record's name
+                UI.elements.siteNameDisplay.textContent = parsedData.siteName || name;
+                App.update();
+            }
+        },
+
+        deleteRecord(name) {
+            let recordList = this.getRecordList();
+            const index = recordList.indexOf(name);
+            if (index > -1) {
+                recordList.splice(index, 1);
+            }
+            localStorage.setItem(`${this.STORAGE_KEY_PREFIX}recordList`, JSON.stringify(recordList));
+            localStorage.removeItem(`${this.STORAGE_KEY_PREFIX}record_${name}`);
+        },
+
+        getRecordList() {
+            const list = localStorage.getItem(`${this.STORAGE_KEY_PREFIX}recordList`);
+            return list ? JSON.parse(list) : [];
         },
         
         loadDefaultState() {
