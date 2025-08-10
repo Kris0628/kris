@@ -420,10 +420,10 @@
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-2 items-center gap-4">
-                                    <span class="label-text">每日車次/槍 (上限2)</span><input type="text" id="carsPerGunPerDayAC" class="input-field" value="2">
+                                    <span class="label-text">每日車次/槍 (上限2)</span><input type="number" id="carsPerGunPerDayAC" class="input-field" value="2" max="2" step="0.1">
                                 </div>
                                 <div class="grid grid-cols-2 items-center gap-4">
-                                   <span class="label-text">每月度數/槍 (上限1800)</span><input type="text" id="kwhPerGunPerMonthAC" class="input-field" value="1800">
+                                   <span class="label-text">每月度數/槍 (上限1800)</span><input type="number" id="kwhPerGunPerMonthAC" class="input-field" value="1800" max="1800" step="10">
                                 </div>
                             </div>
                             
@@ -682,6 +682,14 @@ document.addEventListener('DOMContentLoaded', function () {
             
             UI.elements.confirmSaveBtn.addEventListener('click', () => this.saveRecord());
             UI.elements.confirmNewAnalysisBtn.addEventListener('click', () => this.newAnalysis());
+
+            const enforceMax = (element, max) => {
+                if (UI.getNumericValue(element, 0) > max) {
+                    element.value = max;
+                }
+            };
+            UI.elements.carsPerGunPerDayAC.addEventListener('input', () => enforceMax(UI.elements.carsPerGunPerDayAC, 2));
+            UI.elements.kwhPerGunPerMonthAC.addEventListener('input', () => enforceMax(UI.elements.kwhPerGunPerMonthAC, 1800));
             
             // --- Enhanced Modal Closing ---
             [UI.elements.advancedModal, UI.elements.explanationModal, UI.elements.saveRecordModal, UI.elements.newAnalysisConfirmModal].forEach(modal => {
@@ -960,10 +968,10 @@ document.addEventListener('DOMContentLoaded', function () {
             } 
             if (inputs.revenueMethodAC === 'byCars') { 
                 const calculatedKwh = inputs.carsPerGunPerDayAC * inputs.avgKwhPerCar * 30;
-                this.elements.kwhPerGunPerMonthAC.value = Math.round(calculatedKwh).toLocaleString('en-US'); 
+                this.elements.kwhPerGunPerMonthAC.value = Math.min(1800, Math.round(calculatedKwh)); 
             } else { 
                 const calculatedCars = inputs.avgKwhPerCar > 0 ? (inputs.kwhPerGunPerMonthAC / 30) / inputs.avgKwhPerCar : 0;
-                this.elements.carsPerGunPerDayAC.value = calculatedCars.toFixed(1); 
+                this.elements.carsPerGunPerDayAC.value = Math.min(2, calculatedCars).toFixed(1); 
             } 
         },
         updateDisplay(inputs, results) {
