@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>充電站投資效益分析 (v9.3 - 預設優化與介面調整)</title>
+    <title>充電站投資效益分析 (v9.4 - 本機檔案存取)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -165,12 +165,12 @@
             border-radius: 0.75rem;
             transition: background-color 0.3s ease;
         }
-        .input-section:nth-child(odd) {
-            background-color: #f1f5f9; /* slate-100 */
-        }
-        .input-section:nth-child(even) {
-            background-color: #fff;
-        }
+        .input-section.bg-blue-50 { background-color: #eff6ff; }
+        .input-section.bg-green-50 { background-color: #f0fdf4; }
+        .input-section.bg-yellow-50 { background-color: #fefce8; }
+        .input-section.bg-purple-50 { background-color: #f5f3ff; }
+        .input-section.bg-slate-50 { background-color: #f8fafc; }
+
 
         /* Modal Styles */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.6); display: none; justify-content: center; align-items: center; z-index: 1000; animation: fadeIn 0.3s ease-out forwards; }
@@ -263,26 +263,6 @@
             border-color: #4f46e5; color: #4f46e5; background-color: #eef2ff;
         }
 
-        /* Records List */
-        .record-list-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0.75rem 1rem; border-radius: 0.5rem; transition: background-color 0.2s;
-        }
-        .record-list-item:nth-child(odd) { background-color: #f9fafb; }
-        .record-list-item:hover { background-color: #eff6ff; }
-        .record-name { font-weight: 600; cursor: pointer; color: #374151; }
-        .record-name:hover { color: #4f46e5; }
-        
-        /* Status Indicator */
-        #statusIndicator {
-            font-size: 0.8rem; padding: 0.2rem 0.6rem; border-radius: 999px;
-            font-weight: 600; transition: all 0.5s ease;
-        }
-        #statusIndicator.offline { background-color: #fef2f2; color: #991b1b; }
-        #statusIndicator.online { background-color: #dcfce7; color: #166534; }
-        #statusIndicator.loading { background-color: #eef2ff; color: #312e81; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
-
         /* Animations */
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -294,17 +274,17 @@
         <header class="mb-10">
             <div class="text-center">
                  <h1 class="text-3xl md:text-5xl font-extrabold text-gray-800 leading-tight">充電站投資效益分析</h1>
-                 <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v9.3 - 預設優化與介面調整)</p>
+                 <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v9.4 - 本機檔案存取)</p>
             </div>
             <div class="flex flex-col sm:flex-row justify-between items-center mt-6 bg-gray-100 p-3 rounded-xl shadow-sm gap-4">
-                <div class="flex items-center gap-3">
+                <div>
                     <h2 id="siteNameDisplay" class="text-lg sm:text-xl font-bold text-gray-700">未命名站點</h2>
-                    <span id="statusIndicator" class="offline">離線</span>
                 </div>
                 <div class="flex gap-2 header-actions">
-                    <button id="saveBtn">儲存</button>
-                    <button id="recordsBtn">紀錄</button>
+                    <button id="saveBtn">另存為檔案</button>
+                    <button id="loadBtn">讀取檔案</button>
                     <button id="newAnalysisBtn">重置分析</button>
+                    <input type="file" id="fileInput" class="hidden" accept=".json">
                 </div>
             </div>
         </header>
@@ -349,7 +329,7 @@
                     <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-5 pb-3 border-b border-gray-200">營運與成本假設</h2>
                     <div class="space-y-1">
                         <!-- Billing Method Section -->
-                        <div class="input-section space-y-4">
+                        <div class="input-section bg-blue-50 space-y-4">
                             <!-- AC Billing Section -->
                             <div id="acBillingSection" class="space-y-4 hidden-section">
                                 <h3 class="text-lg font-bold text-gray-700">AC 慢充收費方式</h3>
@@ -413,7 +393,7 @@
                         </div>
 
                         <!-- Revenue Estimation Section -->
-                        <div class="input-section space-y-4">
+                        <div class="input-section bg-green-50 space-y-4">
                             <!-- Revenue Sections -->
                             <div id="dcRevenueSection" class="space-y-4 hidden-section">
                                 <h3 class="text-lg font-bold text-gray-700">DC 快充營收估算</h3>
@@ -454,7 +434,7 @@
                         </div>
 
                         <!-- Growth & Period Section -->
-                        <div class="input-section space-y-4">
+                        <div class="input-section bg-yellow-50 space-y-4">
                             <div class="grid grid-cols-2 items-center gap-4">
                                 <span class="label-text">需求年增率 (%)</span><input type="number" id="demandGrowthRate" class="input-field" value="20">
                             </div>
@@ -464,7 +444,7 @@
                         </div>
                         
                         <!-- Depreciation Section -->
-                        <div class="input-section space-y-4">
+                        <div class="input-section bg-purple-50 space-y-4">
                             <div>
                                 <span class="label-text mb-3 block">折舊攤提方式</span>
                                 <div class="flex flex-wrap gap-3">
@@ -479,7 +459,7 @@
                         </div>
 
                         <!-- Rent Section -->
-                        <div class="input-section space-y-4">
+                        <div class="input-section bg-slate-50 space-y-4">
                             <div>
                                 <span class="label-text mb-3 block">租金成本</span>
                                 <div class="flex flex-wrap gap-3 mb-3">
@@ -637,20 +617,13 @@
     
     <div id="saveRecordModal" class="modal-overlay">
         <div class="modal-content max-w-sm">
-            <div class="modal-header"><h3 class="modal-title">儲存紀錄</h3><button id="closeSaveModalBtn" class="modal-close-btn">&times;</button></div>
-            <p class="text-gray-600 mb-4">請輸入此分析表的站點名稱，之後即可從「紀錄」中讀取。</p>
+            <div class="modal-header"><h3 class="modal-title">另存為檔案</h3><button id="closeSaveModalBtn" class="modal-close-btn">&times;</button></div>
+            <p class="text-gray-600 mb-4">請輸入此分析表的站點名稱，將作為預設檔名。</p>
             <input type="text" id="recordNameInput" class="input-field w-full text-left" placeholder="例如：總部B1停車場 - 方案A">
             <div id="saveRecordMessage" class="modal-message"></div>
             <div class="mt-6 text-right">
                 <button id="confirmSaveBtn" class="modal-action-button">確認儲存</button>
             </div>
-        </div>
-    </div>
-
-    <div id="recordsModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header"><h3 class="modal-title">已儲存的紀錄</h3><button id="closeRecordsModalBtn" class="modal-close-btn">&times;</button></div>
-            <div id="recordsList" class="space-y-2"></div>
         </div>
     </div>
 
@@ -665,35 +638,6 @@
         </div>
     </div>
 
-<!-- Import Firebase modules -->
-<script type="module">
-    // IMPORTANT: Replace this with your actual Firebase configuration
-    // This configuration is for demonstration purposes only.
-    const firebaseConfig = (typeof __firebase_config !== 'undefined') 
-        ? JSON.parse(__firebase_config)
-        : {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
-
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    // setLogLevel('debug'); // Uncomment for detailed logs
-
-    // Expose Firebase services to the global scope for the main script
-    window.firebaseServices = { auth, db, getDoc, doc, setDoc, deleteDoc, collection, getDocs, serverTimestamp, signInAnonymously, onAuthStateChanged, signInWithCustomToken };
-</script>
-
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     /**
@@ -704,9 +648,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const App = {
         previousRentValues: { bySpace: 500, byLand: 15000 },
 
-        async init() {
+        init() {
             UI.init();
-            await Persistence.init(); // Initialize Firebase and load data
+            Persistence.init();
             this.setupEventListeners();
             this.update();
         },
@@ -722,11 +666,12 @@ document.addEventListener('DOMContentLoaded', function () {
             
             // --- Header & Modal Listeners ---
             UI.elements.saveBtn.addEventListener('click', () => UI.openModal(UI.elements.saveRecordModal));
-            UI.elements.recordsBtn.addEventListener('click', async () => { await UI.renderRecordsList(); UI.openModal(UI.elements.recordsModal); });
+            UI.elements.loadBtn.addEventListener('click', () => UI.elements.fileInput.click());
+            UI.elements.fileInput.addEventListener('change', (e) => Persistence.loadRecord(e));
             UI.elements.newAnalysisBtn.addEventListener('click', () => UI.openModal(UI.elements.newAnalysisConfirmModal));
             
             UI.elements.openAdvancedModalBtn.addEventListener('click', () => UI.openModal(UI.elements.advancedModal));
-            [UI.elements.closeAdvancedModalBtn, UI.elements.closeExplanationModalBtn, UI.elements.closeSaveModalBtn, UI.elements.closeRecordsModalBtn, UI.elements.cancelNewAnalysisBtn].forEach(btn => btn.addEventListener('click', (e) => UI.closeModal(e.target.closest('.modal-overlay'))));
+            [UI.elements.closeAdvancedModalBtn, UI.elements.closeExplanationModalBtn, UI.elements.closeSaveModalBtn, UI.elements.cancelNewAnalysisBtn].forEach(btn => btn.addEventListener('click', (e) => UI.closeModal(e.target.closest('.modal-overlay'))));
             
             UI.elements.loginAdvancedBtn.addEventListener('click', () => this.handleAdvancedLogin());
             UI.elements.advancedPassword.addEventListener('keydown', (e) => { if (e.key === 'Enter') this.handleAdvancedLogin(); });
@@ -739,7 +684,7 @@ document.addEventListener('DOMContentLoaded', function () {
             UI.elements.confirmNewAnalysisBtn.addEventListener('click', () => this.newAnalysis());
             
             // --- Enhanced Modal Closing ---
-            [UI.elements.advancedModal, UI.elements.explanationModal, UI.elements.saveRecordModal, UI.elements.recordsModal, UI.elements.newAnalysisConfirmModal].forEach(modal => {
+            [UI.elements.advancedModal, UI.elements.explanationModal, UI.elements.saveRecordModal, UI.elements.newAnalysisConfirmModal].forEach(modal => {
                 modal.addEventListener('click', (e) => { if (e.target === modal) UI.closeModal(modal); });
             });
             document.addEventListener('keydown', (e) => {
@@ -763,7 +708,6 @@ document.addEventListener('DOMContentLoaded', function () {
             const results = Calculator.run(finalInputs, Config.calculationParams, Config.deviceSpecs);
             UI.updateDisplay(finalInputs, results);
             Charts.update(finalInputs, results);
-            Persistence.saveSession(); // Auto-save on every update
         },
         
         handleAdvancedLogin() {
@@ -804,7 +748,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     Config.calculationParams[key].enabled = checkbox.checked;
                 }
             });
-            Persistence.saveSession();
             this.update();
             UI.closeModal(UI.elements.advancedModal);
         },
@@ -817,7 +760,6 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!newPass || newPass.length < 4) { UI.showModalMessage(UI.elements.passwordChangeMessage, '新密碼長度至少需要4位數。'); return; }
             if (newPass !== confirmPass) { UI.showModalMessage(UI.elements.passwordChangeMessage, '新密碼與確認密碼不相符。'); return; }
             Config.passwords.advanced = newPass;
-            Persistence.saveSession();
             UI.showModalMessage(UI.elements.passwordChangeMessage, '密碼已成功更新！', false);
             setTimeout(() => {
                 ['oldPassword', 'newPassword', 'confirmNewPassword'].forEach(id => UI.elements[id].value = '');
@@ -832,26 +774,21 @@ document.addEventListener('DOMContentLoaded', function () {
             UI.openExplanationModal(type, Calculator.getLastResults(), UI.getInputs());
         },
 
-        async saveRecord() {
+        saveRecord() {
             const nameInput = UI.elements.recordNameInput;
-            const name = nameInput.value.trim();
+            const name = nameInput.value.trim() || UI.elements.siteNameDisplay.textContent;
             if (!name) {
                 UI.showModalMessage(UI.elements.saveRecordMessage, '站點名稱不能為空。');
                 return;
             }
             const allData = Persistence.getCurrentState();
-            const success = await Persistence.saveRecord(name, allData);
-            if (success) {
-                UI.elements.siteNameDisplay.textContent = name;
-                UI.closeModal(UI.elements.saveRecordModal);
-                nameInput.value = '';
-            } else {
-                UI.showModalMessage(UI.elements.saveRecordMessage, '儲存失敗，請檢查網路連線。');
-            }
+            Persistence.saveRecordToFile(name, allData);
+            UI.elements.siteNameDisplay.textContent = name;
+            UI.closeModal(UI.elements.saveRecordModal);
+            nameInput.value = '';
         },
 
-        async newAnalysis() {
-            await Persistence.deleteSession();
+        newAnalysis() {
             location.reload();
         }
     };
@@ -904,7 +841,7 @@ document.addEventListener('DOMContentLoaded', function () {
         elements: {},
         init() { this.cacheDOMElements(); this.updateUIVisibility(); this.elements.addEquipmentBtn.addEventListener('click', () => { this.addEquipmentRow(); App.update(); }); },
         cacheDOMElements() {
-            const ids = ['statusIndicator', 'siteNameDisplay', 'saveBtn', 'recordsBtn', 'newAnalysisBtn', 'newAnalysisConfirmModal', 'cancelNewAnalysisBtn', 'confirmNewAnalysisBtn', 'saveRecordModal', 'closeSaveModalBtn', 'recordNameInput', 'saveRecordMessage', 'confirmSaveBtn', 'recordsModal', 'closeRecordsModalBtn', 'recordsList', 'equipmentListContainer', 'addEquipmentBtn', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'infrastructureCostMain', 'chargeFeePerKwhAC', 'chargeFeePerKwhDC', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'dcRevenueSection', 'acRevenueSection', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'acBillingSection', 'dcBillingSection', 'fixedRateSectionDC', 'touRateSectionDC', 'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection', 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'cumulativePnlChart', 'touPieChart', 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'pnlChart', 'revenueCostChart', 'operationPeriodSummary', 'totalRevenueSummary', 'roiSummary', 'irrSummary', 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn', 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage', 'advancedContentSection', 'specsModalTableBody', 'formulaContainer', 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage', 'saveAdvancedBtn', 'touGridEditor', 'touGridContainer', 'touEditorMessage', 'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost', 'explainerPaybackPeriod', 'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn'];
+            const ids = ['siteNameDisplay', 'saveBtn', 'loadBtn', 'fileInput', 'newAnalysisBtn', 'newAnalysisConfirmModal', 'cancelNewAnalysisBtn', 'confirmNewAnalysisBtn', 'saveRecordModal', 'closeSaveModalBtn', 'recordNameInput', 'saveRecordMessage', 'confirmSaveBtn', 'equipmentListContainer', 'addEquipmentBtn', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'infrastructureCostMain', 'chargeFeePerKwhAC', 'chargeFeePerKwhDC', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'dcRevenueSection', 'acRevenueSection', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'acBillingSection', 'dcBillingSection', 'fixedRateSectionDC', 'touRateSectionDC', 'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection', 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'cumulativePnlChart', 'touPieChart', 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'pnlChart', 'revenueCostChart', 'operationPeriodSummary', 'totalRevenueSummary', 'roiSummary', 'irrSummary', 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn', 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage', 'advancedContentSection', 'specsModalTableBody', 'formulaContainer', 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage', 'saveAdvancedBtn', 'touGridEditor', 'touGridContainer', 'touEditorMessage', 'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost', 'explainerPaybackPeriod', 'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn'];
             ids.forEach(id => this.elements[id] = document.getElementById(id));
         },
         getNumericValue(element, defaultValue = 0) { if (!element) return defaultValue; const value = parseFloat(String(element.value).replace(/,/g, '')); return isNaN(value) ? defaultValue : value; },
@@ -1126,42 +1063,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             this.elements.explanationModalTitle.textContent = title; body.innerHTML = contentHtml; this.openModal(this.elements.explanationModal);
         },
-        async renderRecordsList() {
-            const container = UI.elements.recordsList;
-            container.innerHTML = '<p class="text-gray-500 text-center">讀取中...</p>';
-            const records = await Persistence.getRecordList();
-            container.innerHTML = '';
-            
-            if (records.length === 0) {
-                container.innerHTML = '<p class="text-gray-500 text-center">尚無儲存紀錄。</p>';
-                return;
-            }
-            records.forEach(record => {
-                const item = document.createElement('div');
-                item.className = 'record-list-item';
-                item.innerHTML = `
-                    <span class="record-name">${record.name}</span>
-                    <button class="remove-equip-btn" data-id="${record.id}">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
-                    </button>
-                `;
-                item.querySelector('.record-name').addEventListener('click', async () => {
-                    await Persistence.loadRecord(record.id);
-                    UI.closeModal(UI.elements.recordsModal);
-                });
-                item.querySelector('button').addEventListener('click', async (e) => {
-                    await Persistence.deleteRecord(e.target.dataset.id);
-                    this.renderRecordsList();
-                });
-                container.appendChild(item);
-            });
-        },
-        setStatus(status, message) {
-            const indicator = this.elements.statusIndicator;
-            indicator.textContent = message;
-            indicator.className = 'status-indicator'; // Reset classes
-            indicator.classList.add(status);
-        }
     };
 
     /**
@@ -1431,61 +1332,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /**
      * =================================================================
-     * PERSISTENCE MODULE: Firebase Firestore Integration
+     * PERSISTENCE MODULE: Local File Access
      * =================================================================
      */
     const Persistence = {
-        db: null,
-        auth: null,
-        userId: null,
-        appId: 'default-app-id',
-        
-        async init() {
-            if (!window.firebaseServices) {
-                console.error("Firebase is not available.");
-                UI.setStatus('offline', 'Firebase 連線失敗');
-                this.loadDefaultState();
-                return;
-            }
-            
-            UI.setStatus('loading', '連線中...');
-            
-            this.db = window.firebaseServices.db;
-            this.auth = window.firebaseServices.auth;
-            this.appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-
-            return new Promise(resolve => {
-                window.firebaseServices.onAuthStateChanged(this.auth, async (user) => {
-                    if (user) {
-                        this.userId = user.uid;
-                        console.log("Authenticated user:", this.userId);
-                        UI.setStatus('online', '已連線');
-                        await this.load();
-                    } else {
-                        try {
-                            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                                await window.firebaseServices.signInWithCustomToken(this.auth, __initial_auth_token);
-                            } else {
-                                await window.firebaseServices.signInAnonymously(this.auth);
-                            }
-                            // The onAuthStateChanged listener will be triggered again after sign-in
-                        } catch (error) {
-                            console.error("Firebase auth error:", error);
-                            UI.setStatus('offline', '認證失敗');
-                            this.loadDefaultState();
-                        }
-                    }
-                    resolve();
-                });
-            });
-        },
-
-        getSessionRef() {
-            return window.firebaseServices.doc(this.db, `artifacts/${this.appId}/users/${this.userId}/sessions/lastSession`);
-        },
-
-        getRecordsCollectionRef() {
-            return window.firebaseServices.collection(this.db, `artifacts/${this.appId}/users/${this.userId}/records`);
+        init() {
+            this.loadDefaultState();
         },
 
         getCurrentState() {
@@ -1497,120 +1349,45 @@ document.addEventListener('DOMContentLoaded', function () {
                     calculationParams: Config.calculationParams,
                     passwords: Config.passwords,
                     touSchedule: Config.touSchedule
-                },
-                timestamp: window.firebaseServices.serverTimestamp()
+                }
             };
         },
 
-        async saveSession() {
-            if (!this.userId) return;
-            try {
-                const state = this.getCurrentState();
-                // Sanitize state before saving
-                const sanitizedState = JSON.parse(JSON.stringify(state));
-                await window.firebaseServices.setDoc(this.getSessionRef(), sanitizedState, { merge: true });
-            } catch (error) {
-                console.error("Error saving session to Firestore:", error);
-            }
+        saveRecordToFile(name, data) {
+            const dataStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([dataStr], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${name}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         },
 
-        async saveRecord(name, data) {
-            if (!this.userId) return false;
-            UI.setStatus('loading', '儲存中...');
-            try {
-                const recordRef = window.firebaseServices.doc(this.getRecordsCollectionRef());
-                const sanitizedData = JSON.parse(JSON.stringify(data));
-                await window.firebaseServices.setDoc(recordRef, { name, ...sanitizedData });
-                UI.setStatus('online', '儲存成功');
-                return true;
-            } catch (error) {
-                console.error("Error saving record to Firestore:", error);
-                UI.setStatus('online', '儲存失敗');
-                return false;
-            }
-        },
+        loadRecord(event) {
+            const file = event.target.files[0];
+            if (!file) return;
 
-        async loadRecord(recordId) {
-            if (!this.userId) return;
-            UI.setStatus('loading', '讀取中...');
-            try {
-                const docRef = window.firebaseServices.doc(this.db, `artifacts/${this.appId}/users/${this.userId}/records/${recordId}`);
-                const docSnap = await window.firebaseServices.getDoc(docRef);
-                if (docSnap.exists()) {
-                    const savedData = docSnap.data();
-                    this.applyState(savedData);
-                    UI.elements.siteNameDisplay.textContent = savedData.name;
-                    App.update();
-                    UI.setStatus('online', '讀取成功');
-                }
-            } catch (error) {
-                console.error("Error loading record from Firestore:", error);
-                UI.setStatus('online', '讀取失敗');
-            }
-        },
-
-        async deleteRecord(recordId) {
-            if (!this.userId) return;
-            UI.setStatus('loading', '刪除中...');
-            try {
-                const docRef = window.firebaseServices.doc(this.db, `artifacts/${this.appId}/users/${this.userId}/records/${recordId}`);
-                await window.firebaseServices.deleteDoc(docRef);
-                UI.setStatus('online', '刪除成功');
-            } catch (error) {
-                console.error("Error deleting record:", error);
-                UI.setStatus('online', '刪除失敗');
-            }
-        },
-
-        async getRecordList() {
-            if (!this.userId) return [];
-            try {
-                const querySnapshot = await window.firebaseServices.getDocs(this.getRecordsCollectionRef());
-                const records = [];
-                querySnapshot.forEach((doc) => {
-                    records.push({ id: doc.id, name: doc.data().name });
-                });
-                return records;
-            } catch (error) {
-                console.error("Error getting record list:", error);
-                return [];
-            }
-        },
-        
-        async load() {
-            if (!this.userId) {
-                this.loadDefaultState();
-                return;
-            }
-            UI.setStatus('loading', '讀取資料...');
-            try {
-                const docSnap = await window.firebaseServices.getDoc(this.getSessionRef());
-                if (docSnap.exists()) {
-                    const parsedData = docSnap.data();
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const content = e.target.result;
+                    const parsedData = JSON.parse(content);
                     this.applyState(parsedData);
-                    UI.setStatus('online', '資料已同步');
-                } else {
-                    this.loadDefaultState();
-                    UI.setStatus('online', '已建立新分析');
+                    App.update();
+                } catch (error) {
+                    console.error("Error parsing JSON file:", error);
+                    alert("讀取檔案失敗，請確認檔案格式是否正確。");
                 }
-            } catch (error) {
-                console.error("Error loading session from Firestore:", error);
-                UI.setStatus('offline', '讀取失敗');
-                this.loadDefaultState();
-            }
+            };
+            reader.readAsText(file);
+            event.target.value = null; // Reset file input
         },
         
-        async deleteSession() {
-            if (!this.userId) return;
-            try {
-                await window.firebaseServices.deleteDoc(this.getSessionRef());
-            } catch (error) {
-                console.error("Error deleting session:", error);
-            }
-        },
-
         loadDefaultState() {
-            UI.addEquipmentRow({power: '7', count: 1}); // CHANGED: Default to 7kW
+            UI.addEquipmentRow({power: '7', count: 1});
             const defaultWeekday = Array(24).fill('offpeak');
             for(let i=15; i<21; i++) defaultWeekday[i] = 'peak';
             const defaultHoliday = Array(24).fill('holiday');
@@ -1669,7 +1446,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         UI.addEquipmentRow({ power: equip.power, count: equip.count });
                     });
                 } else {
-                     UI.addEquipmentRow({power: '7', count: 1}); // CHANGED: Default to 7kW
+                     UI.addEquipmentRow({power: '7', count: 1});
                 }
             }
             
