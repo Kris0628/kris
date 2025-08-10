@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>充電站投資效益分析 (v8.1 - 營收細項修正)</title>
+    <title>充電站投資效益分析 (v9.3 - 預設優化與介面調整)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -132,8 +132,8 @@
         }
         @media (min-width: 640px) {
              .details-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 1rem 2.5rem;
+                 grid-template-columns: 1fr 1fr;
+                 gap: 1rem 2.5rem;
              }
         }
         .details-section h4 {
@@ -159,6 +159,19 @@
         .radio-label input:checked + span { background-color: #4f46e5; color: white; font-weight: 600; box-shadow: 0 2px 5px 0 rgba(79, 70, 229, 0.3); }
         .hidden-section { display: none; }
         
+        /* Input Section Styling */
+        .input-section {
+            padding: 1rem;
+            border-radius: 0.75rem;
+            transition: background-color 0.3s ease;
+        }
+        .input-section:nth-child(odd) {
+            background-color: #f1f5f9; /* slate-100 */
+        }
+        .input-section:nth-child(even) {
+            background-color: #fff;
+        }
+
         /* Modal Styles */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.6); display: none; justify-content: center; align-items: center; z-index: 1000; animation: fadeIn 0.3s ease-out forwards; }
         .modal-content { background-color: white; padding: 1.5rem; border-radius: 1rem; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); animation: slideIn 0.3s ease-out forwards; }
@@ -259,6 +272,16 @@
         .record-list-item:hover { background-color: #eff6ff; }
         .record-name { font-weight: 600; cursor: pointer; color: #374151; }
         .record-name:hover { color: #4f46e5; }
+        
+        /* Status Indicator */
+        #statusIndicator {
+            font-size: 0.8rem; padding: 0.2rem 0.6rem; border-radius: 999px;
+            font-weight: 600; transition: all 0.5s ease;
+        }
+        #statusIndicator.offline { background-color: #fef2f2; color: #991b1b; }
+        #statusIndicator.online { background-color: #dcfce7; color: #166534; }
+        #statusIndicator.loading { background-color: #eef2ff; color: #312e81; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
 
         /* Animations */
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -271,11 +294,12 @@
         <header class="mb-10">
             <div class="text-center">
                  <h1 class="text-3xl md:text-5xl font-extrabold text-gray-800 leading-tight">充電站投資效益分析</h1>
-                 <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v8.1 - AC/DC 分離計費模型)</p>
+                 <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v9.3 - 預設優化與介面調整)</p>
             </div>
             <div class="flex flex-col sm:flex-row justify-between items-center mt-6 bg-gray-100 p-3 rounded-xl shadow-sm gap-4">
-                <div>
+                <div class="flex items-center gap-3">
                     <h2 id="siteNameDisplay" class="text-lg sm:text-xl font-bold text-gray-700">未命名站點</h2>
+                    <span id="statusIndicator" class="offline">離線</span>
                 </div>
                 <div class="flex gap-2 header-actions">
                     <button id="saveBtn">儲存</button>
@@ -323,127 +347,153 @@
 
                 <div class="card bg-white">
                     <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-5 pb-3 border-b border-gray-200">營運與成本假設</h2>
-                    <div class="space-y-4">
-                        <div>
-                            <span class="label-text mb-3 block">收費方式</span>
-                            <div class="flex flex-wrap gap-3">
-                                <label class="radio-label"><input type="radio" name="billingMethod" value="fixed" checked><span>固定費率</span></label>
-                                <label class="radio-label"><input type="radio" name="billingMethod" value="tou"><span>尖離峰</span></label>
-                            </div>
-                        </div>
-                        <div id="fixedRateSection" class="grid grid-cols-2 items-center gap-4">
-                            <span class="label-text">每度電收費 (元)</span>
-                            <input type="number" id="chargeFeePerKwh" class="input-field" value="10" step="0.1">
-                        </div>
-                        <div id="touRateSection" class="hidden-section space-y-4">
-                             <div class="grid grid-cols-2 items-center gap-4">
-                                  <span class="label-text font-bold text-indigo-600">尖離峰均價</span>
-                                  <input type="text" id="avgTouRate" class="input-field readonly font-bold text-indigo-600" readonly>
-                             </div>
-                            <div class="grid grid-cols-2 items-center gap-4">
-                                <div><span class="label-text block">尖峰費率 (元)</span></div>
-                                <input type="number" id="peakRate" class="input-field" value="13.5" step="0.1">
-                            </div>
-                            <div class="grid grid-cols-2 items-center gap-4">
-                                <div><span class="label-text block">離峰費率 (元)</span></div>
-                                <input type="number" id="offPeakRate" class="input-field" value="6.9" step="0.1">
-                            </div>
-                            <div class="grid grid-cols-2 items-center gap-4">
-                                <div><span class="label-text block">假日費率 (元)</span></div>
-                                <input type="number" id="holidayRate" class="input-field" value="8.5" step="0.1">
-                            </div>
-                            <div class="flex items-center gap-4 mt-2">
-                                <div id="touPieChartContainer" class="w-24 h-24 flex-shrink-0">
-                                    <canvas id="touPieChart"></canvas>
-                                </div>
-                                <div class="flex-grow space-y-2">
-                                    <div class="grid grid-cols-3 items-center gap-2">
-                                        <label for="peakUsageRatio" class="text-sm font-medium">尖峰 %</label>
-                                        <input type="number" id="peakUsageRatio" class="input-field readonly col-span-2" value="18" readonly>
-                                    </div>
-                                    <div class="grid grid-cols-3 items-center gap-2">
-                                        <label for="offPeakUsageRatio" class="text-sm font-medium">離峰 %</label>
-                                        <input type="number" id="offPeakUsageRatio" class="input-field readonly col-span-2" value="54" readonly>
-                                    </div>
-                                    <div class="grid grid-cols-3 items-center gap-2">
-                                        <label for="holidayUsageRatio" class="text-sm font-medium">假日 %</label>
-                                        <input type="number" id="holidayUsageRatio" class="input-field readonly col-span-2" value="28" readonly>
-                                    </div>
+                    <div class="space-y-1">
+                        <!-- Billing Method Section -->
+                        <div class="input-section space-y-4">
+                            <!-- AC Billing Section -->
+                            <div id="acBillingSection" class="space-y-4 hidden-section">
+                                <h3 class="text-lg font-bold text-gray-700">AC 慢充收費方式</h3>
+                                <div class="grid grid-cols-2 items-center gap-4">
+                                    <span class="label-text">每度電收費 (元)</span>
+                                    <input type="number" id="chargeFeePerKwhAC" class="input-field" value="7.5" step="0.1">
                                 </div>
                             </div>
-                        </div>
-                        <hr class="border-gray-200"/>
-
-                        <!-- Revenue Sections -->
-                        <div id="dcRevenueSection" class="space-y-4 hidden-section">
-                            <h3 class="text-lg font-bold text-gray-700">DC 快充營收估算</h3>
-                            <div>
-                                <div class="flex flex-wrap gap-3">
-                                    <label class="radio-label"><input type="radio" name="revenueMethodDC" value="byCars" checked><span>依車次</span></label>
-                                    <label class="radio-label"><input type="radio" name="revenueMethodDC" value="byKwh"><span>依度數</span></label>
+    
+                            <!-- DC Billing Section -->
+                            <div id="dcBillingSection" class="space-y-4 hidden-section">
+                                 <h3 class="text-lg font-bold text-gray-700">DC 快充收費方式</h3>
+                                <div>
+                                    <div class="flex flex-wrap gap-3">
+                                        <label class="radio-label"><input type="radio" name="billingMethodDC" value="fixed" checked><span>固定費率</span></label>
+                                        <label class="radio-label"><input type="radio" name="billingMethodDC" value="tou"><span>尖離峰</span></label>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="grid grid-cols-2 items-center gap-4">
-                                <span class="label-text">每日車次/槍</span><input type="text" id="carsPerGunPerDayDC" class="input-field" value="3">
-                            </div>
-                            <div class="grid grid-cols-2 items-center gap-4">
-                               <span class="label-text">每月度數/槍</span><input type="text" id="kwhPerGunPerMonthDC" class="input-field" value="2,700">
+                                <div id="fixedRateSectionDC" class="grid grid-cols-2 items-center gap-4">
+                                    <span class="label-text">每度電收費 (元)</span>
+                                    <input type="number" id="chargeFeePerKwhDC" class="input-field" value="10" step="0.1">
+                                </div>
+                                <div id="touRateSectionDC" class="hidden-section space-y-4">
+                                     <div class="grid grid-cols-2 items-center gap-4">
+                                          <span class="label-text font-bold text-indigo-600">尖離峰均價</span>
+                                          <input type="text" id="avgTouRate" class="input-field readonly font-bold text-indigo-600" readonly>
+                                     </div>
+                                    <div class="grid grid-cols-2 items-center gap-4">
+                                        <div><span class="label-text block">尖峰費率 (元)</span></div>
+                                        <input type="number" id="peakRate" class="input-field" value="13.5" step="0.1">
+                                    </div>
+                                    <div class="grid grid-cols-2 items-center gap-4">
+                                        <div><span class="label-text block">離峰費率 (元)</span></div>
+                                        <input type="number" id="offPeakRate" class="input-field" value="6.9" step="0.1">
+                                    </div>
+                                    <div class="grid grid-cols-2 items-center gap-4">
+                                        <div><span class="label-text block">假日費率 (元)</span></div>
+                                        <input type="number" id="holidayRate" class="input-field" value="8.5" step="0.1">
+                                    </div>
+                                    <div class="flex items-center gap-4 mt-2">
+                                        <div id="touPieChartContainer" class="w-24 h-24 flex-shrink-0">
+                                            <canvas id="touPieChart"></canvas>
+                                        </div>
+                                        <div class="flex-grow space-y-2">
+                                            <div class="grid grid-cols-3 items-center gap-2">
+                                                <label for="peakUsageRatio" class="text-sm font-medium">尖峰 %</label>
+                                                <input type="number" id="peakUsageRatio" class="input-field readonly col-span-2" value="18" readonly>
+                                            </div>
+                                            <div class="grid grid-cols-3 items-center gap-2">
+                                                <label for="offPeakUsageRatio" class="text-sm font-medium">離峰 %</label>
+                                                <input type="number" id="offPeakUsageRatio" class="input-field readonly col-span-2" value="54" readonly>
+                                            </div>
+                                            <div class="grid grid-cols-3 items-center gap-2">
+                                                <label for="holidayUsageRatio" class="text-sm font-medium">假日 %</label>
+                                                <input type="number" id="holidayUsageRatio" class="input-field readonly col-span-2" value="28" readonly>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <div id="acRevenueSection" class="space-y-4 hidden-section">
-                            <h3 class="text-lg font-bold text-gray-700">AC 7kW 營收估算</h3>
-                             <div>
-                                <div class="flex flex-wrap gap-3">
-                                    <label class="radio-label"><input type="radio" name="revenueMethodAC" value="byCars" checked><span>依車次</span></label>
-                                    <label class="radio-label"><input type="radio" name="revenueMethodAC" value="byKwh"><span>依度數</span></label>
+                        <!-- Revenue Estimation Section -->
+                        <div class="input-section space-y-4">
+                            <!-- Revenue Sections -->
+                            <div id="dcRevenueSection" class="space-y-4 hidden-section">
+                                <h3 class="text-lg font-bold text-gray-700">DC 快充營收估算</h3>
+                                <div>
+                                    <div class="flex flex-wrap gap-3">
+                                        <label class="radio-label"><input type="radio" name="revenueMethodDC" value="byCars" checked><span>依車次</span></label>
+                                        <label class="radio-label"><input type="radio" name="revenueMethodDC" value="byKwh"><span>依度數</span></label>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 items-center gap-4">
+                                    <span class="label-text">每日車次/槍</span><input type="text" id="carsPerGunPerDayDC" class="input-field" value="3">
+                                </div>
+                                <div class="grid grid-cols-2 items-center gap-4">
+                                   <span class="label-text">每月度數/槍</span><input type="text" id="kwhPerGunPerMonthDC" class="input-field" value="2,700">
                                 </div>
                             </div>
+    
+                            <div id="acRevenueSection" class="space-y-4 hidden-section">
+                                <h3 class="text-lg font-bold text-gray-700">AC 慢充營收估算</h3>
+                                 <div>
+                                    <div class="flex flex-wrap gap-3">
+                                        <label class="radio-label"><input type="radio" name="revenueMethodAC" value="byCars" checked><span>依車次</span></label>
+                                        <label class="radio-label"><input type="radio" name="revenueMethodAC" value="byKwh"><span>依度數</span></label>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 items-center gap-4">
+                                    <span class="label-text">每日車次/槍 (上限2)</span><input type="text" id="carsPerGunPerDayAC" class="input-field" value="2">
+                                </div>
+                                <div class="grid grid-cols-2 items-center gap-4">
+                                   <span class="label-text">每月度數/槍 (上限1800)</span><input type="text" id="kwhPerGunPerMonthAC" class="input-field" value="1800">
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 items-center gap-4 pt-2 border-t border-gray-200">
+                                <span class="label-text">每車平均充電 (kWh)</span>
+                                <input type="number" id="avgKwhPerCar" class="input-field" value="30">
+                            </div>
+                        </div>
+
+                        <!-- Growth & Period Section -->
+                        <div class="input-section space-y-4">
                             <div class="grid grid-cols-2 items-center gap-4">
-                                <span class="label-text">每日車次/槍 (上限2)</span><input type="text" id="carsPerGunPerDayAC" class="input-field" value="2">
+                                <span class="label-text">需求年增率 (%)</span><input type="number" id="demandGrowthRate" class="input-field" value="20">
                             </div>
                             <div class="grid grid-cols-2 items-center gap-4">
-                               <span class="label-text">每月度數/槍 (上限1800)</span><input type="text" id="kwhPerGunPerMonthAC" class="input-field" value="1800">
+                                <span class="label-text">預計營運期 (年)</span><input type="number" id="operationYears" class="input-field" value="15" min="1">
                             </div>
                         </div>
                         
-                        <div class="grid grid-cols-2 items-center gap-4">
-                            <span class="label-text">每車平均充電 (kWh)</span>
-                            <input type="number" id="avgKwhPerCar" class="input-field" value="30">
-                        </div>
-                        <hr class="border-gray-200"/>
-                        <div class="grid grid-cols-2 items-center gap-4">
-                            <span class="label-text">需求年增率 (%)</span><input type="number" id="demandGrowthRate" class="input-field" value="20">
-                        </div>
-                        <div class="grid grid-cols-2 items-center gap-4">
-                            <span class="label-text">預計營運期 (年)</span><input type="number" id="operationYears" class="input-field" value="15" min="1">
-                        </div>
-                        <hr class="border-gray-200"/>
-                        <div>
-                            <span class="label-text mb-3 block">折舊攤提方式</span>
-                            <div class="flex flex-wrap gap-3">
-                                <label class="radio-label"><input type="radio" name="depreciationMethod" value="straightLine" checked><span>直線法</span></label>
-                                <label class="radio-label"><input type="radio" name="depreciationMethod" value="syd"><span>年數合計法</span></label>
-                                <label class="radio-label"><input type="radio" name="depreciationMethod" value="none"><span>無</span></label>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 items-center gap-4">
-                            <span class="label-text">折舊攤提年限</span><input type="number" id="depreciationYears" class="input-field" value="5" min="1">
-                        </div>
-                         <hr class="border-gray-200"/>
-                        <div>
-                            <span class="label-text mb-3 block">租金成本</span>
-                            <div class="flex flex-wrap gap-3 mb-3">
-                                <label class="radio-label"><input type="radio" name="rentMethod" value="bySpace" checked><span>依車格</span></label>
-                                <label class="radio-label"><input type="radio" name="rentMethod" value="byLand"><span>依土地</span></label>
-                                <label class="radio-label"><input type="radio" name="rentMethod" value="none"><span>無</span></label>
-                            </div>
-                            <div class="space-y-4">
-                                <div id="rentBySpaceSection" class="grid grid-cols-2 items-center gap-4">
-                                    <span class="label-text">車格租金/月</span><input type="text" id="rentPerSpace" class="input-field" value="500">
+                        <!-- Depreciation Section -->
+                        <div class="input-section space-y-4">
+                            <div>
+                                <span class="label-text mb-3 block">折舊攤提方式</span>
+                                <div class="flex flex-wrap gap-3">
+                                    <label class="radio-label"><input type="radio" name="depreciationMethod" value="straightLine" checked><span>直線法</span></label>
+                                    <label class="radio-label"><input type="radio" name="depreciationMethod" value="syd"><span>年數合計法</span></label>
+                                    <label class="radio-label"><input type="radio" name="depreciationMethod" value="none"><span>無</span></label>
                                 </div>
-                                <div id="rentByLandSection" class="grid grid-cols-2 items-center gap-4">
-                                    <span class="label-text">土地租金/月</span><input type="text" id="rentPerLand" class="input-field" value="15,000">
+                            </div>
+                            <div class="grid grid-cols-2 items-center gap-4">
+                                <span class="label-text">折舊攤提年限</span><input type="number" id="depreciationYears" class="input-field" value="5" min="1">
+                            </div>
+                        </div>
+
+                        <!-- Rent Section -->
+                        <div class="input-section space-y-4">
+                            <div>
+                                <span class="label-text mb-3 block">租金成本</span>
+                                <div class="flex flex-wrap gap-3 mb-3">
+                                    <label class="radio-label"><input type="radio" name="rentMethod" value="bySpace" checked><span>依車格</span></label>
+                                    <label class="radio-label"><input type="radio" name="rentMethod" value="byLand"><span>依土地</span></label>
+                                    <label class="radio-label"><input type="radio" name="rentMethod" value="none"><span>無</span></label>
+                                </div>
+                                <div class="space-y-4">
+                                    <div id="rentBySpaceSection" class="grid grid-cols-2 items-center gap-4">
+                                        <span class="label-text">車格租金/月</span><input type="text" id="rentPerSpace" class="input-field" value="500">
+                                    </div>
+                                    <div id="rentByLandSection" class="grid grid-cols-2 items-center gap-4">
+                                        <span class="label-text">土地租金/月</span><input type="text" id="rentPerLand" class="input-field" value="15,000">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -542,9 +592,9 @@
                         </table>
                     </div>
                      <div class="mt-4 text-left text-sm text-gray-500">
-                        <p><strong>說明：</strong>180kW 跟 360kW 比較：</p>
-                        <ul class="list-disc list-inside ml-4"><li>當設置小於等於3樁(6車格)時, 180kW較划算。</li><li>若超過3樁時則 360kW較划算。</li></ul>
-                    </div>
+                         <p><strong>說明：</strong>180kW 跟 360kW 比較：</p>
+                         <ul class="list-disc list-inside ml-4"><li>當設置小於等於3樁(6車格)時, 180kW較划算。</li><li>若超過3樁時則 360kW較划算。</li></ul>
+                     </div>
                 </div>
                 <div id="tab-formulas" class="modal-tab-content"><h4 class="text-xl font-bold text-gray-800 mb-4">詳細計算參數</h4><div id="formulaContainer" class="space-y-3"></div></div>
                 <div id="tab-tou" class="modal-tab-content">
@@ -615,6 +665,35 @@
         </div>
     </div>
 
+<!-- Import Firebase modules -->
+<script type="module">
+    // IMPORTANT: Replace this with your actual Firebase configuration
+    // This configuration is for demonstration purposes only.
+    const firebaseConfig = (typeof __firebase_config !== 'undefined') 
+        ? JSON.parse(__firebase_config)
+        : {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    // setLogLevel('debug'); // Uncomment for detailed logs
+
+    // Expose Firebase services to the global scope for the main script
+    window.firebaseServices = { auth, db, getDoc, doc, setDoc, deleteDoc, collection, getDocs, serverTimestamp, signInAnonymously, onAuthStateChanged, signInWithCustomToken };
+</script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     /**
@@ -625,25 +704,25 @@ document.addEventListener('DOMContentLoaded', function () {
     const App = {
         previousRentValues: { bySpace: 500, byLand: 15000 },
 
-        init() {
+        async init() {
             UI.init();
-            Persistence.load();
+            await Persistence.init(); // Initialize Firebase and load data
             this.setupEventListeners();
             this.update();
         },
 
         setupEventListeners() {
-            const inputsToWatch = ['chargeFeePerKwh', 'peakRate', 'offPeakRate', 'holidayRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'rentPerSpace', 'rentPerLand', 'infrastructureCostMain'];
+            const inputsToWatch = ['chargeFeePerKwhAC', 'chargeFeePerKwhDC', 'peakRate', 'offPeakRate', 'holidayRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'rentPerSpace', 'rentPerLand', 'infrastructureCostMain'];
             inputsToWatch.forEach(id => UI.elements[id]?.addEventListener('input', () => this.update()));
             UI.elements.equipmentListContainer.addEventListener('change', () => this.update());
             UI.elements.equipmentListContainer.addEventListener('input', () => this.update());
-            document.querySelectorAll('input[name="billingMethod"], input[name="revenueMethodDC"], input[name="revenueMethodAC"], input[name="rentMethod"], input[name="depreciationMethod"]').forEach(radio => radio.addEventListener('change', () => this.update()));
+            document.querySelectorAll('input[name="billingMethodDC"], input[name="revenueMethodDC"], input[name="revenueMethodAC"], input[name="rentMethod"], input[name="depreciationMethod"]').forEach(radio => radio.addEventListener('change', () => this.update()));
             UI.elements.toggleKwhTableBtn.addEventListener('click', UI.toggleKwhTable);
             UI.elements.pnlTableBody.addEventListener('click', (e) => { const row = e.target.closest('.pnl-row'); if (row) UI.togglePnlDetails(row, Calculator.getLastResults()); });
             
             // --- Header & Modal Listeners ---
             UI.elements.saveBtn.addEventListener('click', () => UI.openModal(UI.elements.saveRecordModal));
-            UI.elements.recordsBtn.addEventListener('click', () => { UI.renderRecordsList(); UI.openModal(UI.elements.recordsModal); });
+            UI.elements.recordsBtn.addEventListener('click', async () => { await UI.renderRecordsList(); UI.openModal(UI.elements.recordsModal); });
             UI.elements.newAnalysisBtn.addEventListener('click', () => UI.openModal(UI.elements.newAnalysisConfirmModal));
             
             UI.elements.openAdvancedModalBtn.addEventListener('click', () => UI.openModal(UI.elements.advancedModal));
@@ -753,7 +832,7 @@ document.addEventListener('DOMContentLoaded', function () {
             UI.openExplanationModal(type, Calculator.getLastResults(), UI.getInputs());
         },
 
-        saveRecord() {
+        async saveRecord() {
             const nameInput = UI.elements.recordNameInput;
             const name = nameInput.value.trim();
             if (!name) {
@@ -761,14 +840,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
             const allData = Persistence.getCurrentState();
-            Persistence.saveRecord(name, allData);
-            UI.elements.siteNameDisplay.textContent = name;
-            UI.closeModal(UI.elements.saveRecordModal);
-            nameInput.value = '';
+            const success = await Persistence.saveRecord(name, allData);
+            if (success) {
+                UI.elements.siteNameDisplay.textContent = name;
+                UI.closeModal(UI.elements.saveRecordModal);
+                nameInput.value = '';
+            } else {
+                UI.showModalMessage(UI.elements.saveRecordMessage, '儲存失敗，請檢查網路連線。');
+            }
         },
 
-        newAnalysis() {
-            localStorage.removeItem(`${Persistence.STORAGE_KEY_PREFIX}lastSession`);
+        async newAnalysis() {
+            await Persistence.deleteSession();
             location.reload();
         }
     };
@@ -821,7 +904,7 @@ document.addEventListener('DOMContentLoaded', function () {
         elements: {},
         init() { this.cacheDOMElements(); this.updateUIVisibility(); this.elements.addEquipmentBtn.addEventListener('click', () => { this.addEquipmentRow(); App.update(); }); },
         cacheDOMElements() {
-            const ids = ['siteNameDisplay', 'saveBtn', 'recordsBtn', 'newAnalysisBtn', 'newAnalysisConfirmModal', 'cancelNewAnalysisBtn', 'confirmNewAnalysisBtn', 'saveRecordModal', 'closeSaveModalBtn', 'recordNameInput', 'saveRecordMessage', 'confirmSaveBtn', 'recordsModal', 'closeRecordsModalBtn', 'recordsList', 'equipmentListContainer', 'addEquipmentBtn', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'infrastructureCostMain', 'chargeFeePerKwh', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'dcRevenueSection', 'acRevenueSection', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'fixedRateSection', 'touRateSection', 'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection', 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'cumulativePnlChart', 'touPieChart', 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'pnlChart', 'revenueCostChart', 'operationPeriodSummary', 'totalRevenueSummary', 'roiSummary', 'irrSummary', 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn', 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage', 'advancedContentSection', 'specsModalTableBody', 'formulaContainer', 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage', 'saveAdvancedBtn', 'touGridEditor', 'touGridContainer', 'touEditorMessage', 'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost', 'explainerPaybackPeriod', 'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn'];
+            const ids = ['statusIndicator', 'siteNameDisplay', 'saveBtn', 'recordsBtn', 'newAnalysisBtn', 'newAnalysisConfirmModal', 'cancelNewAnalysisBtn', 'confirmNewAnalysisBtn', 'saveRecordModal', 'closeSaveModalBtn', 'recordNameInput', 'saveRecordMessage', 'confirmSaveBtn', 'recordsModal', 'closeRecordsModalBtn', 'recordsList', 'equipmentListContainer', 'addEquipmentBtn', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'infrastructureCostMain', 'chargeFeePerKwhAC', 'chargeFeePerKwhDC', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'dcRevenueSection', 'acRevenueSection', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'acBillingSection', 'dcBillingSection', 'fixedRateSectionDC', 'touRateSectionDC', 'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection', 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'cumulativePnlChart', 'touPieChart', 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'pnlChart', 'revenueCostChart', 'operationPeriodSummary', 'totalRevenueSummary', 'roiSummary', 'irrSummary', 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn', 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage', 'advancedContentSection', 'specsModalTableBody', 'formulaContainer', 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage', 'saveAdvancedBtn', 'touGridEditor', 'touGridContainer', 'touEditorMessage', 'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost', 'explainerPaybackPeriod', 'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn'];
             ids.forEach(id => this.elements[id] = document.getElementById(id));
         },
         getNumericValue(element, defaultValue = 0) { if (!element) return defaultValue; const value = parseFloat(String(element.value).replace(/,/g, '')); return isNaN(value) ? defaultValue : value; },
@@ -846,7 +929,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const rentMethod = document.querySelector('input[name="rentMethod"]:checked').value; let rentPerSpace = this.getNumericValue(this.elements.rentPerSpace); let rentPerLand = this.getNumericValue(this.elements.rentPerLand);
             if (rentMethod === 'none') { rentPerSpace = 0; rentPerLand = 0; } else if (rentMethod === 'bySpace') { rentPerLand = 0; } else { rentPerSpace = 0; }
-            return { equipmentList, billingMethod: document.querySelector('input[name="billingMethod"]:checked').value, chargeFeePerKwh: this.getNumericValue(this.elements.chargeFeePerKwh), peakRate: this.getNumericValue(this.elements.peakRate), offPeakRate: this.getNumericValue(this.elements.offPeakRate), holidayRate: this.getNumericValue(this.elements.holidayRate), revenueMethodDC: document.querySelector('input[name="revenueMethodDC"]:checked').value, carsPerGunPerDayDC: this.getNumericValue(this.elements.carsPerGunPerDayDC), kwhPerGunPerMonthDC: this.getNumericValue(this.elements.kwhPerGunPerMonthDC), revenueMethodAC: document.querySelector('input[name="revenueMethodAC"]:checked').value, carsPerGunPerDayAC: this.getNumericValue(this.elements.carsPerGunPerDayAC), kwhPerGunPerMonthAC: this.getNumericValue(this.elements.kwhPerGunPerMonthAC), avgKwhPerCar: this.getNumericValue(this.elements.avgKwhPerCar), demandGrowthRate: this.getNumericValue(this.elements.demandGrowthRate) / 100, operationYears: this.getNumericValue(this.elements.operationYears, 1), depreciationYears: this.getNumericValue(this.elements.depreciationYears, 1), depreciationMethod: document.querySelector('input[name="depreciationMethod"]:checked').value, infrastructureCostMain: this.getNumericValue(this.elements.infrastructureCostMain), rentMethod, rentPerSpace, rentPerLand, touRatios: { peak: this.getNumericValue(this.elements.peakUsageRatio) / 100, offpeak: this.getNumericValue(this.elements.offPeakUsageRatio) / 100, holiday: this.getNumericValue(this.elements.holidayUsageRatio) / 100, } };
+            return { equipmentList, chargeFeePerKwhAC: this.getNumericValue(this.elements.chargeFeePerKwhAC), billingMethodDC: document.querySelector('input[name="billingMethodDC"]:checked').value, chargeFeePerKwhDC: this.getNumericValue(this.elements.chargeFeePerKwhDC), peakRate: this.getNumericValue(this.elements.peakRate), offPeakRate: this.getNumericValue(this.elements.offPeakRate), holidayRate: this.getNumericValue(this.elements.holidayRate), revenueMethodDC: document.querySelector('input[name="revenueMethodDC"]:checked').value, carsPerGunPerDayDC: this.getNumericValue(this.elements.carsPerGunPerDayDC), kwhPerGunPerMonthDC: this.getNumericValue(this.elements.kwhPerGunPerMonthDC), revenueMethodAC: document.querySelector('input[name="revenueMethodAC"]:checked').value, carsPerGunPerDayAC: this.getNumericValue(this.elements.carsPerGunPerDayAC), kwhPerGunPerMonthAC: this.getNumericValue(this.elements.kwhPerGunPerMonthAC), avgKwhPerCar: this.getNumericValue(this.elements.avgKwhPerCar), demandGrowthRate: this.getNumericValue(this.elements.demandGrowthRate) / 100, operationYears: this.getNumericValue(this.elements.operationYears, 1), depreciationYears: this.getNumericValue(this.elements.depreciationYears, 1), depreciationMethod: document.querySelector('input[name="depreciationMethod"]:checked').value, infrastructureCostMain: this.getNumericValue(this.elements.infrastructureCostMain), rentMethod, rentPerSpace, rentPerLand, touRatios: { peak: this.getNumericValue(this.elements.peakUsageRatio) / 100, offpeak: this.getNumericValue(this.elements.offPeakUsageRatio) / 100, holiday: this.getNumericValue(this.elements.holidayUsageRatio) / 100, } };
         },
         getEquipmentConfig() {
             return Array.from(document.querySelectorAll('.equipment-row')).map(row => {
@@ -897,21 +980,35 @@ document.addEventListener('DOMContentLoaded', function () {
             const hasAC = inputs.equipmentList.some(e => e.spec.type === 'AC');
             const hasDC = inputs.equipmentList.some(e => e.spec.type !== 'AC');
 
+            // Billing sections
+            this.elements.acBillingSection.style.display = hasAC ? 'block' : 'none';
+            this.elements.dcBillingSection.style.display = hasDC ? 'block' : 'none';
+            
+            // Revenue estimation sections
             this.elements.acRevenueSection.style.display = hasAC ? 'block' : 'none';
             this.elements.dcRevenueSection.style.display = hasDC ? 'block' : 'none';
 
-            const billingMethod = document.querySelector('input[name="billingMethod"]:checked').value; this.elements.fixedRateSection.style.display = billingMethod === 'fixed' ? 'grid' : 'none'; this.elements.touRateSection.style.display = billingMethod === 'tou' ? 'block' : 'none';
-            
+            // DC Billing Method dependent UI
+            if (hasDC) {
+                const billingMethodDC = document.querySelector('input[name="billingMethodDC"]:checked').value;
+                this.elements.fixedRateSectionDC.style.display = billingMethodDC === 'fixed' ? 'grid' : 'none';
+                this.elements.touRateSectionDC.style.display = billingMethodDC === 'tou' ? 'block' : 'none';
+            }
+
+            // Revenue Method dependent UI
             const revenueMethodDC = document.querySelector('input[name="revenueMethodDC"]:checked').value; 
-            this.elements.carsPerGunPerDayDC.readOnly = revenueMethodDC === 'byKwh'; this.elements.kwhPerGunPerMonthDC.readOnly = revenueMethodDC === 'byCars';
+            this.elements.carsPerGunPerDayDC.readOnly = revenueMethodDC === 'byKwh';
+            this.elements.kwhPerGunPerMonthDC.readOnly = revenueMethodDC === 'byCars';
             this.elements.carsPerGunPerDayDC.classList.toggle('readonly', revenueMethodDC === 'byKwh');
             this.elements.kwhPerGunPerMonthDC.classList.toggle('readonly', revenueMethodDC === 'byCars');
 
             const revenueMethodAC = document.querySelector('input[name="revenueMethodAC"]:checked').value; 
-            this.elements.carsPerGunPerDayAC.readOnly = revenueMethodAC === 'byKwh'; this.elements.kwhPerGunPerMonthAC.readOnly = revenueMethodAC === 'byCars';
+            this.elements.carsPerGunPerDayAC.readOnly = revenueMethodAC === 'byKwh';
+            this.elements.kwhPerGunPerMonthAC.readOnly = revenueMethodAC === 'byCars';
             this.elements.carsPerGunPerDayAC.classList.toggle('readonly', revenueMethodAC === 'byKwh');
             this.elements.kwhPerGunPerMonthAC.classList.toggle('readonly', revenueMethodAC === 'byCars');
 
+            // Other sections
             const rentMethod = document.querySelector('input[name="rentMethod"]:checked').value; this.elements.rentBySpaceSection.style.display = rentMethod === 'bySpace' ? 'grid' : 'none'; this.elements.rentByLandSection.style.display = rentMethod === 'byLand' ? 'grid' : 'none';
             const depreciationMethod = document.querySelector('input[name="depreciationMethod"]:checked').value; const depYearsInput = this.elements.depreciationYears;
             if (depreciationMethod === 'none') { depYearsInput.value = 0; depYearsInput.readOnly = true; depYearsInput.classList.add('readonly'); } else { depYearsInput.readOnly = false; depYearsInput.classList.remove('readonly'); if (parseInt(depYearsInput.value) === 0) { depYearsInput.value = 5; } }
@@ -944,7 +1041,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const totalParkingSpaces = inputs.equipmentList.reduce((sum, item) => sum + item.parkingSpaces, 0);
             this.elements.parkingSpaces.value = totalParkingSpaces;
 
-            if (inputs.billingMethod === 'tou') { this.elements.avgTouRate.value = this.formatCurrency(results.avgChargeFee, 2, false, true); }
+            if (inputs.billingMethodDC === 'tou') { this.elements.avgTouRate.value = this.formatCurrency(results.avgChargeFeeDC, 2, false, true); }
             
             this.elements.equipmentCostDisplayMain.value = this.formatCurrency(results.costBreakdown.equipmentCost, 0, false, true);
             this.elements.salvageValueDisplay.value = this.formatCurrency(results.costBreakdown.totalSalvageValue, 0, false, true);
@@ -1029,33 +1126,41 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             this.elements.explanationModalTitle.textContent = title; body.innerHTML = contentHtml; this.openModal(this.elements.explanationModal);
         },
-        renderRecordsList() {
+        async renderRecordsList() {
             const container = UI.elements.recordsList;
+            container.innerHTML = '<p class="text-gray-500 text-center">讀取中...</p>';
+            const records = await Persistence.getRecordList();
             container.innerHTML = '';
-            const records = Persistence.getRecordList();
+            
             if (records.length === 0) {
                 container.innerHTML = '<p class="text-gray-500 text-center">尚無儲存紀錄。</p>';
                 return;
             }
-            records.forEach(name => {
+            records.forEach(record => {
                 const item = document.createElement('div');
                 item.className = 'record-list-item';
                 item.innerHTML = `
-                    <span class="record-name">${name}</span>
-                    <button class="remove-equip-btn" data-name="${name}">
+                    <span class="record-name">${record.name}</span>
+                    <button class="remove-equip-btn" data-id="${record.id}">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
                     </button>
                 `;
-                item.querySelector('.record-name').addEventListener('click', () => {
-                    Persistence.loadRecord(name);
+                item.querySelector('.record-name').addEventListener('click', async () => {
+                    await Persistence.loadRecord(record.id);
                     UI.closeModal(UI.elements.recordsModal);
                 });
-                item.querySelector('button').addEventListener('click', (e) => {
-                    Persistence.deleteRecord(e.target.dataset.name);
+                item.querySelector('button').addEventListener('click', async (e) => {
+                    await Persistence.deleteRecord(e.target.dataset.id);
                     this.renderRecordsList();
                 });
                 container.appendChild(item);
             });
+        },
+        setStatus(status, message) {
+            const indicator = this.elements.statusIndicator;
+            indicator.textContent = message;
+            indicator.className = 'status-indicator'; // Reset classes
+            indicator.classList.add(status);
         }
     };
 
@@ -1067,7 +1172,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const Calculator = {
         lastResults: {},
         run(inputs, params, deviceSpecs) {
-            const results = { annualData: [], totalInvestment: 0, paybackPeriod: 'N/A', costBreakdown: {}, avgChargeFee: 0, totalChargingRevenue: 0, roi: NaN, irr: NaN };
+            const results = { annualData: [], totalInvestment: 0, paybackPeriod: 'N/A', costBreakdown: {}, avgChargeFeeAC: 0, avgChargeFeeDC: 0, totalChargingRevenue: 0, roi: NaN, irr: NaN };
             const investmentBreakdown = this.getInvestmentBreakdown(inputs, params);
             results.totalInvestment = investmentBreakdown.reduce((sum, item) => sum + item.value, 0);
             const equipmentCostItem = investmentBreakdown.find(i => i.key === 'deviceCost');
@@ -1077,27 +1182,37 @@ document.addEventListener('DOMContentLoaded', function () {
             const acGuns = inputs.equipmentList.filter(e => e.spec.type === 'AC').reduce((sum, e) => sum + e.gunCount, 0);
             const dcGuns = inputs.equipmentList.filter(e => e.spec.type !== 'AC').reduce((sum, e) => sum + e.gunCount, 0);
 
+            // Calculate average charge fees for AC and DC separately
+            results.avgChargeFeeAC = inputs.chargeFeePerKwhAC;
+            results.avgChargeFeeDC = (inputs.billingMethodDC === 'fixed') ? inputs.chargeFeePerKwhDC : (inputs.peakRate * inputs.touRatios.peak) + (inputs.offPeakRate * inputs.touRatios.offpeak) + (inputs.holidayRate * inputs.touRatios.holiday);
+
             for (let year = 1; year <= inputs.operationYears; year++) {
                 const demandMultiplier = Math.pow(1 + inputs.demandGrowthRate, year - 1);
                 
                 let kwhAC = 0, kwhDC = 0;
 
-                if (inputs.revenueMethodAC === 'byCars') {
-                    kwhAC = (Math.min(inputs.carsPerGunPerDayAC, 2) * acGuns * inputs.avgKwhPerCar * 365);
-                } else { // byKwh
-                    kwhAC = (Math.min(inputs.kwhPerGunPerMonthAC, 1800) * acGuns * 12);
+                if (acGuns > 0) {
+                    if (inputs.revenueMethodAC === 'byCars') {
+                        kwhAC = (Math.min(inputs.carsPerGunPerDayAC, 2) * acGuns * inputs.avgKwhPerCar * 365);
+                    } else { // byKwh
+                        kwhAC = (Math.min(inputs.kwhPerGunPerMonthAC, 1800) * acGuns * 12);
+                    }
                 }
 
-                if (inputs.revenueMethodDC === 'byCars') {
-                    kwhDC = (inputs.carsPerGunPerDayDC * dcGuns * inputs.avgKwhPerCar * 365);
-                } else { // byKwh
-                    kwhDC = (inputs.kwhPerGunPerMonthDC * dcGuns * 12);
+                if (dcGuns > 0) {
+                    if (inputs.revenueMethodDC === 'byCars') {
+                        kwhDC = (inputs.carsPerGunPerDayDC * dcGuns * inputs.avgKwhPerCar * 365);
+                    } else { // byKwh
+                        kwhDC = (inputs.kwhPerGunPerMonthDC * dcGuns * 12);
+                    }
                 }
 
-                const totalKwhSold = (kwhAC + kwhDC) * demandMultiplier;
-                results.avgChargeFee = (inputs.billingMethod === 'fixed') ? inputs.chargeFeePerKwh : (inputs.peakRate * inputs.touRatios.peak) + (inputs.offPeakRate * inputs.touRatios.offpeak) + (inputs.holidayRate * inputs.touRatios.holiday);
-                const revenueAC = (kwhAC * demandMultiplier) * results.avgChargeFee;
-                const revenueDC = (kwhDC * demandMultiplier) * results.avgChargeFee;
+                const annualKwhAC = kwhAC * demandMultiplier;
+                const annualKwhDC = kwhDC * demandMultiplier;
+                const totalKwhSold = annualKwhAC + annualKwhDC;
+
+                const revenueAC = annualKwhAC * results.avgChargeFeeAC;
+                const revenueDC = annualKwhDC * results.avgChargeFeeDC;
                 const revenue = revenueAC + revenueDC;
                 totalChargingRevenue += revenue;
 
@@ -1153,9 +1268,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 items.push({ label: 'DC 充電服務費', value: yearData.details.revenue['DC 充電服務費'], formula: 'DC 設備營收' });
             }
             return items;
-         },
+           },
         getCostBreakdown(results, inputs, year, totalKwhSold, numberOfTransactions) {
-            const items = []; const p = Config.calculationParams; const revenue = totalKwhSold * results.avgChargeFee;
+            const items = []; const p = Config.calculationParams; 
+            const revenue = (results.annualData[year-1] && results.annualData[year-1].revenue) ? results.annualData[year-1].revenue : 0;
             const totalGunCount = inputs.equipmentList.reduce((sum, item) => sum + item.gunCount, 0);
             const totalPileCount = inputs.equipmentList.reduce((sum, item) => sum + item.pileCount, 0);
             const hasDC = inputs.equipmentList.some(item => item.spec.type !== 'AC');
@@ -1193,7 +1309,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /**
      * =================================================================
-     * CHARTS MODULE: Chart.js Integration
+     * CHARTS MODULE: Chart.js Integration (Identical to previous version)
      * =================================================================
      */
     const Charts = {
@@ -1212,14 +1328,14 @@ document.addEventListener('DOMContentLoaded', function () {
             this.instances.pnl.data.labels = labels; this.instances.pnl.data.datasets = [{ label: '充電淨利', data: results.annualData.map(d => d.pnl), backgroundColor: results.annualData.map(d => d.pnl >= 0 ? 'rgba(22, 163, 74, 0.6)' : 'rgba(220, 38, 38, 0.6)'), borderColor: results.annualData.map(d => d.pnl >= 0 ? 'rgba(22, 163, 74, 1)' : 'rgba(220, 38, 38, 1)'), borderWidth: 1 }]; this.instances.pnl.update();
             this.instances.revenueCost.data.labels = labels; this.instances.revenueCost.data.datasets = [{ label: '總營收', data: results.annualData.map(d => d.revenue), backgroundColor: 'rgba(75, 192, 192, 0.6)' }, { label: '總成本', data: results.annualData.map(d => d.cost), backgroundColor: 'rgba(255, 159, 64, 0.6)' }]; this.instances.revenueCost.update();
             this.instances.cumulative.data.labels = ['投資額', ...labels]; this.instances.cumulative.data.datasets = [{ label: '累積稅前淨利', data: [-results.totalInvestment, ...results.annualData.map(d => d.cumulativePnl)], borderColor: 'rgba(54, 162, 235, 1)', tension: 0.1, fill: true, backgroundColor: (c) => { const { ctx, chartArea, scales } = c.chart; if (!chartArea) return null; const g = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom); const z = scales.y.getPixelForValue(0); const zp = (z - chartArea.top) / chartArea.height; if (!isFinite(zp)) return 'rgba(219, 234, 254, 0.6)'; const cz = Math.max(0, Math.min(1, zp)); g.addColorStop(0, 'rgba(219, 234, 254, 0.6)'); g.addColorStop(cz, 'rgba(219, 234, 254, 0.6)'); g.addColorStop(cz, 'rgba(254, 226, 226, 0.6)'); g.addColorStop(1, 'rgba(254, 226, 226, 0.6)'); return g; } }]; this.instances.cumulative.update();
-            UI.elements.touPieChartContainer.style.display = inputs.billingMethod === 'tou' ? 'block' : 'none';
-            if (inputs.billingMethod === 'tou') { this.instances.tou.data.labels = ['尖峰', '離峰', '假日']; this.instances.tou.data.datasets = [{ data: [inputs.touRatios.peak * 100, inputs.touRatios.offpeak * 100, inputs.touRatios.holiday * 100].map(v => v.toFixed(0)), backgroundColor: ['#ef4444', '#10b981', '#3b82f6'] }]; this.instances.tou.update(); }
+            UI.elements.touPieChartContainer.style.display = inputs.billingMethodDC === 'tou' ? 'block' : 'none';
+            if (inputs.billingMethodDC === 'tou') { this.instances.tou.data.labels = ['尖峰', '離峰', '假日']; this.instances.tou.data.datasets = [{ data: [inputs.touRatios.peak * 100, inputs.touRatios.offpeak * 100, inputs.touRatios.holiday * 100].map(v => v.toFixed(0)), backgroundColor: ['#ef4444', '#10b981', '#3b82f6'] }]; this.instances.tou.update(); }
         }
     };
 
     /**
      * =================================================================
-     * TOU EDITOR MODULE: Handles the 7-day Time-of-Use grid editor
+     * TOU EDITOR MODULE: Handles the 7-day Time-of-Use grid editor (Identical to previous version)
      * =================================================================
      */
     const TouEditor = {
@@ -1315,12 +1431,63 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /**
      * =================================================================
-     * PERSISTENCE MODULE: Local Storage
+     * PERSISTENCE MODULE: Firebase Firestore Integration
      * =================================================================
      */
     const Persistence = {
-        STORAGE_KEY_PREFIX: 'chargingStationAnalysis_',
+        db: null,
+        auth: null,
+        userId: null,
+        appId: 'default-app-id',
         
+        async init() {
+            if (!window.firebaseServices) {
+                console.error("Firebase is not available.");
+                UI.setStatus('offline', 'Firebase 連線失敗');
+                this.loadDefaultState();
+                return;
+            }
+            
+            UI.setStatus('loading', '連線中...');
+            
+            this.db = window.firebaseServices.db;
+            this.auth = window.firebaseServices.auth;
+            this.appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+            return new Promise(resolve => {
+                window.firebaseServices.onAuthStateChanged(this.auth, async (user) => {
+                    if (user) {
+                        this.userId = user.uid;
+                        console.log("Authenticated user:", this.userId);
+                        UI.setStatus('online', '已連線');
+                        await this.load();
+                    } else {
+                        try {
+                            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                                await window.firebaseServices.signInWithCustomToken(this.auth, __initial_auth_token);
+                            } else {
+                                await window.firebaseServices.signInAnonymously(this.auth);
+                            }
+                            // The onAuthStateChanged listener will be triggered again after sign-in
+                        } catch (error) {
+                            console.error("Firebase auth error:", error);
+                            UI.setStatus('offline', '認證失敗');
+                            this.loadDefaultState();
+                        }
+                    }
+                    resolve();
+                });
+            });
+        },
+
+        getSessionRef() {
+            return window.firebaseServices.doc(this.db, `artifacts/${this.appId}/users/${this.userId}/sessions/lastSession`);
+        },
+
+        getRecordsCollectionRef() {
+            return window.firebaseServices.collection(this.db, `artifacts/${this.appId}/users/${this.userId}/records`);
+        },
+
         getCurrentState() {
             return {
                 inputs: UI.getInputs(),
@@ -1330,64 +1497,128 @@ document.addEventListener('DOMContentLoaded', function () {
                     calculationParams: Config.calculationParams,
                     passwords: Config.passwords,
                     touSchedule: Config.touSchedule
-                }
+                },
+                timestamp: window.firebaseServices.serverTimestamp()
             };
         },
 
-        saveSession() {
-            localStorage.setItem(`${this.STORAGE_KEY_PREFIX}lastSession`, JSON.stringify(this.getCurrentState()));
-        },
-
-        saveRecord(name, data) {
-            let recordList = this.getRecordList();
-            if (!recordList.includes(name)) {
-                recordList.push(name);
-            }
-            localStorage.setItem(`${this.STORAGE_KEY_PREFIX}recordList`, JSON.stringify(recordList));
-            localStorage.setItem(`${this.STORAGE_KEY_PREFIX}record_${name}`, JSON.stringify(data));
-        },
-
-        loadRecord(name) {
-            const savedData = localStorage.getItem(`${this.STORAGE_KEY_PREFIX}record_${name}`);
-            if (savedData) {
-                const parsedData = JSON.parse(savedData);
-                this.applyState(parsedData);
-                UI.elements.siteNameDisplay.textContent = name;
-                App.update();
+        async saveSession() {
+            if (!this.userId) return;
+            try {
+                const state = this.getCurrentState();
+                // Sanitize state before saving
+                const sanitizedState = JSON.parse(JSON.stringify(state));
+                await window.firebaseServices.setDoc(this.getSessionRef(), sanitizedState, { merge: true });
+            } catch (error) {
+                console.error("Error saving session to Firestore:", error);
             }
         },
 
-        deleteRecord(name) {
-            let recordList = this.getRecordList();
-            const index = recordList.indexOf(name);
-            if (index > -1) {
-                recordList.splice(index, 1);
+        async saveRecord(name, data) {
+            if (!this.userId) return false;
+            UI.setStatus('loading', '儲存中...');
+            try {
+                const recordRef = window.firebaseServices.doc(this.getRecordsCollectionRef());
+                const sanitizedData = JSON.parse(JSON.stringify(data));
+                await window.firebaseServices.setDoc(recordRef, { name, ...sanitizedData });
+                UI.setStatus('online', '儲存成功');
+                return true;
+            } catch (error) {
+                console.error("Error saving record to Firestore:", error);
+                UI.setStatus('online', '儲存失敗');
+                return false;
             }
-            localStorage.setItem(`${this.STORAGE_KEY_PREFIX}recordList`, JSON.stringify(recordList));
-            localStorage.removeItem(`${this.STORAGE_KEY_PREFIX}record_${name}`);
         },
 
-        getRecordList() {
-            const list = localStorage.getItem(`${this.STORAGE_KEY_PREFIX}recordList`);
-            return list ? JSON.parse(list) : [];
+        async loadRecord(recordId) {
+            if (!this.userId) return;
+            UI.setStatus('loading', '讀取中...');
+            try {
+                const docRef = window.firebaseServices.doc(this.db, `artifacts/${this.appId}/users/${this.userId}/records/${recordId}`);
+                const docSnap = await window.firebaseServices.getDoc(docRef);
+                if (docSnap.exists()) {
+                    const savedData = docSnap.data();
+                    this.applyState(savedData);
+                    UI.elements.siteNameDisplay.textContent = savedData.name;
+                    App.update();
+                    UI.setStatus('online', '讀取成功');
+                }
+            } catch (error) {
+                console.error("Error loading record from Firestore:", error);
+                UI.setStatus('online', '讀取失敗');
+            }
+        },
+
+        async deleteRecord(recordId) {
+            if (!this.userId) return;
+            UI.setStatus('loading', '刪除中...');
+            try {
+                const docRef = window.firebaseServices.doc(this.db, `artifacts/${this.appId}/users/${this.userId}/records/${recordId}`);
+                await window.firebaseServices.deleteDoc(docRef);
+                UI.setStatus('online', '刪除成功');
+            } catch (error) {
+                console.error("Error deleting record:", error);
+                UI.setStatus('online', '刪除失敗');
+            }
+        },
+
+        async getRecordList() {
+            if (!this.userId) return [];
+            try {
+                const querySnapshot = await window.firebaseServices.getDocs(this.getRecordsCollectionRef());
+                const records = [];
+                querySnapshot.forEach((doc) => {
+                    records.push({ id: doc.id, name: doc.data().name });
+                });
+                return records;
+            } catch (error) {
+                console.error("Error getting record list:", error);
+                return [];
+            }
         },
         
-        load() {
-            const lastSession = localStorage.getItem(`${this.STORAGE_KEY_PREFIX}lastSession`);
-            if (lastSession) {
-                const parsedData = JSON.parse(lastSession);
-                this.applyState(parsedData);
-            } else {
-                UI.addEquipmentRow({power: '120', count: 1});
-                const defaultWeekday = Array(24).fill('offpeak');
-                for(let i=15; i<21; i++) defaultWeekday[i] = 'peak';
-                const defaultHoliday = Array(24).fill('holiday');
-                Config.touSchedule = {
-                    mon: [...defaultWeekday], tue: [...defaultWeekday], wed: [...defaultWeekday],
-                    thu: [...defaultWeekday], fri: [...defaultWeekday],
-                    sat: [...defaultHoliday], sun: [...defaultHoliday]
-                };
+        async load() {
+            if (!this.userId) {
+                this.loadDefaultState();
+                return;
             }
+            UI.setStatus('loading', '讀取資料...');
+            try {
+                const docSnap = await window.firebaseServices.getDoc(this.getSessionRef());
+                if (docSnap.exists()) {
+                    const parsedData = docSnap.data();
+                    this.applyState(parsedData);
+                    UI.setStatus('online', '資料已同步');
+                } else {
+                    this.loadDefaultState();
+                    UI.setStatus('online', '已建立新分析');
+                }
+            } catch (error) {
+                console.error("Error loading session from Firestore:", error);
+                UI.setStatus('offline', '讀取失敗');
+                this.loadDefaultState();
+            }
+        },
+        
+        async deleteSession() {
+            if (!this.userId) return;
+            try {
+                await window.firebaseServices.deleteDoc(this.getSessionRef());
+            } catch (error) {
+                console.error("Error deleting session:", error);
+            }
+        },
+
+        loadDefaultState() {
+            UI.addEquipmentRow({power: '7', count: 1}); // CHANGED: Default to 7kW
+            const defaultWeekday = Array(24).fill('offpeak');
+            for(let i=15; i<21; i++) defaultWeekday[i] = 'peak';
+            const defaultHoliday = Array(24).fill('holiday');
+            Config.touSchedule = {
+                mon: [...defaultWeekday], tue: [...defaultWeekday], wed: [...defaultWeekday],
+                thu: [...defaultWeekday], fri: [...defaultWeekday],
+                sat: [...defaultHoliday], sun: [...defaultHoliday]
+            };
         },
 
         applyState(state) {
@@ -1404,7 +1635,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (state.inputs) {
                 const { inputs } = state;
-                document.querySelector(`input[name="billingMethod"][value="${inputs.billingMethod}"]`).checked = true;
+                // Backward compatibility for old data structure
+                if (inputs.billingMethod) {
+                    document.querySelector(`input[name="billingMethodDC"][value="${inputs.billingMethod}"]`).checked = true;
+                    UI.elements.chargeFeePerKwhDC.value = inputs.chargeFeePerKwh || 10;
+                    UI.elements.chargeFeePerKwhAC.value = 7.5; // Default AC value
+                } else {
+                    // New data structure
+                    document.querySelector(`input[name="billingMethodDC"][value="${inputs.billingMethodDC}"]`).checked = true;
+                    UI.elements.chargeFeePerKwhDC.value = inputs.chargeFeePerKwhDC;
+                    UI.elements.chargeFeePerKwhAC.value = inputs.chargeFeePerKwhAC;
+                }
+
                 if(inputs.revenueMethodDC) document.querySelector(`input[name="revenueMethodDC"][value="${inputs.revenueMethodDC}"]`).checked = true;
                 if(inputs.revenueMethodAC) document.querySelector(`input[name="revenueMethodAC"][value="${inputs.revenueMethodAC}"]`).checked = true;
                 document.querySelector(`input[name="rentMethod"][value="${inputs.rentMethod}"]`).checked = true;
@@ -1415,7 +1657,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (el && typeof inputs[key] !== 'object' && typeof inputs[key] !== 'undefined') {
                         if (key === 'demandGrowthRate') {
                             el.value = inputs[key] * 100;
-                        } else {
+                        } else if (!['billingMethod', 'chargeFeePerKwh'].includes(key)) { // Avoid overwriting new separate inputs
                             el.value = inputs[key];
                         }
                     }
@@ -1427,7 +1669,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         UI.addEquipmentRow({ power: equip.power, count: equip.count });
                     });
                 } else {
-                     UI.addEquipmentRow({power: '120', count: 1});
+                     UI.addEquipmentRow({power: '7', count: 1}); // CHANGED: Default to 7kW
                 }
             }
             
