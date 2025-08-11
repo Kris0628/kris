@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>充電站投資效益分析 (v9.8 - 邏輯修正)</title>
+    <title>充電站投資效益分析 (v10.0 - 互動優化)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -246,13 +246,14 @@
         }
         .tou-rate-type-label { padding: 0.5rem 1rem; border-radius: 0.5rem; cursor: pointer; font-weight: 600; border: 2px solid transparent; transition: all 0.2s ease; }
         .tou-rate-type-label input { display: none; }
+        .tou-rate-type-label span { font-weight: 500; opacity: 0.8; }
         .tou-rate-type-label.peak { background-color: #fee2e2; color: #b91c1c; }
         .tou-rate-type-label.offpeak { background-color: #dcfce7; color: #166534; }
         .tou-rate-type-label.holiday { background-color: #dbeafe; color: #1e40af; }
         input[name="touRateType"]:checked + .peak { border-color: #dc2626; }
         input[name="touRateType"]:checked + .offpeak { border-color: #16a34a; }
         input[name="touRateType"]:checked + .holiday { border-color: #2563eb; }
-        #touGridContainer { display: grid; grid-template-columns: 2.5rem repeat(7, 1fr); gap: 2px; min-width: 480px; }
+        #touGridContainer { display: grid; grid-template-columns: 2.5rem repeat(7, minmax(35px, 1fr)); gap: 2px; min-width: 420px; }
         .tou-grid-cell { background-color: #e5e7eb; cursor: pointer; transition: all 0.1s ease; text-align: center; font-size: 0.7rem; line-height: 1.5rem; border-radius: 4px; }
         .tou-grid-header { font-weight: bold; text-align: center; padding: 0.5rem 0; background-color: #f3f4f6; border-radius: 4px;}
         .tou-grid-time { font-size: 0.75rem; color: #6b7280; display: flex; align-items: center; justify-content: center; }
@@ -621,13 +622,16 @@
                 <div id="tab-formulas" class="modal-tab-content"><h4 class="text-xl font-bold text-gray-800 mb-4">詳細計算參數</h4><div id="formulaContainer" class="space-y-3"></div></div>
                 <div id="tab-tou" class="modal-tab-content">
                     <div id="touGridEditor">
-                        <div class="tou-controls">
-                            <span class="font-semibold">點選費率後，在下方格子上塗抹：</span>
-                            <div>
-                                <input type="radio" name="touRateType" value="peak" id="tou-type-peak" checked><label for="tou-type-peak" class="tou-rate-type-label peak">尖峰</label>
-                                <input type="radio" name="touRateType" value="offpeak" id="tou-type-offpeak"><label for="tou-type-offpeak" class="tou-rate-type-label offpeak">離峰</label>
-                                <input type="radio" name="touRateType" value="holiday" id="tou-type-holiday"><label for="tou-type-holiday" class="tou-rate-type-label holiday">假日</label>
+                        <div class="tou-controls flex-col items-start">
+                            <div class="flex flex-wrap gap-4">
+                                <label for="tou-type-peak" class="tou-rate-type-label peak">尖峰 <span id="peakPercentDisplay" class="font-normal opacity-75"></span></label>
+                                <input type="radio" name="touRateType" value="peak" id="tou-type-peak" checked>
+                                <label for="tou-type-offpeak" class="tou-rate-type-label offpeak">離峰 <span id="offpeakPercentDisplay" class="font-normal opacity-75"></span></label>
+                                <input type="radio" name="touRateType" value="offpeak" id="tou-type-offpeak">
+                                <label for="tou-type-holiday" class="tou-rate-type-label holiday">假日 <span id="holidayPercentDisplay" class="font-normal opacity-75"></span></label>
+                                <input type="radio" name="touRateType" value="holiday" id="tou-type-holiday">
                             </div>
+                            <span class="text-sm text-gray-500 w-full text-left mt-2">點選費率後，在下方格子上塗抹</span>
                         </div>
                         <div class="overflow-x-auto">
                             <div id="touGridContainer"></div>
@@ -741,7 +745,7 @@ document.addEventListener('DOMContentLoaded', function () {
             UI.elements.kwhPerGunPerMonthAC.addEventListener('input', () => enforceMax(UI.elements.kwhPerGunPerMonthAC, 1800));
             
             // --- Enhanced Modal Closing ---
-            [UI.elements.advancedModal, UI.elements.explanationModal, UI.elements.saveRecordModal, UI.elements.recordsModal].forEach(modal => {
+            [UI.elements.explanationModal, UI.elements.saveRecordModal, UI.elements.recordsModal].forEach(modal => {
                 modal.addEventListener('click', (e) => { if (e.target === modal) UI.closeModal(modal); });
             });
             document.addEventListener('keydown', (e) => {
@@ -910,7 +914,7 @@ document.addEventListener('DOMContentLoaded', function () {
         elements: {},
         init() { this.cacheDOMElements(); this.updateUIVisibility(); this.elements.addEquipmentBtn.addEventListener('click', () => { this.addEquipmentRow(); App.update(); }); },
         cacheDOMElements() {
-            const ids = ['siteNameDisplay', 'saveBtn', 'recordsBtn', 'newAnalysisBtn', 'saveRecordModal', 'closeSaveModalBtn', 'cancelSaveBtn', 'recordNameInput', 'saveRecordMessage', 'confirmSaveBtn', 'recordsModal', 'closeRecordsModalBtn', 'recordsList', 'equipmentListContainer', 'addEquipmentBtn', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'infrastructureCostMain', 'chargeFeePerKwhAC', 'chargeFeePerKwhDC', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'dcRevenueSection', 'acRevenueSection', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'acBillingSection', 'dcBillingSection', 'fixedRateSectionDC', 'touRateSectionDC', 'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection', 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'cumulativePnlChart', 'touPieChart', 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'pnlChart', 'revenueCostChart', 'operationPeriodSummary', 'totalRevenueSummary', 'roiSummary', 'irrSummary', 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn', 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage', 'advancedContentSection', 'specsModalTableBody', 'formulaContainer', 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage', 'saveAdvancedBtn', 'touGridEditor', 'touGridContainer', 'touEditorMessage', 'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost', 'explainerPaybackPeriod', 'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn', 'profitShareByAmountSection', 'profitShareByPercentageSection', 'profitShareAmount', 'profitSharePercentage'];
+            const ids = ['siteNameDisplay', 'saveBtn', 'recordsBtn', 'newAnalysisBtn', 'saveRecordModal', 'closeSaveModalBtn', 'cancelSaveBtn', 'recordNameInput', 'saveRecordMessage', 'confirmSaveBtn', 'recordsModal', 'closeRecordsModalBtn', 'recordsList', 'equipmentListContainer', 'addEquipmentBtn', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'infrastructureCostMain', 'chargeFeePerKwhAC', 'chargeFeePerKwhDC', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'dcRevenueSection', 'acRevenueSection', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'acBillingSection', 'dcBillingSection', 'fixedRateSectionDC', 'touRateSectionDC', 'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection', 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'cumulativePnlChart', 'touPieChart', 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'pnlChart', 'revenueCostChart', 'operationPeriodSummary', 'totalRevenueSummary', 'roiSummary', 'irrSummary', 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn', 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage', 'advancedContentSection', 'specsModalTableBody', 'formulaContainer', 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage', 'saveAdvancedBtn', 'touGridEditor', 'touGridContainer', 'touEditorMessage', 'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost', 'explainerPaybackPeriod', 'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn', 'profitShareByAmountSection', 'profitShareByPercentageSection', 'profitShareAmount', 'profitSharePercentage', 'peakPercentDisplay', 'offpeakPercentDisplay', 'holidayPercentDisplay'];
             ids.forEach(id => this.elements[id] = document.getElementById(id));
         },
         getNumericValue(element, defaultValue = 0) { if (!element) return defaultValue; const value = parseFloat(String(element.value).replace(/,/g, '')); return isNaN(value) ? defaultValue : value; },
@@ -1493,6 +1497,7 @@ document.addEventListener('DOMContentLoaded', function () {
             this.createGrid();
             this.addEventListeners();
             this.renderGrid();
+            this.updateDisplayPercentages();
         },
         createGrid() {
             const container = UI.elements.touGridContainer;
@@ -1535,6 +1540,7 @@ document.addEventListener('DOMContentLoaded', function () {
             cell.className = `tou-grid-cell ${this.paintType} painting`;
             const { day, hour } = cell.dataset;
             Config.touSchedule[day][hour] = this.paintType;
+            this.updateDisplayPercentages();
         },
         renderGrid() {
             for (const dayKey of this.dayKeys) {
@@ -1546,14 +1552,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         },
-        saveAndApply() {
+        updateDisplayPercentages() {
+            const { roundedPeak, roundedOffPeak, roundedHoliday } = this.calculatePercentages();
+            UI.elements.peakPercentDisplay.textContent = `(${roundedPeak}%)`;
+            UI.elements.offpeakPercentDisplay.textContent = `(${roundedOffPeak}%)`;
+            UI.elements.holidayPercentDisplay.textContent = `(${roundedHoliday}%)`;
+        },
+        calculatePercentages() {
             let totalMinutes = { peak: 0, offpeak: 0, holiday: 0 };
             this.dayKeys.forEach(dayKey => {
                 Config.touSchedule[dayKey].forEach(type => {
                     totalMinutes[type] += 60;
                 });
             });
-
             const totalWeekMinutes = 7 * 24 * 60;
             let peakPercent = (totalMinutes.peak / totalWeekMinutes) * 100;
             let offpeakPercent = (totalMinutes.offpeak / totalWeekMinutes) * 100;
@@ -1561,7 +1572,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const roundedPeak = Math.round(peakPercent);
             const roundedOffPeak = Math.round(offpeakPercent);
             const roundedHoliday = 100 - roundedPeak - roundedOffPeak;
-
+            return { roundedPeak, roundedOffPeak, roundedHoliday };
+        },
+        saveAndApply() {
+            const { roundedPeak, roundedOffPeak, roundedHoliday } = this.calculatePercentages();
             UI.elements.peakUsageRatio.value = roundedPeak;
             UI.elements.offPeakUsageRatio.value = roundedOffPeak;
             UI.elements.holidayUsageRatio.value = roundedHoliday;
