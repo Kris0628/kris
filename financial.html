@@ -108,11 +108,11 @@
         #pnlTableBody tr:nth-child(even), #kwhStatsTableBody tr:nth-child(even) {
              background-color: rgba(255, 255, 255, 0.6);
         }
-        #pnlTableBody tr.pnl-row:hover, #kwhStatsTableBody tr:hover {
+        #pnlTableBody tr.pnl-row:hover, #kwhStatsTableBody tr.kwh-row:hover {
             background-color: #eff6ff; 
             transition: background-color 0.2s ease;
         }
-        #pnlTableBody tr.pnl-row {
+        #pnlTableBody tr.pnl-row, #kwhStatsTableBody tr.kwh-row {
             cursor: pointer;
         }
         .details-row td {
@@ -395,15 +395,15 @@
                                         </div>
                                         <div class="flex-grow space-y-2">
                                             <div class="grid grid-cols-3 items-center gap-2">
-                                                <label for="peakUsageRatio" class="text-sm font-medium">尖峰 %</label>
+                                                <label for="peakUsageRatio" class="text-sm font-bold text-red-500">尖峰 %</label>
                                                 <input type="number" id="peakUsageRatio" class="input-field readonly col-span-2" value="18" readonly>
                                             </div>
                                             <div class="grid grid-cols-3 items-center gap-2">
-                                                <label for="offPeakUsageRatio" class="text-sm font-medium">離峰 %</label>
+                                                <label for="offPeakUsageRatio" class="text-sm font-bold text-green-600">離峰 %</label>
                                                 <input type="number" id="offPeakUsageRatio" class="input-field readonly col-span-2" value="54" readonly>
                                             </div>
                                             <div class="grid grid-cols-3 items-center gap-2">
-                                                <label for="holidayUsageRatio" class="text-sm font-medium">假日 %</label>
+                                                <label for="holidayUsageRatio" class="text-sm font-bold text-blue-500">假日 %</label>
                                                 <input type="number" id="holidayUsageRatio" class="input-field readonly col-span-2" value="28" readonly>
                                             </div>
                                         </div>
@@ -1021,7 +1021,7 @@ document.addEventListener('DOMContentLoaded', function () {
             
             this.elements.equipmentCostDisplayMain.value = this.formatCurrency(results.costBreakdown.equipmentCost, 0, false, true);
             this.elements.salvageValueDisplay.value = this.formatCurrency(results.costBreakdown.totalSalvageValue, 0, false, true);
-            this.populateTable(this.elements.kwhStatsTableBody, results.annualData, (data) => `<tr><td class="table-cell table-cell-year">第 ${data.year} 年</td><td class="table-cell text-green-600 font-semibold">${data.kwhPerDay.toLocaleString('en-US', {maximumFractionDigits: 1})}</td><td class="table-cell text-blue-600 font-semibold">${data.kwhPerMonth.toLocaleString('en-US', {maximumFractionDigits: 0})}</td><td class="table-cell text-red-600 font-semibold">${data.kwhPerYear.toLocaleString('en-US', {maximumFractionDigits: 0})}</td></tr>`);
+            this.populateTable(this.elements.kwhStatsTableBody, results.annualData, (data) => `<tr class="kwh-row" data-year="${data.year}"><td class="table-cell table-cell-year">第 ${data.year} 年</td><td class="table-cell text-green-600 font-semibold">${data.kwhPerDay.toLocaleString('en-US', {maximumFractionDigits: 1})}</td><td class="table-cell text-blue-600 font-semibold">${data.kwhPerMonth.toLocaleString('en-US', {maximumFractionDigits: 0})}</td><td class="table-cell text-red-600 font-semibold">${data.kwhPerYear.toLocaleString('en-US', {maximumFractionDigits: 0})}</td></tr>`);
             this.populateTable(this.elements.pnlTableBody, results.annualData, (data) => `<tr class="pnl-row" data-year="${data.year}"><td class="table-cell table-cell-year">第 ${data.year} 年</td><td class="table-cell">${this.formatCurrency(data.revenue, 0, false, true)}</td><td class="table-cell">${this.formatCurrency(data.cost, 0, false, true)}</td><td class="table-cell ${data.pnl >= 0 ? 'text-green-600' : 'text-red-600'}">${this.formatCurrency(data.pnl, 0, false, true)}</td><td class="table-cell font-semibold ${data.cumulativePnl >= 0 ? 'text-blue-600' : 'text-orange-600'}">${this.formatCurrency(data.cumulativePnl, 0, false, true)}</td></tr>`);
             this.elements.explainerTotalInvestment.textContent = this.formatCurrency(results.totalInvestment);
             const firstYearData = results.annualData[0];
@@ -1039,7 +1039,7 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         createDetailsHtml(yearData, results) {
             const { details } = yearData;
-            const inputs = this.getInputs();
+            const inputs = UI.getInputs();
 
             const buildGrid = (items, total) => {
                 let gridHtml = '<div class="explainer-grid">';
@@ -1227,7 +1227,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const depreciation = costBreakdown.find(item => item.label === '折舊')?.value || 0;
                 const pnl = revenue - totalAnnualCost; cumulativePnl += pnl; cashFlows.push(pnl + depreciation);
                 const detailsCosts = costBreakdown.reduce((obj, item) => ({...obj, [item.label]: item.value }), {});
-                results.annualData.push({ year, revenue, cost: totalAnnualCost, pnl, cumulativePnl, kwhPerYear: totalKwhSold, kwhPerMonth: totalKwhSold / 12, kwhPerDay: totalKwhSold / 365, details: { revenue: {'AC 充電服務費': revenueAC, 'DC 充電服務費': revenueDC, '總營收': revenue}, kwh: { ac: annualKwhAC, dc: annualKwhDC }, costs: detailsCosts } });
+                results.annualData.push({ year, revenue, cost: totalAnnualCost, pnl, cumulativePnl, kwhPerYear: totalKwhSold, kwhPerMonth: totalKwhSold / 12, kwhPerDay: totalKwhSold / 365, details: { revenue: {'AC 充電服務費': revenueAC, 'DC 充電服務費': revenueDC, '總營收': revenue}, kwh: { ac: annualKwhAC, dc: annualKwhDC, base_ac: kwhAC, base_dc: kwhDC }, costs: detailsCosts } });
                 if (cumulativePnl >= 0 && !paybackFound) { const prevCumulativePnl = results.annualData[year - 2]?.cumulativePnl || -results.totalInvestment; const fractionOfYear = pnl > 0 ? (-prevCumulativePnl / pnl) : 0; results.paybackPeriod = `${(year - 1 + fractionOfYear).toFixed(1)} 年`; paybackFound = true; }
             }
             results.totalChargingRevenue = totalChargingRevenue; const totalNetProfit = cumulativePnl + results.totalInvestment; if (results.totalInvestment > 0) results.roi = (totalNetProfit / results.totalInvestment) * 100; results.irr = this.calculateIRR(cashFlows) * 100; this.lastResults = results; return results;
