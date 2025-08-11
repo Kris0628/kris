@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>充電站投資效益分析 (v9.7 - 分潤模型)</title>
+    <title>充電站投資效益分析 (v9.8 - 邏輯修正)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -757,14 +757,20 @@ document.addEventListener('DOMContentLoaded', function () {
         },
 
         update() {
+            // FIX: Ensure depreciation years is reset when switching back from 'none'
+            const depreciationMethod = document.querySelector('input[name="depreciationMethod"]:checked').value;
+            const depYearsInput = UI.elements.depreciationYears;
+            if (depreciationMethod !== 'none' && UI.getNumericValue(depYearsInput, 0) === 0) {
+                depYearsInput.value = 5; // Reset to a default value
+            }
+
             const inputs = UI.getInputs();
-            const finalInputs = UI.getInputs();
-            UI.updateLinkedInputs(finalInputs);
-            if (finalInputs.rentMethod === 'bySpace') this.previousRentValues.bySpace = finalInputs.rentPerSpace;
-            if (finalInputs.rentMethod === 'byLand') this.previousRentValues.byLand = finalInputs.rentPerLand;
-            const results = Calculator.run(finalInputs, Config.calculationParams, Config.deviceSpecs);
-            UI.updateDisplay(finalInputs, results);
-            Charts.update(finalInputs, results);
+            UI.updateLinkedInputs(inputs);
+            if (inputs.rentMethod === 'bySpace') this.previousRentValues.bySpace = inputs.rentPerSpace;
+            if (inputs.rentMethod === 'byLand') this.previousRentValues.byLand = inputs.rentPerLand;
+            const results = Calculator.run(inputs, Config.calculationParams, Config.deviceSpecs);
+            UI.updateDisplay(inputs, results);
+            Charts.update(inputs, results);
             Persistence.saveSession();
         },
         
@@ -1551,19 +1557,14 @@ document.addEventListener('DOMContentLoaded', function () {
             const totalWeekMinutes = 7 * 24 * 60;
             let peakPercent = (totalMinutes.peak / totalWeekMinutes) * 100;
             let offpeakPercent = (totalMinutes.offpeak / totalWeekMinutes) * 100;
-            let holidayPercent = (totalMinutes.holiday / totalWeekMinutes) * 100;
             
-            const totalPercent = peakPercent + offpeakPercent + holidayPercent;
-            if(Math.abs(100 - totalPercent) > 0.01) {
-                const diff = 100 - totalPercent;
-                if(peakPercent > offpeakPercent && peakPercent > holidayPercent) peakPercent += diff;
-                else if (offpeakPercent > holidayPercent) offpeakPercent += diff;
-                else holidayPercent += diff;
-            }
+            const roundedPeak = Math.round(peakPercent);
+            const roundedOffPeak = Math.round(offpeakPercent);
+            const roundedHoliday = 100 - roundedPeak - roundedOffPeak;
 
-            UI.elements.peakUsageRatio.value = peakPercent.toFixed(0);
-            UI.elements.offPeakUsageRatio.value = offpeakPercent.toFixed(0);
-            UI.elements.holidayUsageRatio.value = holidayPercent.toFixed(0);
+            UI.elements.peakUsageRatio.value = roundedPeak;
+            UI.elements.offPeakUsageRatio.value = roundedOffPeak;
+            UI.elements.holidayUsageRatio.value = roundedHoliday;
             return true;
         }
     };
