@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>充電站投資效益分析 (v10.1 - 計算邏輯修正)</title>
+    <title>充電站投資效益分析 (v10.2 - 互動優化)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -297,7 +297,7 @@
         <header class="mb-10">
             <div class="text-center">
                  <h1 class="text-3xl md:text-5xl font-extrabold text-gray-800 leading-tight">充電站投資效益分析</h1>
-                 <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v9.6 - 穩定版)</p>
+                 <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v10.1 - 介面優化)</p>
             </div>
             <div class="flex flex-col sm:flex-row justify-between items-center mt-6 bg-gray-100 p-3 rounded-xl shadow-sm gap-4">
                 <div>
@@ -426,7 +426,7 @@
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-2 items-center gap-4">
-                                    <span class="label-text">每日車次/槍</span><input type="text" id="carsPerGunPerDayDC" class="input-field" value="3">
+                                    <span class="label-text">每日車次/槍</span><input type="number" id="carsPerGunPerDayDC" class="input-field" value="3" step="0.5">
                                 </div>
                                 <div class="grid grid-cols-2 items-center gap-4">
                                    <span class="label-text">每月度數/槍</span><input type="text" id="kwhPerGunPerMonthDC" class="input-field" value="2,700">
@@ -756,7 +756,9 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             // --- Formatting Listeners ---
-            ['infrastructureCostMain'].forEach(id => { UI.elements[id]?.addEventListener('blur', (e) => UI.formatNumericInput(e.target)); });
+            ['infrastructureCostMain', 'rentPerSpace', 'rentPerLand', 'kwhPerGunPerMonthDC'].forEach(id => { 
+                UI.elements[id]?.addEventListener('input', (e) => UI.formatNumericInput(e.target)); 
+            });
         },
 
         update() {
@@ -862,9 +864,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         newAnalysis() {
             Persistence.deleteSession();
-            UI.elements.equipmentListContainer.innerHTML = '';
-            Persistence.loadDefaultState();
-            UI.elements.siteNameDisplay.textContent = '未命名站點';
+            UI.resetForm();
             App.update();
         }
     };
@@ -922,7 +922,14 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         getNumericValue(element, defaultValue = 0) { if (!element) return defaultValue; const value = parseFloat(String(element.value).replace(/,/g, '')); return isNaN(value) ? defaultValue : value; },
         formatCurrency(value, precision = 0, shorthand = false, unitOnly = false) { if (isNaN(value) || value === null) return 'N/A'; const num = Number(value); if (shorthand && !unitOnly) { if (Math.abs(num) >= 1e6) return `NT$ ${(num / 1e6).toFixed(1)}M`; if (Math.abs(num) >= 1e3) return `NT$ ${(num / 1e3).toFixed(0)}K`; } const numberString = num.toLocaleString('en-US', { minimumFractionDigits: precision, maximumFractionDigits: precision }); return unitOnly ? numberString : `NT$ ${numberString}`; },
-        formatNumericInput(element) { const value = this.getNumericValue(element, null); if (value !== null) { element.value = value.toLocaleString('en-US'); } },
+        formatNumericInput(element) {
+            const value = this.getNumericValue(element, null);
+            if (value !== null) {
+                element.value = value.toLocaleString('en-US');
+            } else {
+                element.value = ''; // Clear if not a valid number
+            }
+        },
         getInputs() {
             const equipmentList = Array.from(document.querySelectorAll('.equipment-row')).map(row => {
                 const powerSelect = row.querySelector('.device-power-select');
@@ -999,9 +1006,8 @@ document.addEventListener('DOMContentLoaded', function () {
              else { countLabel.textContent = '充電樁數'; }
         },
         updateUIVisibility() {
-            const inputs = this.getInputs();
-            const hasAC = inputs.equipmentList.some(e => e.spec.type === 'AC');
-            const hasDC = inputs.equipmentList.some(e => e.spec.type !== 'AC');
+            const hasAC = this.getInputs().equipmentList.some(e => e.spec.type === 'AC');
+            const hasDC = this.getInputs().equipmentList.some(e => e.spec.type !== 'AC');
 
             // Billing sections
             this.elements.acBillingSection.style.display = hasAC ? 'block' : 'none';
@@ -1034,7 +1040,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // Other sections
             const rentMethod = document.querySelector('input[name="rentMethod"]:checked').value; this.elements.rentBySpaceSection.style.display = rentMethod === 'bySpace' ? 'grid' : 'none'; this.elements.rentByLandSection.style.display = rentMethod === 'byLand' ? 'grid' : 'none';
             const depreciationMethod = document.querySelector('input[name="depreciationMethod"]:checked').value; const depYearsInput = this.elements.depreciationYears;
-            if (depreciationMethod === 'none') { depYearsInput.value = 0; depYearsInput.readOnly = true; depYearsInput.classList.add('readonly'); } else { depYearsInput.readOnly = false; depYearsInput.classList.remove('readonly'); if (parseInt(depYearsInput.value) === 0) { depYearsInput.value = 5; } }
+            if (depreciationMethod === 'none') { depYearsInput.value = 0; depYearsInput.readOnly = true; depYearsInput.classList.add('readonly'); } else { depYearsInput.readOnly = false; depYearsInput.classList.remove('readonly'); }
             
             // Profit Sharing UI
             const profitShareMethod = document.querySelector('input[name="profitShareMethod"]:checked').value;
@@ -1046,14 +1052,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 const calculatedKwh = inputs.carsPerGunPerDayDC * inputs.avgKwhPerCar * 30;
                 this.elements.kwhPerGunPerMonthDC.value = Math.round(calculatedKwh).toLocaleString('en-US'); 
             } else { 
-                const calculatedCars = inputs.avgKwhPerCar > 0 ? (inputs.kwhPerGunPerMonthDC / 30) / inputs.avgKwhPerCar : 0;
+                const calculatedCars = inputs.avgKwhPerCar > 0 ? (this.getNumericValue(this.elements.kwhPerGunPerMonthDC) / 30) / inputs.avgKwhPerCar : 0;
                 this.elements.carsPerGunPerDayDC.value = calculatedCars.toFixed(1); 
             } 
             if (inputs.revenueMethodAC === 'byCars') { 
                 const calculatedKwh = inputs.carsPerGunPerDayAC * inputs.avgKwhPerCar * 30;
                 this.elements.kwhPerGunPerMonthAC.value = Math.min(1800, Math.round(calculatedKwh)); 
             } else { 
-                const calculatedCars = inputs.avgKwhPerCar > 0 ? (inputs.kwhPerGunPerMonthAC / 30) / inputs.avgKwhPerCar : 0;
+                const calculatedCars = inputs.avgKwhPerCar > 0 ? (this.getNumericValue(this.elements.kwhPerGunPerMonthAC) / 30) / inputs.avgKwhPerCar : 0;
                 this.elements.carsPerGunPerDayAC.value = Math.min(2, calculatedCars).toFixed(1); 
             } 
         },
@@ -1283,7 +1289,44 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
                 container.appendChild(item);
             });
-        }
+        },
+        resetForm() {
+            this.elements.siteNameDisplay.textContent = '未命名站點';
+            this.elements.equipmentListContainer.innerHTML = '';
+            
+            this.elements.infrastructureCostMain.value = '500,000';
+            this.elements.chargeFeePerKwhAC.value = 7.5;
+            document.querySelector('input[name="billingMethodDC"][value="fixed"]').checked = true;
+            this.elements.chargeFeePerKwhDC.value = 10;
+            this.elements.peakRate.value = 13.5;
+            this.elements.offPeakRate.value = 6.9;
+            this.elements.holidayRate.value = 8.5;
+            
+            document.querySelector('input[name="revenueMethodDC"][value="byCars"]').checked = true;
+            this.elements.carsPerGunPerDayDC.value = 3;
+            this.elements.kwhPerGunPerMonthDC.value = '2,700';
+
+            document.querySelector('input[name="revenueMethodAC"][value="byCars"]').checked = true;
+            this.elements.carsPerGunPerDayAC.value = 2;
+            this.elements.kwhPerGunPerMonthAC.value = 1800;
+            
+            this.elements.avgKwhPerCar.value = 30;
+            this.elements.demandGrowthRate.value = 20;
+            this.elements.operationYears.value = 15;
+            
+            document.querySelector('input[name="depreciationMethod"][value="straightLine"]').checked = true;
+            this.elements.depreciationYears.value = 5;
+
+            document.querySelector('input[name="rentMethod"][value="bySpace"]').checked = true;
+            this.elements.rentPerSpace.value = '500';
+            this.elements.rentPerLand.value = '15,000';
+
+            document.querySelector('input[name="profitShareMethod"][value="none"]').checked = true;
+            this.elements.profitShareAmount.value = 1;
+            this.elements.profitSharePercentage.value = 10;
+            
+            Persistence.loadDefaultState();
+        },
     };
 
     /**
