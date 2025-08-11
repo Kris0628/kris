@@ -1173,7 +1173,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const totalKwhSold_yr = yearData.kwhPerYear;
             const numberOfTransactions_yr = inputs.avgKwhPerCar > 0 ? totalKwhSold_yr / inputs.avgKwhPerCar : 0;
-            const costItems = Calculator.getCostBreakdown(results, inputs, yearData.year, totalKwhSold_yr, numberOfTransactions_yr);
+            const costItems = Calculator.getCostBreakdown(results, inputs, yearData.year, totalKwhSold_yr, numberOfTransactions_yr, yearData.revenue);
             const costsHtml = `<div class="details-section"><h4>總成本細項</h4>${buildGrid(costItems, yearData.cost)}</div>`;
 
             return `<div class="details-container"><div class="details-grid">${revenueHtml}${costsHtml}</div></div>`;
@@ -1252,7 +1252,7 @@ document.addEventListener('DOMContentLoaded', function () {
             switch (type) {
                 case 'investment': title = '總投資額 計算說明'; const investmentItems = Calculator.getInvestmentBreakdown(inputs, calculationParams); contentHtml = buildGrid(investmentItems, results.totalInvestment); break;
                 case 'revenue': title = '總營收 計算說明 (第一年)'; if (firstYearData) { const revenueItems = Calculator.getRevenueBreakdown(firstYearData, inputs, results); contentHtml = buildGrid(revenueItems, firstYearData.revenue); } else { contentHtml = '<p>尚無第一年資料可供計算。</p>'; } break;
-                case 'cost': title = '總成本 計算說明 (第一年)'; if (firstYearData) { const totalKwhSold_yr1 = firstYearData.kwhPerYear; const numberOfTransactions_yr1 = inputs.avgKwhPerCar > 0 ? totalKwhSold_yr1 / inputs.avgKwhPerCar : 0; const costItems = Calculator.getCostBreakdown(results, inputs, 1, totalKwhSold_yr1, numberOfTransactions_yr1); contentHtml = buildGrid(costItems, firstYearData.cost); } else { contentHtml = '<p>尚無第一年資料可供計算。</p>'; } break;
+                case 'cost': title = '總成本 計算說明 (第一年)'; if (firstYearData) { const totalKwhSold_yr1 = firstYearData.kwhPerYear; const numberOfTransactions_yr1 = inputs.avgKwhPerCar > 0 ? totalKwhSold_yr1 / inputs.avgKwhPerCar : 0; const costItems = Calculator.getCostBreakdown(results, inputs, 1, totalKwhSold_yr1, numberOfTransactions_yr1, firstYearData.revenue); contentHtml = buildGrid(costItems, firstYearData.cost); } else { contentHtml = '<p>尚無第一年資料可供計算。</p>'; } break;
             }
             this.elements.explanationModalTitle.textContent = title; body.innerHTML = contentHtml; this.openModal(this.elements.explanationModal);
         },
