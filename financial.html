@@ -691,6 +691,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('input[name="billingMethodDC"], input[name="revenueMethodDC"], input[name="revenueMethodAC"], input[name="rentMethod"], input[name="depreciationMethod"]').forEach(radio => radio.addEventListener('change', () => this.update()));
             UI.elements.toggleKwhTableBtn.addEventListener('click', UI.toggleKwhTable);
             UI.elements.pnlTableBody.addEventListener('click', (e) => { const row = e.target.closest('.pnl-row'); if (row) UI.togglePnlDetails(row, Calculator.getLastResults()); });
+            UI.elements.kwhStatsTableBody.addEventListener('click', (e) => { const row = e.target.closest('.kwh-row'); if (row) UI.toggleKwhDetails(row, Calculator.getLastResults()); });
             
             // --- Header & Modal Listeners ---
             UI.elements.saveBtn.addEventListener('click', () => UI.openModal(UI.elements.saveRecordModal));
@@ -1035,7 +1036,73 @@ document.addEventListener('DOMContentLoaded', function () {
         togglePnlDetails(row, results) {
             const year = parseInt(row.dataset.year); const existingDetailsRow = this.elements.pnlTableBody.querySelector(`.details-row[data-year="${year}"]`);
             this.elements.pnlTableBody.querySelectorAll('.details-row').forEach(dr => { if (dr !== existingDetailsRow) dr.remove(); });
-            if (existingDetailsRow) { existingDetailsRow.remove(); } else { const yearData = results.annualData.find(d => d.year === year); if (yearData && yearData.details) { const detailsHtml = this.createDetailsHtml(yearData, results); const newRow = document.createElement('tr'); newRow.className = 'details-row'; newRow.dataset.year = year; newRow.innerHTML = `<td colspan="5">${detailsHtml}</td>`; row.after(newRow); } }
+            if (existingDetailsRow) { existingDetailsRow.remove(); } else { 
+                const yearData = results.annualData.find(d => d.year === year); 
+                if (yearData && yearData.details) { 
+                    const detailsHtml = this.createDetailsHtml(yearData, results); 
+                    const newRow = document.createElement('tr'); 
+                    newRow.className = 'details-row'; 
+                    newRow.dataset.year = year; 
+                    newRow.innerHTML = `<td colspan="5">${detailsHtml}</td>`; 
+                    row.after(newRow); 
+                    setTimeout(() => {
+                        newRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }, 100); 
+                } 
+            }
+        },
+        toggleKwhDetails(row, results) {
+            const year = parseInt(row.dataset.year);
+            const existingDetailsRow = this.elements.kwhStatsTableBody.querySelector(`.details-row[data-year="${year}"]`);
+            this.elements.kwhStatsTableBody.querySelectorAll('.details-row').forEach(dr => { if (dr !== existingDetailsRow) dr.remove(); });
+            if (existingDetailsRow) {
+                existingDetailsRow.remove();
+            } else {
+                const yearData = results.annualData.find(d => d.year === year);
+                if (yearData && yearData.details) {
+                    const detailsHtml = this.createKwhDetailsHtml(yearData, this.getInputs());
+                    const newRow = document.createElement('tr');
+                    newRow.className = 'details-row';
+                    newRow.dataset.year = year;
+                    newRow.innerHTML = `<td colspan="4">${detailsHtml}</td>`;
+                    row.after(newRow);
+                    setTimeout(() => {
+                        newRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }, 100);
+                }
+            }
+        },
+        createKwhDetailsHtml(yearData, inputs) {
+            const { details, year } = yearData;
+            const demandMultiplier = Math.pow(1 + inputs.demandGrowthRate, year - 1);
+            const acGuns = inputs.equipmentList.filter(e => e.spec.type === 'AC').reduce((sum, e) => sum + e.gunCount, 0);
+            const dcGuns = inputs.equipmentList.filter(e => e.spec.type !== 'AC').reduce((sum, e) => sum + e.gunCount, 0);
+
+            const items = [];
+            if (details.kwh.base_ac > 0) {
+                const formula = inputs.revenueMethodAC === 'byCars'
+                    ? `${inputs.carsPerGunPerDayAC}車/槍/日 x ${acGuns}槍 x ${inputs.avgKwhPerCar}kWh/車 x 365天`
+                    : `${inputs.kwhPerGunPerMonthAC}kWh/槍/月 x ${acGuns}槍 x 12月`;
+                items.push({ label: 'AC 基本度數', value: details.kwh.base_ac, formula: formula });
+            }
+            if (details.kwh.base_dc > 0) {
+                const formula = inputs.revenueMethodDC === 'byCars'
+                    ? `${inputs.carsPerGunPerDayDC}車/槍/日 x ${dcGuns}槍 x ${inputs.avgKwhPerCar}kWh/車 x 365天`
+                    : `${inputs.kwhPerGunPerMonthDC}kWh/槍/月 x ${dcGuns}槍 x 12月`;
+                items.push({ label: 'DC 基本度數', value: details.kwh.base_dc, formula: formula });
+            }
+
+            items.push({ label: '需求成長乘數', value: demandMultiplier, formula: `(1 + ${inputs.demandGrowthRate * 100}%) ^ (${year} - 1)` });
+            
+            let gridHtml = '<div class="explainer-grid">';
+            items.forEach(item => {
+                const valueDisplay = item.label === '需求成長乘數' ? `x ${item.value.toFixed(2)}` : `${this.formatCurrency(item.value, 0, false, true)} kWh`;
+                gridHtml += `<span>${item.label}</span><span>${item.formula}</span><span>${valueDisplay}</span>`;
+            });
+            gridHtml += '</div>';
+            gridHtml += `<div class="explainer-total-row"><span>年度總度數</span><span>${this.formatCurrency(yearData.kwhPerYear, 0, false, true)} kWh</span></div>`;
+            
+            return `<div class="details-container"><div class="details-section"><h4>第 ${year} 年充電度數計算說明</h4>${gridHtml}</div></div>`;
         },
         createDetailsHtml(yearData, results) {
             const { details } = yearData;
