@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>充電站投資效益分析 (v10.0 - 互動優化)</title>
+    <title>充電站投資效益分析 (v10.1 - 計算邏輯修正)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -240,16 +240,13 @@
 
         /* TOU Grid Editor Styles */
         #touGridEditor { user-select: none; }
-        .tou-controls { display: flex; flex-direction: column; align-items: flex-start; gap: 1rem; margin-bottom: 1rem; }
-         @media (min-width: 640px) {
-            .tou-controls { flex-direction: row; align-items: center; }
-        }
+        .tou-controls { display: flex; flex-direction: column; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; }
         .tou-rate-type-label { padding: 0.5rem 1rem; border-radius: 0.5rem; cursor: pointer; font-weight: 600; border: 2px solid transparent; transition: all 0.2s ease; }
-        .tou-rate-type-label input { display: none; }
         .tou-rate-type-label span { font-weight: 500; opacity: 0.8; }
         .tou-rate-type-label.peak { background-color: #fee2e2; color: #b91c1c; }
         .tou-rate-type-label.offpeak { background-color: #dcfce7; color: #166534; }
         .tou-rate-type-label.holiday { background-color: #dbeafe; color: #1e40af; }
+        .tou-controls input[type="radio"] { display: none; }
         input[name="touRateType"]:checked + .peak { border-color: #dc2626; }
         input[name="touRateType"]:checked + .offpeak { border-color: #16a34a; }
         input[name="touRateType"]:checked + .holiday { border-color: #2563eb; }
@@ -508,9 +505,9 @@
                             <div>
                                 <span class="label-text mb-3 block">分潤設定</span>
                                 <div class="flex flex-wrap gap-3 mb-3">
-                                    <label class="radio-label"><input type="radio" name="profitShareMethod" value="none" checked><span>無</span></label>
                                     <label class="radio-label"><input type="radio" name="profitShareMethod" value="byAmount"><span>依度電費(元)</span></label>
                                     <label class="radio-label"><input type="radio" name="profitShareMethod" value="byPercentage"><span>依營收(%)</span></label>
+                                    <label class="radio-label"><input type="radio" name="profitShareMethod" value="none" checked><span>無</span></label>
                                 </div>
                                 <div id="profitShareByAmountSection" class="hidden-section grid grid-cols-2 items-center gap-4">
                                     <span class="label-text">每度電分潤 (元)</span><input type="number" id="profitShareAmount" class="input-field" value="1" step="0.1">
@@ -624,12 +621,14 @@
                     <div id="touGridEditor">
                         <div class="tou-controls flex-col items-start">
                             <div class="flex flex-wrap gap-4">
-                                <label for="tou-type-peak" class="tou-rate-type-label peak">尖峰 <span id="peakPercentDisplay" class="font-normal opacity-75"></span></label>
                                 <input type="radio" name="touRateType" value="peak" id="tou-type-peak" checked>
-                                <label for="tou-type-offpeak" class="tou-rate-type-label offpeak">離峰 <span id="offpeakPercentDisplay" class="font-normal opacity-75"></span></label>
+                                <label for="tou-type-peak" class="tou-rate-type-label peak">尖峰 <span id="peakPercentDisplay" class="font-normal opacity-75"></span></label>
+                                
                                 <input type="radio" name="touRateType" value="offpeak" id="tou-type-offpeak">
-                                <label for="tou-type-holiday" class="tou-rate-type-label holiday">假日 <span id="holidayPercentDisplay" class="font-normal opacity-75"></span></label>
+                                <label for="tou-type-offpeak" class="tou-rate-type-label offpeak">離峰 <span id="offpeakPercentDisplay" class="font-normal opacity-75"></span></label>
+                                
                                 <input type="radio" name="touRateType" value="holiday" id="tou-type-holiday">
+                                <label for="tou-type-holiday" class="tou-rate-type-label holiday">假日 <span id="holidayPercentDisplay" class="font-normal opacity-75"></span></label>
                             </div>
                             <span class="text-sm text-gray-500 w-full text-left mt-2">點選費率後，在下方格子上塗抹</span>
                         </div>
@@ -761,15 +760,19 @@ document.addEventListener('DOMContentLoaded', function () {
         },
 
         update() {
-            // FIX: Ensure depreciation years is reset when switching back from 'none'
+            UI.updateUIVisibility();
+
             const depreciationMethod = document.querySelector('input[name="depreciationMethod"]:checked').value;
             const depYearsInput = UI.elements.depreciationYears;
             if (depreciationMethod !== 'none' && UI.getNumericValue(depYearsInput, 0) === 0) {
-                depYearsInput.value = 5; // Reset to a default value
+                depYearsInput.value = 5;
             }
 
-            const inputs = UI.getInputs();
+            let inputs = UI.getInputs();
             UI.updateLinkedInputs(inputs);
+            
+            inputs = UI.getInputs();
+
             if (inputs.rentMethod === 'bySpace') this.previousRentValues.bySpace = inputs.rentPerSpace;
             if (inputs.rentMethod === 'byLand') this.previousRentValues.byLand = inputs.rentPerLand;
             const results = Calculator.run(inputs, Config.calculationParams, Config.deviceSpecs);
@@ -1055,7 +1058,6 @@ document.addEventListener('DOMContentLoaded', function () {
             } 
         },
         updateDisplay(inputs, results) {
-            this.updateUIVisibility();
             this.elements.totalInvestment.innerHTML = this.formatCurrency(results.totalInvestment, 0, false).replace('NT$', '<span class="unit">NT$</span>');
             this.elements.totalRevenueSummary.innerHTML = this.formatCurrency(results.totalChargingRevenue, 0, false).replace('NT$', '<span class="unit">NT$</span>');
             this.elements.operationPeriodSummary.innerHTML = `${inputs.operationYears}<span class="unit"> 年</span>`;
@@ -1337,7 +1339,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 totalChargingRevenue += revenue;
 
                 const numberOfTransactions = inputs.avgKwhPerCar > 0 ? totalKwhSold / inputs.avgKwhPerCar : 0;
-                const costBreakdown = this.getCostBreakdown(results, inputs, year, totalKwhSold, numberOfTransactions);
+                const costBreakdown = this.getCostBreakdown(results, inputs, year, totalKwhSold, numberOfTransactions, revenue);
                 const totalAnnualCost = costBreakdown.reduce((sum, item) => sum + item.value, 0);
                 const depreciation = costBreakdown.find(item => item.label === '折舊')?.value || 0;
                 const pnl = revenue - totalAnnualCost; cumulativePnl += pnl; cashFlows.push(pnl + depreciation);
@@ -1403,9 +1405,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const num = Number(value);
             return num.toLocaleString('en-US', { minimumFractionDigits: precision, maximumFractionDigits: precision });
         },
-        getCostBreakdown(results, inputs, year, totalKwhSold, numberOfTransactions) {
+        getCostBreakdown(results, inputs, year, totalKwhSold, numberOfTransactions, revenue) {
             const items = []; const p = Config.calculationParams; 
-            const revenue = (results.annualData[year-1] && results.annualData[year-1].revenue) ? results.annualData[year-1].revenue : 0;
             const totalGunCount = inputs.equipmentList.reduce((sum, item) => sum + item.gunCount, 0);
             const totalPileCount = inputs.equipmentList.reduce((sum, item) => sum + item.pileCount, 0);
             const hasDC = inputs.equipmentList.some(item => item.spec.type !== 'AC');
