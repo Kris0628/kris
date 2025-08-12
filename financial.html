@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>充電站投資效益分析 (v10.2 - 互動優化)</title>
+    <title>充電站投資效益分析 (v10.5 - 版面優化)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -125,7 +125,7 @@
         }
         .details-container {
             padding: 1.5rem;
-            max-width: 48rem;
+            max-width: 64rem;
             margin: auto;
         }
         .details-grid {
@@ -133,7 +133,7 @@
             grid-template-columns: 1fr; /* Stack on mobile */
             gap: 1.5rem;
         }
-        @media (min-width: 640px) {
+        @media (min-width: 768px) {
              .details-grid {
                  grid-template-columns: 1fr 1fr;
                  gap: 1rem 2.5rem;
@@ -538,7 +538,7 @@
         </div>
 
         <div class="mt-8 space-y-8">
-            <div class="card bg-teal-50">
+            <div class="card bg-gradient-to-br from-blue-100 to-blue-200">
                 <div class="flex justify-between items-center cursor-pointer" id="toggleKwhTableBtn">
                     <h2 class="text-xl md:text-2xl font-bold text-gray-800">預估充電度數</h2>
                     <div class="flex items-center gap-4">
@@ -558,7 +558,7 @@
                 </div>
             </div>
 
-            <div class="card bg-teal-50">
+            <div class="card bg-gradient-to-br from-red-100 to-red-200">
                 <div class="flex justify-between items-center mb-5"><h2 class="text-xl md:text-2xl font-bold text-gray-800">充電收支/年</h2><span class="text-sm font-medium text-gray-500">單位：元</span></div>
                 <div class="overflow-x-auto rounded-lg border border-gray-200">
                     <table class="min-w-full divide-y divide-gray-200">
