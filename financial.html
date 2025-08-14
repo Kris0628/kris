@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>充電站投資效益分析 (v11.2 - 文字修正)</title>
+    <title>充電站投資效益分析 (v12.0 - 介面優化)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -353,31 +353,61 @@
                 <div class="card bg-white">
                     <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-5 pb-3 border-b border-gray-200">營運與成本假設</h2>
                     <div class="space-y-4">
-                        <!-- Billing Method Section -->
-                        <div class="input-section bg-blue-50 space-y-4">
-                            <!-- AC Billing Section -->
-                            <div id="acBillingSection" class="space-y-4 hidden-section">
-                                <h3 class="text-lg font-bold text-gray-700">AC 慢充收費方式</h3>
+                        <!-- AC Settings Block -->
+                        <div id="acSettingsBlock" class="input-section bg-blue-50 space-y-4 hidden-section">
+                            <h3 class="text-xl font-bold text-gray-700 pb-2 border-b border-blue-200">AC 慢充設定</h3>
+                            <!-- AC Billing -->
+                            <div>
+                                <h4 class="text-lg font-semibold text-gray-700 mb-2">收費方式</h4>
+                                <p class="text-sm text-red-600 mt-1 mb-2">AC不以尖離峰方式計費</p>
                                 <div class="grid grid-cols-2 items-center gap-4">
                                     <span class="label-text">每度電收費 (元)</span>
                                     <input type="number" id="chargeFeePerKwhAC" class="input-field" value="7.5" step="0.1">
                                 </div>
                             </div>
-    
-                            <!-- DC Billing Section -->
-                            <div id="dcBillingSection" class="space-y-4 hidden-section">
-                                 <h3 class="text-lg font-bold text-gray-700">DC 快充收費方式</h3>
+                            <!-- AC Revenue -->
+                            <div class="pt-4 mt-4 border-t border-blue-200">
+                                <h4 class="text-lg font-semibold text-gray-700 mb-2">基礎參數</h4>
+                                <div>
+                                    <div class="flex flex-wrap gap-3">
+                                        <label class="radio-label"><input type="radio" name="revenueMethodAC" value="byCars" checked><span>依車次</span></label>
+                                        <label class="radio-label"><input type="radio" name="revenueMethodAC" value="byKwh"><span>依度數</span></label>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 items-center gap-4 mt-3">
+                                    <div>
+                                        <span class="label-text">每日車次/槍</span>
+                                        <span class="block text-xs text-red-500 font-normal">(上限2車/次)</span>
+                                    </div>
+                                    <input type="number" id="carsPerGunPerDayAC" class="input-field" value="2" max="2" step="0.1">
+                                </div>
+                                <div class="grid grid-cols-2 items-center gap-4 mt-3">
+                                   <div>
+                                        <span class="label-text">每月度數/槍</span>
+                                        <span class="block text-xs text-red-500 font-normal">(上限1800度/月)</span>
+                                    </div>
+                                   <input type="number" id="kwhPerGunPerMonthAC" class="input-field" value="1800" max="1800" step="10">
+                                </div>
+                            </div>
+                        </div>
+                
+                        <!-- DC Settings Block -->
+                        <div id="dcSettingsBlock" class="input-section bg-green-50 space-y-4 hidden-section">
+                            <h3 class="text-xl font-bold text-gray-700 pb-2 border-b border-green-200">DC 快充設定</h3>
+                            <!-- DC Billing -->
+                            <div>
+                                <h4 class="text-lg font-semibold text-gray-700 mb-2">收費方式</h4>
                                 <div>
                                     <div class="flex flex-wrap gap-3">
                                         <label class="radio-label"><input type="radio" name="billingMethodDC" value="fixed" checked><span>固定費率</span></label>
                                         <label class="radio-label"><input type="radio" name="billingMethodDC" value="tou"><span>尖離峰</span></label>
                                     </div>
                                 </div>
-                                <div id="fixedRateSectionDC" class="grid grid-cols-2 items-center gap-4">
+                                <div id="fixedRateSectionDC" class="grid grid-cols-2 items-center gap-4 mt-3">
                                     <span class="label-text">每度電收費 (元)</span>
                                     <input type="number" id="chargeFeePerKwhDC" class="input-field" value="10" step="0.1">
                                 </div>
-                                <div id="touRateSectionDC" class="hidden-section space-y-4">
+                                <div id="touRateSectionDC" class="hidden-section space-y-4 mt-3">
                                      <div class="grid grid-cols-2 items-center gap-4">
                                           <span class="label-text font-bold text-indigo-600">尖離峰均價</span>
                                           <input type="text" id="avgTouRate" class="input-field readonly font-bold text-indigo-600" readonly>
@@ -415,51 +445,30 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Revenue Estimation Section -->
-                        <div class="input-section bg-green-50 space-y-4">
-                            <!-- Revenue Sections -->
-                            <div id="dcRevenueSection" class="space-y-4 hidden-section">
-                                <h3 class="text-lg font-bold text-gray-700">DC 快充營收估算</h3>
+                            <!-- DC Revenue -->
+                            <div class="pt-4 mt-4 border-t border-green-200">
+                                <h4 class="text-lg font-semibold text-gray-700 mb-2">基礎參數</h4>
                                 <div>
                                     <div class="flex flex-wrap gap-3">
                                         <label class="radio-label"><input type="radio" name="revenueMethodDC" value="byCars" checked><span>依車次</span></label>
                                         <label class="radio-label"><input type="radio" name="revenueMethodDC" value="byKwh"><span>依度數</span></label>
                                     </div>
                                 </div>
-                                <div class="grid grid-cols-2 items-center gap-4">
+                                <div class="grid grid-cols-2 items-center gap-4 mt-3">
                                     <span class="label-text">每日車次/槍</span><input type="number" id="carsPerGunPerDayDC" class="input-field" value="3" step="0.5">
                                 </div>
-                                <div class="grid grid-cols-2 items-center gap-4">
+                                <div class="grid grid-cols-2 items-center gap-4 mt-3">
                                    <span class="label-text">每月度數/槍</span><input type="text" id="kwhPerGunPerMonthDC" class="input-field" value="2,700">
                                 </div>
                             </div>
-    
-                            <div id="acRevenueSection" class="space-y-4 hidden-section">
-                                <h3 class="text-lg font-bold text-gray-700">AC 慢充營收估算</h3>
-                                 <div>
-                                    <div class="flex flex-wrap gap-3">
-                                        <label class="radio-label"><input type="radio" name="revenueMethodAC" value="byCars" checked><span>依車次</span></label>
-                                        <label class="radio-label"><input type="radio" name="revenueMethodAC" value="byKwh"><span>依度數</span></label>
-                                    </div>
-                                </div>
-                                <div class="grid grid-cols-2 items-center gap-4">
-                                    <span class="label-text">每日車次/槍 (上限2)</span><input type="number" id="carsPerGunPerDayAC" class="input-field" value="2" max="2" step="0.1">
-                                </div>
-                                <div class="grid grid-cols-2 items-center gap-4">
-                                   <span class="label-text">每月度數/槍 (上限1800)</span><input type="number" id="kwhPerGunPerMonthAC" class="input-field" value="1800" max="1800" step="10">
-                                </div>
-                            </div>
-                            
-                            <div class="grid grid-cols-2 items-center gap-4 pt-2 border-t border-gray-200">
+                        </div>
+
+                        <!-- General Assumptions Section -->
+                        <div class="input-section bg-yellow-50 space-y-4">
+                             <div class="grid grid-cols-2 items-center gap-4">
                                 <span class="label-text">每車平均充電 (kWh)</span>
                                 <input type="number" id="avgKwhPerCar" class="input-field" value="30">
                             </div>
-                        </div>
-
-                        <!-- Growth & Period Section -->
-                        <div class="input-section bg-yellow-50 space-y-4">
                             <div class="grid grid-cols-2 items-center gap-4">
                                 <span class="label-text">需求年增率 (%)</span><input type="number" id="demandGrowthRate" class="input-field" value="20">
                             </div>
@@ -504,12 +513,11 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="card bg-white">
-                    <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-5 pb-3 border-b border-gray-200">營業分潤</h2>
+                    <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-5 pb-3 border-b border-gray-200">維運代管方式</h2>
                      <div class="input-section bg-pink-50 space-y-4">
                         <div>
-                            <span class="label-text mb-3 block">分潤設定</span>
+                            <span class="label-text mb-3 block">度電計費</span>
                             <div class="flex flex-wrap gap-3 mb-3">
                                 <label class="radio-label"><input type="radio" name="profitShareMethod" value="byAmount"><span>依度電(元)</span></label>
                                 <label class="radio-label"><input type="radio" name="profitShareMethod" value="byPercentage"><span>依營收(%)</span></label>
@@ -537,7 +545,7 @@
                     <div class="summary-card"><div class="summary-label">IRR (內部報酬率)</div><div id="irrSummary" class="summary-value">0<span class="unit">%</span></div></div>
                 </div>
                 <div class="card bg-sky-50"><h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-5">年度充電淨利</h2><div class="flex-grow h-80"><canvas id="pnlChart"></canvas></div></div>
-                <div class="card bg-sky-50"><h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-5">累積損益與回收年限</h2><div class="flex-grow h-80"><canvas id="cumulativePnlChart"></canvas></div></div>
+                <div class="card bg-sky-50"><h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-5">累積損益趨勢</h2><div class="flex-grow h-80"><canvas id="cumulativePnlChart"></canvas></div></div>
                 <div class="card bg-sky-50"><h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-5">年度營收與成本圖表</h2><div class="flex-grow h-80"><canvas id="revenueCostChart"></canvas></div></div>
             </div>
         </div>
@@ -896,19 +904,19 @@ document.addEventListener('DOMContentLoaded', function () {
             distributionPanelFee: { value: 300000, label: '高/低壓配電盤', unit: '元', description: '高壓或低壓配電盤費用(一次性)。', enabled: true, category: 'investment' },
             constructionFee: { value: 500000, label: '基礎設施工程', unit: '元', description: '場地土木、基礎、裝修等工程費用(一次性)。', enabled: true, category: 'investment', readonly: true },
             meterFeeBase: { value: 12000, label: '電錶費用(基本)', unit: '元', description: '台電電表基本費用(僅DC樁, 一次性)。', enabled: true, category: 'investment' },
-            meterFeePerGun: { value: 1400, label: '電錶費用/槍', unit: '元', description: '每增加一槍的電表費用(僅DC樁, 一次性)。', enabled: true, category: 'investment' },
+            meterFeePerGun: { value: 700, label: '電錶費用/槍', unit: '元', description: '每增加一槍的電表費用(僅DC樁, 一次性)。', enabled: true, category: 'investment' },
             taxRate: { value: 0.05, label: '營業稅率', unit: '%', description: '設備購買及相關服務的營業稅率。', enabled: true, category: 'investment' },
             taipowerFee: { value: 4, label: '台電平均電費', unit: '元', description: '向台電購電的每度平均成本。', enabled: true, category: 'annual' },
             electricalTechnicianFee: { value: 15000, label: '高壓用電技術人員/年', unit: '元', description: '每年收取一次技師檢定費。', enabled: true, category: 'annual' },
-            maintenanceFee: { value: 37000, label: '維運&客服/年', unit: '元', description: '年度場域維護與線上客服費用。', enabled: true, category: 'annual' },
+            maintenanceFee: { value: 37000, label: '維運&客服/年', unit: '元', description: '年度場域維護與線上客服費用。', enabled: false, category: 'annual' },
             transactionFeeRate: { value: 0.03, label: '金流手續費', unit: '%', description: '支付給金流服務商的每筆交易手續費率。', enabled: true, category: 'annual' },
             insuranceFee: { value: 8500, label: '意外保險費/年', unit: '元', description: '場域年度意外險費用。', enabled: true, category: 'annual' },
             electronicInvoiceFeePerTransaction: { value: 1.2, label: '電子發票/張', unit: '元', description: '每筆交易的電子發票成本。', enabled: true, category: 'annual' },
             repairPartsRate: { value: 0.01, label: '設備維護備品', unit: '%', description: '年度維修備品費用，為設備含稅總成本的百分比。', enabled: true, category: 'annual' },
             extendedWarrantyPerPile: { value: 1000, label: '保固延保(樁)/年', unit: '元', description: '每支充電樁的年度延長保固費用。', enabled: true, category: 'annual' },
-            laborCost: { value: 60000, label: '勞務成本/年', unit: '元', description: '年度人力、巡檢等相關勞務成本。', enabled: true, category: 'annual' },
+            laborCost: { value: 60000, label: '勞務成本/年', unit: '元', description: '年度人力、巡檢等相關勞務成本。', enabled: false, category: 'annual' },
             internetFee: { value: 500, label: '網路費/月', unit: '元', description: '場域每月的網路通訊費用。', enabled: true, category: 'annual' },
-            tdxUploadFee: { value: 299, label: 'TDX上傳費(槍/月)', unit: '元', description: '每支槍每月上傳資料至交通部TDX平台的費用。', enabled: true, category: 'annual' },
+            tdxUploadFee: { value: 299, label: 'TDX上傳費(槍/月)', unit: '元', description: '每支槍每月上傳資料至交通部TDX平台的費用。', enabled: false, category: 'annual' },
             powerLossRate: { value: 0.05, label: '充電電損率', unit: '%', description: '電力在傳輸和轉換過程中的損耗率。', enabled: true, category: 'annual' },
         }
     };
@@ -922,7 +930,7 @@ document.addEventListener('DOMContentLoaded', function () {
         elements: {},
         init() { this.cacheDOMElements(); this.updateUIVisibility(); this.elements.addEquipmentBtn.addEventListener('click', () => { this.addEquipmentRow(); App.update(); }); },
         cacheDOMElements() {
-            const ids = ['siteNameDisplay', 'saveBtn', 'recordsBtn', 'newAnalysisBtn', 'saveRecordModal', 'closeSaveModalBtn', 'cancelSaveBtn', 'recordNameInput', 'saveRecordMessage', 'confirmSaveBtn', 'recordsModal', 'closeRecordsModalBtn', 'recordsList', 'equipmentListContainer', 'addEquipmentBtn', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'infrastructureCostMain', 'chargeFeePerKwhAC', 'chargeFeePerKwhDC', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'dcRevenueSection', 'acRevenueSection', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'acBillingSection', 'dcBillingSection', 'fixedRateSectionDC', 'touRateSectionDC', 'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection', 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'cumulativePnlChart', 'touPieChart', 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'pnlChart', 'revenueCostChart', 'operationPeriodSummary', 'totalRevenueSummary', 'roiSummary', 'irrSummary', 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn', 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage', 'advancedContentSection', 'specsModalTableBody', 'formulaContainer', 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage', 'saveAdvancedBtn', 'touGridEditor', 'touGridContainer', 'touEditorMessage', 'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost', 'explainerPaybackPeriod', 'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn', 'profitShareByAmountSection', 'profitShareByPercentageSection', 'profitShareAmount', 'profitSharePercentage', 'peakPercentDisplay', 'offpeakPercentDisplay', 'holidayPercentDisplay'];
+            const ids = ['siteNameDisplay', 'saveBtn', 'recordsBtn', 'newAnalysisBtn', 'saveRecordModal', 'closeSaveModalBtn', 'cancelSaveBtn', 'recordNameInput', 'saveRecordMessage', 'confirmSaveBtn', 'recordsModal', 'closeRecordsModalBtn', 'recordsList', 'equipmentListContainer', 'addEquipmentBtn', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'infrastructureCostMain', 'chargeFeePerKwhAC', 'chargeFeePerKwhDC', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'acSettingsBlock', 'dcSettingsBlock', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'fixedRateSectionDC', 'touRateSectionDC', 'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection', 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'cumulativePnlChart', 'touPieChart', 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'pnlChart', 'revenueCostChart', 'operationPeriodSummary', 'totalRevenueSummary', 'roiSummary', 'irrSummary', 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn', 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage', 'advancedContentSection', 'specsModalTableBody', 'formulaContainer', 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage', 'saveAdvancedBtn', 'touGridEditor', 'touGridContainer', 'touEditorMessage', 'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost', 'explainerPaybackPeriod', 'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn', 'profitShareByAmountSection', 'profitShareByPercentageSection', 'profitShareAmount', 'profitSharePercentage', 'peakPercentDisplay', 'offpeakPercentDisplay', 'holidayPercentDisplay'];
             ids.forEach(id => this.elements[id] = document.getElementById(id));
         },
         getNumericValue(element, defaultValue = 0) { if (!element) return defaultValue; const value = parseFloat(String(element.value).replace(/,/g, '')); return isNaN(value) ? defaultValue : value; },
@@ -1014,13 +1022,16 @@ document.addEventListener('DOMContentLoaded', function () {
             const hasAC = this.getInputs().equipmentList.some(e => e.spec.type === 'AC');
             const hasDC = this.getInputs().equipmentList.some(e => e.spec.type !== 'AC');
 
-            // Billing sections
-            this.elements.acBillingSection.style.display = hasAC ? 'block' : 'none';
-            this.elements.dcBillingSection.style.display = hasDC ? 'block' : 'none';
-            
-            // Revenue estimation sections
-            this.elements.acRevenueSection.style.display = hasAC ? 'block' : 'none';
-            this.elements.dcRevenueSection.style.display = hasDC ? 'block' : 'none';
+            // AC and DC specific blocks in the main form
+            this.elements.acSettingsBlock.style.display = hasAC ? 'block' : 'none';
+            this.elements.dcSettingsBlock.style.display = hasDC ? 'block' : 'none';
+
+            // Hide the entire "營運與成本假設" card if no equipment is selected
+            const equipmentCard = this.elements.acSettingsBlock.closest('.card');
+            if (equipmentCard) {
+                equipmentCard.style.display = (hasAC || hasDC) ? 'flex' : 'none';
+            }
+
 
             // DC Billing Method dependent UI
             if (hasDC) {
@@ -1563,6 +1574,7 @@ document.addEventListener('DOMContentLoaded', function () {
             this.instances.pnl = new Chart(UI.elements.pnlChart, { type: 'bar', data: { labels: [], datasets: [] }, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
             this.instances.revenueCost = new Chart(UI.elements.revenueCostChart, { type: 'bar', data: { labels: [], datasets: [] }, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
             this.instances.cumulative = new Chart(UI.elements.cumulativePnlChart, { type: 'line', data: { labels: [], datasets: [] }, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
+            // this.instances.depreciation = new Chart(UI.elements.depreciationChart, { type: 'bar', data: { labels: [], datasets: [] }, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
             this.instances.tou = new Chart(UI.elements.touPieChart, { type: 'doughnut', data: { labels: [], datasets: [] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.label}: ${c.raw}%` } } } } });
         },
         update(inputs, results) {
@@ -1571,6 +1583,10 @@ document.addEventListener('DOMContentLoaded', function () {
             this.instances.pnl.data.labels = labels; this.instances.pnl.data.datasets = [{ label: '充電淨利', data: results.annualData.map(d => d.pnl), backgroundColor: results.annualData.map(d => d.pnl >= 0 ? 'rgba(22, 163, 74, 0.6)' : 'rgba(220, 38, 38, 0.6)'), borderColor: results.annualData.map(d => d.pnl >= 0 ? 'rgba(22, 163, 74, 1)' : 'rgba(220, 38, 38, 1)'), borderWidth: 1 }]; this.instances.pnl.update();
             this.instances.revenueCost.data.labels = labels; this.instances.revenueCost.data.datasets = [{ label: '總營收', data: results.annualData.map(d => d.revenue), backgroundColor: 'rgba(75, 192, 192, 0.6)' }, { label: '總成本', data: results.annualData.map(d => d.cost), backgroundColor: 'rgba(255, 159, 64, 0.6)' }]; this.instances.revenueCost.update();
             this.instances.cumulative.data.labels = ['投資額', ...labels]; this.instances.cumulative.data.datasets = [{ label: '累積稅前淨利', data: [-results.totalInvestment, ...results.annualData.map(d => d.cumulativePnl)], borderColor: 'rgba(54, 162, 235, 1)', tension: 0.1, fill: true, backgroundColor: (c) => { const { ctx, chartArea, scales } = c.chart; if (!chartArea) return null; const g = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom); const z = scales.y.getPixelForValue(0); const zp = (z - chartArea.top) / chartArea.height; if (!isFinite(zp)) return 'rgba(219, 234, 254, 0.6)'; const cz = Math.max(0, Math.min(1, zp)); g.addColorStop(0, 'rgba(219, 234, 254, 0.6)'); g.addColorStop(cz, 'rgba(219, 234, 254, 0.6)'); g.addColorStop(cz, 'rgba(254, 226, 226, 0.6)'); g.addColorStop(1, 'rgba(254, 226, 226, 0.6)'); return g; } }]; this.instances.cumulative.update();
+            // const depreciationData = results.annualData.map(d => d.details.costs['折舊'] || 0);
+            // this.instances.depreciation.data.labels = labels;
+            // this.instances.depreciation.data.datasets = [{ label: '折舊費用', data: depreciationData, backgroundColor: 'rgba(153, 102, 255, 0.6)', borderColor: 'rgba(153, 102, 255, 1)', borderWidth: 1 }];
+            // this.instances.depreciation.update();
             UI.elements.touPieChartContainer.style.display = inputs.billingMethodDC === 'tou' ? 'block' : 'none';
             if (inputs.billingMethodDC === 'tou') { this.instances.tou.data.labels = ['尖峰', '離峰', '假日']; this.instances.tou.data.datasets = [{ data: [inputs.touRatios.peak * 100, inputs.touRatios.offpeak * 100, inputs.touRatios.holiday * 100].map(v => v.toFixed(0)), backgroundColor: ['#ef4444', '#10b981', '#3b82f6'] }]; this.instances.tou.update(); }
         }
