@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>充電站投資效益分析 (v12.4 - 攤提邏輯調整)</title>
+    <title>充電站投資效益分析 (v12.3 - 回收邏輯修正)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -485,7 +485,7 @@
                         <!-- Depreciation Section -->
                         <div class="input-section bg-purple-50 space-y-4">
                             <div>
-                                <span class="label-text mb-3 block">折舊攤提方式</span>
+                                <span class="label-text mb-3 block">設備折舊攤提</span>
                                 <div class="flex flex-wrap gap-3">
                                     <label class="radio-label"><input type="radio" name="depreciationMethod" value="straightLine" checked><span>直線法</span></label>
                                     <label class="radio-label"><input type="radio" name="depreciationMethod" value="syd"><span>年數合計法</span></label>
@@ -1412,7 +1412,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const equipmentCostItem = investmentBreakdown.find(i => i.key === 'deviceCost');
             results.costBreakdown = { equipmentCost: equipmentCostItem?.value || 0, totalDeviceCostUntaxed: equipmentCostItem?.untaxedValue || 0, totalSalvageValue: this.calculateSalvageValue(inputs, deviceSpecs) };
             
-            let cumulativePnl = -results.totalInvestment;
+            let cumulativePnl = -(results.totalInvestment - results.costBreakdown.equipmentCost);
 
             let paybackFound = false; 
             let totalChargingRevenue = 0; 
@@ -1466,7 +1466,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 results.annualData.push({ year, revenue, cost: totalAnnualCost, pnl, cumulativePnl, kwhPerYear: totalKwhSold, kwhPerMonth: totalKwhSold / 12, kwhPerDay: totalKwhSold / 365, details: { revenue: {'AC 充電服務費': revenueAC, 'DC 充電服務費': revenueDC, '總營收': revenue}, kwh: { ac: annualKwhAC, dc: annualKwhDC, base_ac: kwhAC, base_dc: kwhDC }, costs: detailsCosts } });
                 
                 if (cumulativePnl >= 0 && !paybackFound) {
-                    const prevCumulativePnl = results.annualData[year - 2]?.cumulativePnl || -results.totalInvestment;
+                    const prevCumulativePnl = results.annualData[year - 2]?.cumulativePnl || -(results.totalInvestment - results.costBreakdown.equipmentCost);
                     const fractionOfYear = pnl > 0 ? (-prevCumulativePnl / pnl) : 0;
                     results.paybackPeriod = `${(year - 1 + fractionOfYear).toFixed(1)} 年`;
                     paybackFound = true;
