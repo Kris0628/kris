@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>充電站投資效益分析 (v12.3 - 回收邏輯修正)</title>
+    <title>充電站投資效益分析 (v12.4 - 錯誤修正)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -395,7 +395,7 @@
                                 </div>
                             </div>
                         </div>
-                
+                        
                         <!-- DC Settings Block -->
                         <div id="dcSettingsBlock" class="input-section bg-green-50 space-y-4 hidden-section">
                             <h3 class="text-xl font-bold text-gray-700 pb-2 border-b border-green-200">DC 快充設定</h3>
@@ -792,6 +792,7 @@ document.addEventListener('DOMContentLoaded', function () {
             UI.updateLinkedInputs(inputs);
             
             inputs = UI.getInputs();
+            UI.updateTableVisibility(inputs); // New call to handle table column
 
             if (inputs.rentMethod === 'bySpace') this.previousRentValues.bySpace = inputs.rentPerSpace;
             if (inputs.rentMethod === 'byLand') this.previousRentValues.byLand = inputs.rentPerLand;
@@ -1203,7 +1204,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const totalKwhSold_yr = yearData.kwhPerYear;
             const numberOfTransactions_yr = inputs.avgKwhPerCar > 0 ? totalKwhSold_yr / inputs.avgKwhPerCar : 0;
-            const costItems = Calculator.getCostBreakdown(results, inputs, yearData.year, totalKwhSold_yr, numberOfTransactions_yr, yearData.revenue);
+            const costItems = Calculator.getCostBreakdown(results, inputs, yearData.year, totalKwhSold_yr, numberOfTransactions_yr, yearData.revenue, yearData.details.openingAccumulatedDepreciation);
             const costsHtml = `<div class="details-section"><h4>總成本細項</h4>${buildGrid(costItems, yearData.cost)}</div>`;
             
             const pnlDisplayWithSign = (value) => {
@@ -1229,8 +1230,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             </div>`;
 
+            const includeEquipmentInInitial = inputs.depreciationMethod === 'ddb' || inputs.depreciationMethod === 'none';
+            const initialInvestmentForDetails = includeEquipmentInInitial 
+                ? -results.totalInvestment 
+                : -(results.totalInvestment - results.costBreakdown.equipmentCost);
+
             const prevCumulativePnl = yearData.year === 1 
-                ? -(results.totalInvestment - results.costBreakdown.equipmentCost)
+                ? initialInvestmentForDetails
                 : results.annualData[yearData.year - 2].cumulativePnl;
 
             const cumulativePnlHtml = `
@@ -1238,7 +1244,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <h4>累積稅前淨利</h4>
                 <div class="explainer-grid">
                     <span>上年度累積</span>
-                    <span>${yearData.year === 1 ? '(不含設備)' : '(前一年度累積)'}</span>
+                    <span>${yearData.year === 1 ? (includeEquipmentInInitial ? '(含設備)' : '(不含設備)') : '(前一年度累積)'}</span>
                     <span class="${prevCumulativePnl >= 0 ? '' : 'text-red-600'}">${this.formatCurrency(prevCumulativePnl, 0, false, true)}</span>
                     
                     <span>本年度淨利</span>
@@ -1327,7 +1333,7 @@ document.addEventListener('DOMContentLoaded', function () {
             switch (type) {
                 case 'investment': title = '總投資額 計算說明'; const investmentItems = Calculator.getInvestmentBreakdown(inputs, calculationParams); contentHtml = buildGrid(investmentItems, results.totalInvestment); break;
                 case 'revenue': title = '總營收 計算說明 (第一年)'; if (firstYearData) { const revenueItems = Calculator.getRevenueBreakdown(firstYearData, inputs, results); contentHtml = buildGrid(revenueItems, firstYearData.revenue); } else { contentHtml = '<p>尚無第一年資料可供計算。</p>'; } break;
-                case 'cost': title = '總成本 計算說明 (第一年)'; if (firstYearData) { const totalKwhSold_yr1 = firstYearData.kwhPerYear; const numberOfTransactions_yr1 = inputs.avgKwhPerCar > 0 ? totalKwhSold_yr1 / inputs.avgKwhPerCar : 0; const costItems = Calculator.getCostBreakdown(results, inputs, 1, totalKwhSold_yr1, numberOfTransactions_yr1, firstYearData.revenue); contentHtml = buildGrid(costItems, firstYearData.cost); } else { contentHtml = '<p>尚無第一年資料可供計算。</p>'; } break;
+                case 'cost': title = '總成本 計算說明 (第一年)'; if (firstYearData) { const totalKwhSold_yr1 = firstYearData.kwhPerYear; const numberOfTransactions_yr1 = inputs.avgKwhPerCar > 0 ? totalKwhSold_yr1 / inputs.avgKwhPerCar : 0; const costItems = Calculator.getCostBreakdown(results, inputs, 1, totalKwhSold_yr1, numberOfTransactions_yr1, firstYearData.revenue, firstYearData.details.openingAccumulatedDepreciation); contentHtml = buildGrid(costItems, firstYearData.cost); } else { contentHtml = '<p>尚無第一年資料可供計算。</p>'; } break;
             }
             this.elements.explanationModalTitle.textContent = title; body.innerHTML = contentHtml; this.openModal(this.elements.explanationModal);
         },
@@ -1412,7 +1418,13 @@ document.addEventListener('DOMContentLoaded', function () {
             const equipmentCostItem = investmentBreakdown.find(i => i.key === 'deviceCost');
             results.costBreakdown = { equipmentCost: equipmentCostItem?.value || 0, totalDeviceCostUntaxed: equipmentCostItem?.untaxedValue || 0, totalSalvageValue: this.calculateSalvageValue(inputs, deviceSpecs) };
             
-            let cumulativePnl = -(results.totalInvestment - results.costBreakdown.equipmentCost);
+            let cumulativePnl;
+            if (inputs.depreciationMethod === 'ddb' || inputs.depreciationMethod === 'none') {
+                cumulativePnl = -results.totalInvestment;
+            } else {
+                cumulativePnl = -(results.totalInvestment - results.costBreakdown.equipmentCost);
+            }
+            let accumulatedDepreciation = 0;
 
             let paybackFound = false; 
             let totalChargingRevenue = 0; 
@@ -1421,7 +1433,6 @@ document.addEventListener('DOMContentLoaded', function () {
             const acGuns = inputs.equipmentList.filter(e => e.spec.type === 'AC').reduce((sum, e) => sum + e.gunCount, 0);
             const dcGuns = inputs.equipmentList.filter(e => e.spec.type !== 'AC').reduce((sum, e) => sum + e.gunCount, 0);
 
-            // Calculate average charge fees for AC and DC separately
             results.avgChargeFeeAC = inputs.chargeFeePerKwhAC;
             results.avgChargeFeeDC = (inputs.billingMethodDC === 'fixed') ? inputs.chargeFeePerKwhDC : (inputs.peakRate * inputs.touRatios.peak) + (inputs.offPeakRate * inputs.touRatios.offpeak) + (inputs.holidayRate * inputs.touRatios.holiday);
 
@@ -1429,21 +1440,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 const demandMultiplier = Math.pow(1 + inputs.demandGrowthRate, year - 1);
                 
                 let kwhAC = 0, kwhDC = 0;
-
                 if (acGuns > 0) {
-                    if (inputs.revenueMethodAC === 'byCars') {
-                        kwhAC = (Math.min(inputs.carsPerGunPerDayAC, 2) * acGuns * inputs.avgKwhPerCar * 365);
-                    } else { // byKwh
-                        kwhAC = (Math.min(inputs.kwhPerGunPerMonthAC, 1800) * acGuns * 12);
-                    }
+                    kwhAC = inputs.revenueMethodAC === 'byCars' ? (Math.min(inputs.carsPerGunPerDayAC, 2) * acGuns * inputs.avgKwhPerCar * 365) : (Math.min(inputs.kwhPerGunPerMonthAC, 1800) * acGuns * 12);
                 }
-
                 if (dcGuns > 0) {
-                    if (inputs.revenueMethodDC === 'byCars') {
-                        kwhDC = (inputs.carsPerGunPerDayDC * dcGuns * inputs.avgKwhPerCar * 365);
-                    } else { // byKwh
-                        kwhDC = (inputs.kwhPerGunPerMonthDC * dcGuns * 12);
-                    }
+                    kwhDC = inputs.revenueMethodDC === 'byCars' ? (inputs.carsPerGunPerDayDC * dcGuns * inputs.avgKwhPerCar * 365) : (inputs.kwhPerGunPerMonthDC * dcGuns * 12);
                 }
 
                 const annualKwhAC = kwhAC * demandMultiplier;
@@ -1455,18 +1456,38 @@ document.addEventListener('DOMContentLoaded', function () {
                 const revenue = revenueAC + revenueDC;
                 totalChargingRevenue += revenue;
 
+                const openingAccumulatedDepreciation = accumulatedDepreciation;
                 const numberOfTransactions = inputs.avgKwhPerCar > 0 ? totalKwhSold / inputs.avgKwhPerCar : 0;
-                const costBreakdown = this.getCostBreakdown(results, inputs, year, totalKwhSold, numberOfTransactions, revenue);
-                const totalAnnualCost = costBreakdown.reduce((sum, item) => sum + item.value, 0);
+                const costBreakdown = this.getCostBreakdown(results, inputs, year, totalKwhSold, numberOfTransactions, revenue, openingAccumulatedDepreciation);
+                
+                const totalAnnualCostWithDep = costBreakdown.reduce((sum, item) => sum + item.value, 0);
                 const depreciation = costBreakdown.find(item => item.label === '折舊')?.value || 0;
-                const pnl = revenue - totalAnnualCost; 
-                cumulativePnl += pnl; 
-                cashFlows.push(pnl + depreciation);
+                accumulatedDepreciation += depreciation;
+
+                let pnl;
+                let finalAnnualCost;
+
+                if (inputs.depreciationMethod === 'ddb' || inputs.depreciationMethod === 'none') {
+                    finalAnnualCost = totalAnnualCostWithDep - depreciation;
+                    pnl = revenue - finalAnnualCost;
+                } else {
+                    finalAnnualCost = totalAnnualCostWithDep;
+                    pnl = revenue - finalAnnualCost;
+                }
+                cumulativePnl += pnl;
+
+                const cashFlow = revenue - (totalAnnualCostWithDep - depreciation);
+                cashFlows.push(cashFlow);
+                
                 const detailsCosts = costBreakdown.reduce((obj, item) => ({...obj, [item.label]: item.value }), {});
-                results.annualData.push({ year, revenue, cost: totalAnnualCost, pnl, cumulativePnl, kwhPerYear: totalKwhSold, kwhPerMonth: totalKwhSold / 12, kwhPerDay: totalKwhSold / 365, details: { revenue: {'AC 充電服務費': revenueAC, 'DC 充電服務費': revenueDC, '總營收': revenue}, kwh: { ac: annualKwhAC, dc: annualKwhDC, base_ac: kwhAC, base_dc: kwhDC }, costs: detailsCosts } });
+                results.annualData.push({ year, revenue, cost: finalAnnualCost, pnl, cumulativePnl, kwhPerYear: totalKwhSold, kwhPerMonth: totalKwhSold / 12, kwhPerDay: totalKwhSold / 365, details: { revenue: {'AC 充電服務費': revenueAC, 'DC 充電服務費': revenueDC, '總營收': revenue}, kwh: { ac: annualKwhAC, dc: annualKwhDC, base_ac: kwhAC, base_dc: kwhDC }, costs: detailsCosts, openingAccumulatedDepreciation } });
                 
                 if (cumulativePnl >= 0 && !paybackFound) {
-                    const prevCumulativePnl = results.annualData[year - 2]?.cumulativePnl || -(results.totalInvestment - results.costBreakdown.equipmentCost);
+                    const includeEquipmentInInitialPayback = inputs.depreciationMethod === 'ddb' || inputs.depreciationMethod === 'none';
+                    const initialInvestmentForPayback = includeEquipmentInInitialPayback 
+                        ? -results.totalInvestment 
+                        : -(results.totalInvestment - results.costBreakdown.equipmentCost);
+                    const prevCumulativePnl = results.annualData[year - 2]?.cumulativePnl || initialInvestmentForPayback;
                     const fractionOfYear = pnl > 0 ? (-prevCumulativePnl / pnl) : 0;
                     results.paybackPeriod = `${(year - 1 + fractionOfYear).toFixed(1)} 年`;
                     paybackFound = true;
@@ -1535,7 +1556,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const num = Number(value);
             return num.toLocaleString('en-US', { minimumFractionDigits: precision, maximumFractionDigits: precision });
         },
-        getCostBreakdown(results, inputs, year, totalKwhSold, numberOfTransactions, revenue) {
+        getCostBreakdown(results, inputs, year, totalKwhSold, numberOfTransactions, revenue, accumulatedDepreciation) {
             const items = []; const p = Config.calculationParams; 
             const totalGunCount = inputs.equipmentList.reduce((sum, item) => sum + item.gunCount, 0);
             const totalPileCount = inputs.equipmentList.reduce((sum, item) => sum + item.pileCount, 0);
@@ -1567,16 +1588,24 @@ document.addEventListener('DOMContentLoaded', function () {
             if (p.internetFee.enabled) items.push({ label: '網路費', value: p.internetFee.value * 12, formula: `${this.formatCurrencyForFormula(p.internetFee.value,0)} x 12 個月` });
             if (p.tdxUploadFee.enabled) items.push({ label: 'TDX上傳費', value: p.tdxUploadFee.value * totalGunCount * 12, formula: `${this.formatCurrencyForFormula(p.tdxUploadFee.value,0)} x ${totalGunCount} 槍 x 12 個月` });
             if (inputs.rentMethod !== 'none') { const totalParkingSpaces = inputs.equipmentList.reduce((sum, item) => sum + item.parkingSpaces, 0); let rentCost = (inputs.rentMethod === 'bySpace') ? inputs.rentPerSpace * totalParkingSpaces * 12 : inputs.rentPerLand * 12; let formula = (inputs.rentMethod === 'bySpace') ? `${this.formatCurrencyForFormula(inputs.rentPerSpace,0)} x ${totalParkingSpaces} 車位 x 12 個月` : `${this.formatCurrencyForFormula(inputs.rentPerLand,0)} x 12 個月`; items.push({ label: '租金', value: rentCost, formula }); }
-            if (year <= inputs.depreciationYears && (inputs.depreciationMethod === 'straightLine' || inputs.depreciationMethod === 'syd')) {
-                const depreciableBase = results.costBreakdown.equipmentCost - results.costBreakdown.totalSalvageValue; 
+            
+            if (year <= inputs.depreciationYears && inputs.depreciationMethod !== 'none') {
+                const depreciableBase = results.costBreakdown.equipmentCost - results.costBreakdown.totalSalvageValue;
                 let depreciation = 0, formula = '';
-                if (inputs.depreciationMethod === 'straightLine') { 
-                    depreciation = depreciableBase / inputs.depreciationYears; 
-                    formula = `(${this.formatCurrencyForFormula(results.costBreakdown.equipmentCost)} - ${this.formatCurrencyForFormula(results.costBreakdown.totalSalvageValue)}) / ${inputs.depreciationYears} 年`; 
-                } else { 
-                    const n = inputs.depreciationYears, sydDenominator = n * (n + 1) / 2, remainingLife = n - year + 1; 
-                    depreciation = depreciableBase * (remainingLife / sydDenominator); 
-                    formula = `(${this.formatCurrencyForFormula(results.costBreakdown.equipmentCost)} - ${this.formatCurrencyForFormula(results.costBreakdown.totalSalvageValue)}) x ${remainingLife}/${sydDenominator}`; 
+                if (inputs.depreciationMethod === 'straightLine') {
+                    depreciation = depreciableBase / inputs.depreciationYears;
+                    formula = `(${this.formatCurrencyForFormula(results.costBreakdown.equipmentCost)} - ${this.formatCurrencyForFormula(results.costBreakdown.totalSalvageValue)}) / ${inputs.depreciationYears} 年`;
+                } else if (inputs.depreciationMethod === 'syd') {
+                    const n = inputs.depreciationYears, sydDenominator = n * (n + 1) / 2, remainingLife = n - year + 1;
+                    depreciation = depreciableBase * (remainingLife / sydDenominator);
+                    formula = `(${this.formatCurrencyForFormula(results.costBreakdown.equipmentCost)} - ${this.formatCurrencyForFormula(results.costBreakdown.totalSalvageValue)}) x ${remainingLife}/${sydDenominator}`;
+                } else if (inputs.depreciationMethod === 'ddb') {
+                    const bookValue = results.costBreakdown.equipmentCost - accumulatedDepreciation;
+                    const rate = 2 / inputs.depreciationYears;
+                    const calculatedDepreciation = bookValue * rate;
+                    const remainingDepreciable = depreciableBase - accumulatedDepreciation;
+                    depreciation = Math.max(0, Math.min(calculatedDepreciation, remainingDepreciable));
+                    formula = `(${this.formatCurrencyForFormula(bookValue, 0)}) x (2 / ${inputs.depreciationYears})`;
                 }
                 items.push({ label: '折舊', value: depreciation, formula });
             }
