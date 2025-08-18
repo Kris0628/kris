@@ -61,15 +61,20 @@
             padding: 1.5rem; 
             display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
             box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            height: 100%;
         }
         .summary-value {
             font-size: 1.5rem; /* Adjusted for mobile */
             font-weight: 700;
             line-height: 1.2;
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            white-space: nowrap;
         }
          @media (min-width: 768px) {
             .summary-value {
-                 font-size: 1.875rem;
+                 font-size: 1.75rem;
             }
         }
         .summary-value .unit {
@@ -554,14 +559,14 @@
 
             <!-- Right Column -->
             <div class="lg:col-span-2 flex flex-col gap-6">
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                     <div class="summary-card"><div class="summary-label">總投資額</div><div id="totalInvestment" class="summary-value">NT$ 0</div></div>
                     <div class="summary-card"><div class="summary-label">總充電營收</div><div id="totalRevenueSummary" class="summary-value">NT$ 0</div></div>
                     <div class="summary-card"><div class="summary-label">總充電淨利</div><div id="totalNetProfitSummary" class="summary-value">NT$ 0</div></div>
                     <div class="summary-card"><div class="summary-label">營運年期</div><div id="operationPeriodSummary" class="summary-value">0<span class="unit"> 年</span></div></div>
                     <div class="summary-card"><div class="summary-label">預計回收年限</div><div id="paybackPeriod" class="summary-value">N/A</div></div>
                     <div class="summary-card"><div class="summary-label">ROI (投資報酬率)</div><div id="roiSummary" class="summary-value">0<span class="unit">%</span></div></div>
-                    <div class="summary-card md:col-span-2"><div class="summary-label">IRR (內部報酬率)</div><div id="irrSummary" class="summary-value">0<span class="unit">%</span></div></div>
+                    <div class="summary-card"><div class="summary-label">IRR (內部報酬率)</div><div id="irrSummary" class="summary-value">0<span class="unit">%</span></div></div>
                 </div>
                 <div class="card bg-sky-50"><h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-5">年度充電淨利</h2><div class="flex-grow h-80"><canvas id="pnlChart"></canvas></div></div>
                 <div class="card bg-sky-50"><h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-5">累積損益趨勢</h2><div class="flex-grow h-80"><canvas id="cumulativePnlChart"></canvas></div></div>
