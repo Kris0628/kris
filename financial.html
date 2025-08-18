@@ -1135,7 +1135,7 @@ document.addEventListener('DOMContentLoaded', function () {
             this.elements.roiSummary.innerHTML = isNaN(results.roi) ? 'N/A' : `${results.roi.toFixed(1)}<span class="unit">%</span>`;
             this.elements.irrSummary.innerHTML = isNaN(results.irr) ? 'N/A' : `${results.irr.toFixed(2)}<span class="unit">%</span>`;
             
-            const totalParkingSpaces = inputs.equipmentList.reduce((sum, item) => sum + item.parkingSpaces, 0);
+            const totalParkingSpaces = inputs.equipmentList.reduce((sum, item) => sum + item.gunCount, 0);
             this.elements.parkingSpaces.value = totalParkingSpaces;
 
             if (inputs.billingMethodDC === 'tou') { this.elements.avgTouRate.value = this.formatCurrency(results.avgChargeFeeDC, 2, false, true); }
@@ -1243,7 +1243,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const totalKwhSold_yr = yearData.kwhPerYear;
             const numberOfTransactions_yr = inputs.avgKwhPerCar > 0 ? totalKwhSold_yr / inputs.avgKwhPerCar : 0;
-            const costItems = Calculator.getCostBreakdown(results, inputs, yearData.year, totalKwhSold_yr, numberOfTransactions_yr, yearData.revenue, yearData.details.openingAccumulatedDepreciation);
+            const totalGunCount = inputs.equipmentList.reduce((sum, e) => sum + e.gunCount, 0);
+            const costItems = Calculator.getCostBreakdown(results, inputs, yearData.year, totalKwhSold_yr, numberOfTransactions_yr, yearData.revenue, yearData.details.openingAccumulatedDepreciation, totalGunCount);
             const costsHtml = `<div class="details-section"><h4>總成本細項</h4>${buildGrid(costItems, yearData.cost)}</div>`;
             
             const pnlDisplayWithSign = (value) => {
