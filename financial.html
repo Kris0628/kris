@@ -64,29 +64,39 @@
             height: 100%;
         }
         .summary-value {
-            font-size: 1.5rem; /* Adjusted for mobile */
+            font-size: 1.5rem; /* Base font size */
             font-weight: 700;
             line-height: 1.2;
-            display: flex;
+            display: flex; /* Use flex to keep value and unit together */
             align-items: baseline;
             justify-content: center;
-            white-space: nowrap;
+            white-space: nowrap; /* Prevent wrapping */
         }
          @media (min-width: 768px) {
             .summary-value {
-                 font-size: 1.75rem;
+                 font-size: 1.625rem; /* Slightly reduced for better fit */
             }
         }
         .summary-value .unit {
-            font-size: 1rem; /* text-base */
+            font-size: 0.875rem; /* text-sm */
             font-weight: 500;
-            margin-left: 0.25rem;
+        }
+        .summary-value .unit-prefix {
+            margin-right: 0.5rem;
+        }
+        .summary-value .unit-suffix {
+            margin-left: 0.5rem;
+        }
+        @media (min-width: 768px) {
+            .summary-value .unit {
+                font-size: 1rem;
+            }
         }
         .summary-label {
             font-size: 1rem; /* Adjusted for mobile */
             opacity: 0.9;
             font-weight: 500; 
-            margin-bottom: 0.5rem; 
+            margin-bottom: 0.75rem; /* Increased spacing */
         }
         @media (min-width: 768px) {
             .summary-label {
@@ -1132,13 +1142,13 @@ document.addEventListener('DOMContentLoaded', function () {
             this.elements.pnlTable.classList.remove('hide-cumulative');
         },
         updateDisplay(inputs, results) {
-            this.elements.totalInvestment.innerHTML = this.formatCurrency(results.totalInvestment, 0, false).replace('NT$', '<span class="unit">NT$</span>');
-            this.elements.totalRevenueSummary.innerHTML = this.formatCurrency(results.totalChargingRevenue, 0, false).replace('NT$', '<span class="unit">NT$</span>');
-            this.elements.totalNetProfitSummary.innerHTML = this.formatCurrency(results.totalNetProfit, 0, false).replace('NT$', '<span class="unit">NT$</span>');
-            this.elements.operationPeriodSummary.innerHTML = `${inputs.operationYears}<span class="unit"> 年</span>`;
-            this.elements.paybackPeriod.innerHTML = results.paybackPeriod === 'N/A' ? '無法回收' : results.paybackPeriod.replace(' 年', '<span class="unit"> 年</span>');
-            this.elements.roiSummary.innerHTML = isNaN(results.roi) ? 'N/A' : `${results.roi.toFixed(1)}<span class="unit">%</span>`;
-            this.elements.irrSummary.innerHTML = isNaN(results.irr) ? 'N/A' : `${results.irr.toFixed(2)}<span class="unit">%</span>`;
+            this.elements.totalInvestment.innerHTML = this.formatCurrency(results.totalInvestment, 0, false).replace('NT$', `<span class="unit unit-prefix">NT$</span>`);
+            this.elements.totalRevenueSummary.innerHTML = this.formatCurrency(results.totalChargingRevenue, 0, false).replace('NT$', `<span class="unit unit-prefix">NT$</span>`);
+            this.elements.totalNetProfitSummary.innerHTML = this.formatCurrency(results.totalNetProfit, 0, false).replace('NT$', `<span class="unit unit-prefix">NT$</span>`);
+            this.elements.operationPeriodSummary.innerHTML = `${inputs.operationYears}<span class="unit unit-suffix"> 年</span>`;
+            this.elements.paybackPeriod.innerHTML = results.paybackPeriod === 'N/A' ? '無法回收' : results.paybackPeriod.replace(' 年', `<span class="unit unit-suffix"> 年</span>`);
+            this.elements.roiSummary.innerHTML = isNaN(results.roi) ? 'N/A' : `${results.roi.toFixed(1)}<span class="unit unit-suffix">%</span>`;
+            this.elements.irrSummary.innerHTML = isNaN(results.irr) ? 'N/A' : `${results.irr.toFixed(2)}<span class="unit unit-suffix">%</span>`;
             
             const totalParkingSpaces = inputs.equipmentList.reduce((sum, item) => sum + item.gunCount, 0);
             this.elements.parkingSpaces.value = totalParkingSpaces;
