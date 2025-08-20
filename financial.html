@@ -233,9 +233,8 @@
         .salvage-display { color: #ef4444; font-weight: 500; vertical-align: middle; }
 
         /* Explainer styles */
-        #explanationList li { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
-        #explanationList li > div { flex-grow: 1; }
-        #explanationList li > span { flex-shrink: 0; text-align: right; }
+        #explanationList li { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 1rem; }
+        #explanationList li > span { justify-self: end; white-space: nowrap; }
         #explanationList li[data-target] { cursor: pointer; transition: color 0.2s ease, background-color 0.2s ease; padding: 0.25rem 0.5rem; border-radius: 0.375rem; margin-left: -0.5rem; }
         #explanationList li[data-target]:hover { color: #4f46e5; background-color: #eef2ff; }
         .explainer-grid { display: grid; grid-template-columns: auto 1fr auto; gap: 0 1.5rem; align-items: baseline; }
@@ -366,6 +365,21 @@
                         <div class="grid grid-cols-2 items-center gap-4">
                             <span class="label-text">基礎設施工程</span>
                             <input type="text" id="infrastructureCostMain" class="input-field" value="500,000">
+                        </div>
+                        <hr class="border-gray-200 my-2"/>
+                         <div>
+                            <label class="radio-label w-full justify-center"><input type="checkbox" id="financingToggle"><span>融資借貸</span></label>
+                            <div id="financingSection" class="hidden-section input-section bg-blue-50 space-y-4 mt-3">
+                                 <div class="grid grid-cols-2 items-center gap-4">
+                                    <span class="label-text">貸款 (%)</span><input type="number" id="loanPercentage" class="input-field" value="70">
+                                </div>
+                                <div class="grid grid-cols-2 items-center gap-4">
+                                    <span class="label-text">利息 (%)</span><input type="number" id="interestRate" class="input-field" value="3.5" step="0.1">
+                                </div>
+                                <div class="grid grid-cols-2 items-center gap-4">
+                                    <span class="label-text">貸款年期</span><input type="number" id="loanTerm" class="input-field" value="7">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -570,13 +584,15 @@
             <!-- Right Column -->
             <div class="lg:col-span-2 flex flex-col gap-6">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                    <div class="summary-card"><div class="summary-label">總投資額</div><div id="totalInvestment" class="summary-value">NT$ 0</div></div>
-                    <div class="summary-card"><div class="summary-label">總充電營收</div><div id="totalRevenueSummary" class="summary-value">NT$ 0</div></div>
-                    <div class="summary-card"><div class="summary-label">總充電淨利</div><div id="totalNetProfitSummary" class="summary-value">NT$ 0</div></div>
-                    <div class="summary-card"><div class="summary-label">營運年期</div><div id="operationPeriodSummary" class="summary-value">0<span class="unit"> 年</span></div></div>
-                    <div class="summary-card"><div class="summary-label">預計回收年限</div><div id="paybackPeriod" class="summary-value">N/A</div></div>
-                    <div class="summary-card"><div class="summary-label">ROI (投資報酬率)</div><div id="roiSummary" class="summary-value">0<span class="unit">%</span></div></div>
-                    <div class="summary-card"><div class="summary-label">IRR (內部報酬率)</div><div id="irrSummary" class="summary-value">0<span class="unit">%</span></div></div>
+                    <div class="summary-card"><div class="summary-label">總投資額</div><div id="totalInvestment" class="summary-value"></div></div>
+                    <div class="summary-card"><div class="summary-label">總充電營收</div><div id="totalRevenueSummary" class="summary-value"></div></div>
+                    <div class="summary-card"><div class="summary-label">總充電淨利</div><div id="totalNetProfitSummary" class="summary-value"></div></div>
+                    <div class="summary-card"><div class="summary-label">營運年期</div><div id="operationPeriodSummary" class="summary-value"></div></div>
+                    <div class="summary-card"><div class="summary-label">預計回收年限</div><div id="paybackPeriod" class="summary-value"></div></div>
+                    <div class="summary-card"><div class="summary-label">融資總利息</div><div id="totalInterestSummary" class="summary-value"></div></div>
+                    <div class="summary-card"><div class="summary-label">ROI (投資報酬率)</div><div id="roiSummary" class="summary-value"></div></div>
+                    <div class="summary-card"><div class="summary-label">ROE (股東權益報酬率)</div><div id="roeSummary" class="summary-value"></div></div>
+                    <div class="summary-card"><div class="summary-label">IRR (內部報酬率)</div><div id="irrSummary" class="summary-value"></div></div>
                 </div>
                 <div class="card bg-sky-50"><h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-5">年度充電淨利</h2><div class="flex-grow h-80"><canvas id="pnlChart"></canvas></div></div>
                 <div class="card bg-sky-50"><h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-5">累積損益趨勢</h2><div class="flex-grow h-80"><canvas id="cumulativePnlChart"></canvas></div></div>
@@ -619,6 +635,9 @@
                             <h3 class="text-xl font-bold text-gray-800 mb-3">計算方式說明</h3>
                             <ul id="explanationList" class="list-disc list-inside text-gray-700 space-y-2">
                                 <li data-target="investment"><div><strong>總投資額：</strong>建置充電站所需的所有初期花費。</div><span id="explainerTotalInvestment" class="font-semibold text-blue-700"></span></li>
+                                <li id="explainerEquityItem" class="hidden-section"><div><strong>本金：</strong>自有資金投入金額。</div><span id="explainerEquity" class="font-semibold text-gray-700"></span></li>
+                                <li id="explainerLoanItem" class="hidden-section"><div><strong>融資：</strong>貸款金額。</div><span id="explainerLoan" class="font-semibold text-gray-700"></span></li>
+                                <li id="explainerTotalInterestItem" class="hidden-section"><div><strong>利息總額：</strong>貸款期間需支付的總利息。</div><span id="explainerTotalInterest" class="font-semibold text-red-700"></span></li>
                                 <li data-target="revenue"><div><strong>總營收：</strong>年度收入，依營收模型與需求年增率計算。</div><span id="explainerTotalRevenue" class="font-semibold text-green-700"></span></li>
                                 <li data-target="cost"><div><strong>總成本：</strong>年度營運的所有開銷，含電費、維護、折舊等。</div><span id="explainerTotalCost" class="font-semibold text-red-700"></span></li>
                                 <li><div><strong>預計回收年限：</strong>「累積稅前淨利」由負轉正的年度。</div><span id="explainerPaybackPeriod" class="font-semibold text-gray-700"></span></li>
@@ -756,8 +775,9 @@ document.addEventListener('DOMContentLoaded', function () {
         },
 
         setupEventListeners() {
-            const inputsToWatch = ['chargeFeePerKwhAC', 'chargeFeePerKwhDC', 'peakRate', 'offPeakRate', 'holidayRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'rentPerSpace', 'rentPerLand', 'infrastructureCostMain', 'profitShareAmount', 'profitSharePercentage', 'siteFeeMonthly', 'gunCountThreshold', 'siteFeePerGunMonthly'];
+            const inputsToWatch = ['chargeFeePerKwhAC', 'chargeFeePerKwhDC', 'peakRate', 'offPeakRate', 'holidayRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'rentPerSpace', 'rentPerLand', 'infrastructureCostMain', 'profitShareAmount', 'profitSharePercentage', 'siteFeeMonthly', 'gunCountThreshold', 'siteFeePerGunMonthly', 'loanPercentage', 'interestRate', 'loanTerm'];
             inputsToWatch.forEach(id => UI.elements[id]?.addEventListener('input', () => this.update()));
+            UI.elements.financingToggle.addEventListener('change', () => this.update());
             UI.elements.equipmentListContainer.addEventListener('change', () => this.update());
             UI.elements.equipmentListContainer.addEventListener('input', () => this.update());
             document.querySelectorAll('input[name="billingMethodDC"], input[name="revenueMethodDC"], input[name="revenueMethodAC"], input[name="rentMethod"], input[name="depreciationMethod"], input[name="profitShareMethod"]').forEach(radio => radio.addEventListener('change', () => this.update()));
@@ -965,7 +985,7 @@ document.addEventListener('DOMContentLoaded', function () {
         elements: {},
         init() { this.cacheDOMElements(); this.updateUIVisibility(); this.elements.addEquipmentBtn.addEventListener('click', () => { this.addEquipmentRow(); App.update(); }); },
         cacheDOMElements() {
-            const ids = ['siteNameDisplay', 'saveBtn', 'recordsBtn', 'newAnalysisBtn', 'saveRecordModal', 'closeSaveModalBtn', 'cancelSaveBtn', 'recordNameInput', 'saveRecordMessage', 'confirmSaveBtn', 'recordsModal', 'closeRecordsModalBtn', 'recordsList', 'equipmentListContainer', 'addEquipmentBtn', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'infrastructureCostMain', 'chargeFeePerKwhAC', 'chargeFeePerKwhDC', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'acSettingsBlock', 'dcSettingsBlock', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'fixedRateSectionDC', 'touRateSectionDC', 'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection', 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'pnlTable', 'cumulativePnlChart', 'touPieChart', 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'pnlChart', 'revenueCostChart', 'operationPeriodSummary', 'totalRevenueSummary', 'totalNetProfitSummary', 'roiSummary', 'irrSummary', 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn', 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage', 'advancedContentSection', 'specsModalTableBody', 'formulaContainer', 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage', 'saveAdvancedBtn', 'touGridEditor', 'touGridContainer', 'touEditorMessage', 'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost', 'explainerPaybackPeriod', 'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn', 'profitShareByAmountSection', 'profitShareByPercentageSection', 'profitShareAmount', 'profitSharePercentage', 'profitShareBySiteSection', 'siteFeeMonthly', 'gunCountThreshold', 'siteFeePerGunMonthly', 'siteFeeValidationMessage', 'peakPercentDisplay', 'offpeakPercentDisplay', 'holidayPercentDisplay'];
+            const ids = ['siteNameDisplay', 'saveBtn', 'recordsBtn', 'newAnalysisBtn', 'saveRecordModal', 'closeSaveModalBtn', 'cancelSaveBtn', 'recordNameInput', 'saveRecordMessage', 'confirmSaveBtn', 'recordsModal', 'closeRecordsModalBtn', 'recordsList', 'equipmentListContainer', 'addEquipmentBtn', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'infrastructureCostMain', 'chargeFeePerKwhAC', 'chargeFeePerKwhDC', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'acSettingsBlock', 'dcSettingsBlock', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'fixedRateSectionDC', 'touRateSectionDC', 'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection', 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'pnlTable', 'cumulativePnlChart', 'touPieChart', 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'pnlChart', 'revenueCostChart', 'operationPeriodSummary', 'totalRevenueSummary', 'totalNetProfitSummary', 'roiSummary', 'irrSummary', 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn', 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage', 'advancedContentSection', 'specsModalTableBody', 'formulaContainer', 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage', 'saveAdvancedBtn', 'touGridEditor', 'touGridContainer', 'touEditorMessage', 'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost', 'explainerPaybackPeriod', 'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn', 'profitShareByAmountSection', 'profitShareByPercentageSection', 'profitShareAmount', 'profitSharePercentage', 'profitShareBySiteSection', 'siteFeeMonthly', 'gunCountThreshold', 'siteFeePerGunMonthly', 'siteFeeValidationMessage', 'financingToggle', 'financingSection', 'loanPercentage', 'interestRate', 'loanTerm', 'peakPercentDisplay', 'offpeakPercentDisplay', 'holidayPercentDisplay', 'totalInterestSummary', 'roeSummary', 'explainerEquityItem', 'explainerLoanItem', 'explainerTotalInterestItem', 'explainerEquity', 'explainerLoan', 'explainerTotalInterest'];
             ids.forEach(id => this.elements[id] = document.getElementById(id));
         },
         getNumericValue(element, defaultValue = 0) { if (!element) return defaultValue; const value = parseFloat(String(element.value).replace(/,/g, '')); return isNaN(value) ? defaultValue : value; },
@@ -1010,8 +1030,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 gunCountThreshold = this.getNumericValue(this.elements.gunCountThreshold);
                 siteFeePerGunMonthly = this.getNumericValue(this.elements.siteFeePerGunMonthly);
             }
+            
+            const financingEnabled = this.elements.financingToggle.checked;
 
-            return { equipmentList, chargeFeePerKwhAC: this.getNumericValue(this.elements.chargeFeePerKwhAC), billingMethodDC: document.querySelector('input[name="billingMethodDC"]:checked').value, chargeFeePerKwhDC: this.getNumericValue(this.elements.chargeFeePerKwhDC), peakRate: this.getNumericValue(this.elements.peakRate), offPeakRate: this.getNumericValue(this.elements.offPeakRate), holidayRate: this.getNumericValue(this.elements.holidayRate), revenueMethodDC: document.querySelector('input[name="revenueMethodDC"]:checked').value, carsPerGunPerDayDC: this.getNumericValue(this.elements.carsPerGunPerDayDC), kwhPerGunPerMonthDC: this.getNumericValue(this.elements.kwhPerGunPerMonthDC), revenueMethodAC: document.querySelector('input[name="revenueMethodAC"]:checked').value, carsPerGunPerDayAC: this.getNumericValue(this.elements.carsPerGunPerDayAC), kwhPerGunPerMonthAC: this.getNumericValue(this.elements.kwhPerGunPerMonthAC), avgKwhPerCar: this.getNumericValue(this.elements.avgKwhPerCar), demandGrowthRate: this.getNumericValue(this.elements.demandGrowthRate) / 100, operationYears: this.getNumericValue(this.elements.operationYears, 1), depreciationYears: this.getNumericValue(this.elements.depreciationYears, 1), depreciationMethod: document.querySelector('input[name="depreciationMethod"]:checked').value, infrastructureCostMain: this.getNumericValue(this.elements.infrastructureCostMain), rentMethod, rentPerSpace, rentPerLand, profitShareMethod, profitShareAmount, profitSharePercentage, siteFeeMonthly, gunCountThreshold, siteFeePerGunMonthly, touRatios: { peak: this.getNumericValue(this.elements.peakUsageRatio) / 100, offpeak: this.getNumericValue(this.elements.offPeakUsageRatio) / 100, holiday: this.getNumericValue(this.elements.holidayUsageRatio) / 100, } };
+            return { equipmentList, chargeFeePerKwhAC: this.getNumericValue(this.elements.chargeFeePerKwhAC), billingMethodDC: document.querySelector('input[name="billingMethodDC"]:checked').value, chargeFeePerKwhDC: this.getNumericValue(this.elements.chargeFeePerKwhDC), peakRate: this.getNumericValue(this.elements.peakRate), offPeakRate: this.getNumericValue(this.elements.offPeakRate), holidayRate: this.getNumericValue(this.elements.holidayRate), revenueMethodDC: document.querySelector('input[name="revenueMethodDC"]:checked').value, carsPerGunPerDayDC: this.getNumericValue(this.elements.carsPerGunPerDayDC), kwhPerGunPerMonthDC: this.getNumericValue(this.elements.kwhPerGunPerMonthDC), revenueMethodAC: document.querySelector('input[name="revenueMethodAC"]:checked').value, carsPerGunPerDayAC: this.getNumericValue(this.elements.carsPerGunPerDayAC), kwhPerGunPerMonthAC: this.getNumericValue(this.elements.kwhPerGunPerMonthAC), avgKwhPerCar: this.getNumericValue(this.elements.avgKwhPerCar), demandGrowthRate: this.getNumericValue(this.elements.demandGrowthRate) / 100, operationYears: this.getNumericValue(this.elements.operationYears, 1), depreciationYears: this.getNumericValue(this.elements.depreciationYears, 1), depreciationMethod: document.querySelector('input[name="depreciationMethod"]:checked').value, infrastructureCostMain: this.getNumericValue(this.elements.infrastructureCostMain), rentMethod, rentPerSpace, rentPerLand, profitShareMethod, profitShareAmount, profitSharePercentage, siteFeeMonthly, gunCountThreshold, siteFeePerGunMonthly, financingEnabled, loanPercentage: financingEnabled ? this.getNumericValue(this.elements.loanPercentage, 0) / 100 : 0, interestRate: financingEnabled ? this.getNumericValue(this.elements.interestRate, 0) / 100 : 0, loanTerm: financingEnabled ? this.getNumericValue(this.elements.loanTerm, 0) : 0, touRatios: { peak: this.getNumericValue(this.elements.peakUsageRatio) / 100, offpeak: this.getNumericValue(this.elements.offPeakUsageRatio) / 100, holiday: this.getNumericValue(this.elements.holidayUsageRatio) / 100, } };
         },
         getEquipmentConfig() {
             return Array.from(document.querySelectorAll('.equipment-row')).map(row => {
@@ -1103,6 +1125,9 @@ document.addEventListener('DOMContentLoaded', function () {
             this.elements.profitShareByPercentageSection.style.display = profitShareMethod === 'byPercentage' ? 'grid' : 'none';
             this.elements.profitShareBySiteSection.style.display = profitShareMethod === 'bySite' ? 'block' : 'none';
             
+            // Financing UI
+            this.elements.financingSection.style.display = this.elements.financingToggle.checked ? 'block' : 'none';
+
             this.validateSiteFeeInputs();
         },
         validateSiteFeeInputs() {
@@ -1142,13 +1167,15 @@ document.addEventListener('DOMContentLoaded', function () {
             this.elements.pnlTable.classList.remove('hide-cumulative');
         },
         updateDisplay(inputs, results) {
-            this.elements.totalInvestment.innerHTML = this.formatCurrency(results.totalInvestment, 0, false).replace('NT$', `<span class="unit unit-prefix">NT$</span>`);
-            this.elements.totalRevenueSummary.innerHTML = this.formatCurrency(results.totalChargingRevenue, 0, false).replace('NT$', `<span class="unit unit-prefix">NT$</span>`);
-            this.elements.totalNetProfitSummary.innerHTML = this.formatCurrency(results.totalNetProfit, 0, false).replace('NT$', `<span class="unit unit-prefix">NT$</span>`);
-            this.elements.operationPeriodSummary.innerHTML = `${inputs.operationYears}<span class="unit unit-suffix"> 年</span>`;
-            this.elements.paybackPeriod.innerHTML = results.paybackPeriod === 'N/A' ? '無法回收' : results.paybackPeriod.replace(' 年', `<span class="unit unit-suffix"> 年</span>`);
-            this.elements.roiSummary.innerHTML = isNaN(results.roi) ? 'N/A' : `${results.roi.toFixed(1)}<span class="unit unit-suffix">%</span>`;
-            this.elements.irrSummary.innerHTML = isNaN(results.irr) ? 'N/A' : `${results.irr.toFixed(2)}<span class="unit unit-suffix">%</span>`;
+            this.elements.totalInvestment.innerHTML = `<div>${this.formatCurrency(results.totalInvestment, 0, false).replace('NT$', `<span class="unit unit-prefix">NT$</span>`)}</div>`;
+            this.elements.totalRevenueSummary.innerHTML = `<div>${this.formatCurrency(results.totalChargingRevenue, 0, false).replace('NT$', `<span class="unit unit-prefix">NT$</span>`)}</div>`;
+            this.elements.totalNetProfitSummary.innerHTML = `<div>${this.formatCurrency(results.totalNetProfit, 0, false).replace('NT$', `<span class="unit unit-prefix">NT$</span>`)}</div>`;
+            this.elements.operationPeriodSummary.innerHTML = `<div>${inputs.operationYears}<span class="unit unit-suffix"> 年</span></div>`;
+            this.elements.paybackPeriod.innerHTML = `<div>${results.paybackPeriod === 'N/A' ? '無法回收' : results.paybackPeriod.replace(' 年', `<span class="unit unit-suffix"> 年</span>`)}</div>`;
+            this.elements.totalInterestSummary.innerHTML = `<div>${this.formatCurrency(results.totalInterestPaid, 0, false).replace('NT$', `<span class="unit unit-prefix">NT$</span>`)}</div>`;
+            this.elements.roiSummary.innerHTML = `<div>${isNaN(results.roi) ? 'N/A' : `${results.roi.toFixed(1)}<span class="unit unit-suffix">%</span>`}</div>`;
+            this.elements.roeSummary.innerHTML = `<div>${isNaN(results.roe) ? 'N/A' : `${results.roe.toFixed(1)}<span class="unit unit-suffix">%</span>`}</div>`;
+            this.elements.irrSummary.innerHTML = `<div>${isNaN(results.irr) ? 'N/A' : `${results.irr.toFixed(2)}<span class="unit unit-suffix">%</span>`}</div>`;
             
             const totalParkingSpaces = inputs.equipmentList.reduce((sum, item) => sum + item.gunCount, 0);
             this.elements.parkingSpaces.value = totalParkingSpaces;
@@ -1159,10 +1186,27 @@ document.addEventListener('DOMContentLoaded', function () {
             this.elements.salvageValueDisplay.value = this.formatCurrency(results.costBreakdown.totalSalvageValue, 0, false, true);
             this.populateTable(this.elements.kwhStatsTableBody, results.annualData, (data) => `<tr class="kwh-row" data-year="${data.year}"><td class="table-cell table-cell-year">第 ${data.year} 年</td><td class="table-cell text-green-600 font-semibold">${data.kwhPerDay.toLocaleString('en-US', {maximumFractionDigits: 1})}</td><td class="table-cell text-blue-600 font-semibold">${data.kwhPerMonth.toLocaleString('en-US', {maximumFractionDigits: 0})}</td><td class="table-cell text-red-600 font-semibold">${data.kwhPerYear.toLocaleString('en-US', {maximumFractionDigits: 0})}</td></tr>`);
             this.populateTable(this.elements.pnlTableBody, results.annualData, (data) => `<tr class="pnl-row" data-year="${data.year}"><td class="table-cell table-cell-year">第 ${data.year} 年</td><td class="table-cell">${this.formatCurrency(data.revenue, 0, false, true)}</td><td class="table-cell">${this.formatCurrency(data.cost, 0, false, true)}</td><td class="table-cell ${data.pnl >= 0 ? '' : 'text-red-600'}">${this.formatCurrency(data.pnl, 0, false, true)}</td><td class="table-cell font-semibold cumulative-col ${data.cumulativePnl >= 0 ? 'text-blue-600' : 'text-red-600'}">${this.formatCurrency(data.cumulativePnl, 0, false, true)}</td></tr>`);
+            
+            const totalRevenue = results.annualData.reduce((sum, d) => sum + d.revenue, 0);
+            const totalCost = results.annualData.reduce((sum, d) => sum + d.cost, 0);
             this.elements.explainerTotalInvestment.textContent = this.formatCurrency(results.totalInvestment);
-            const firstYearData = results.annualData[0];
-            if (firstYearData) { this.elements.explainerTotalRevenue.textContent = `${this.formatCurrency(firstYearData.revenue)} (第一年)`; this.elements.explainerTotalCost.textContent = `${this.formatCurrency(firstYearData.cost)} (第一年)`; } else { this.elements.explainerTotalRevenue.textContent = 'N/A'; this.elements.explainerTotalCost.textContent = 'N/A'; }
+            this.elements.explainerTotalRevenue.textContent = `${this.formatCurrency(totalRevenue)} (營運期間總計)`;
+            this.elements.explainerTotalCost.textContent = `${this.formatCurrency(totalCost)} (營運期間總計)`;
             this.elements.explainerPaybackPeriod.textContent = results.paybackPeriod;
+            
+            if(inputs.financingEnabled) {
+                this.elements.explainerEquityItem.classList.remove('hidden-section');
+                this.elements.explainerLoanItem.classList.remove('hidden-section');
+                this.elements.explainerTotalInterestItem.classList.remove('hidden-section');
+                this.elements.explainerEquity.textContent = this.formatCurrency(results.equity);
+                this.elements.explainerLoan.textContent = this.formatCurrency(results.loanAmount);
+                this.elements.explainerTotalInterest.textContent = this.formatCurrency(results.totalInterestPaid);
+            } else {
+                this.elements.explainerEquityItem.classList.add('hidden-section');
+                this.elements.explainerLoanItem.classList.add('hidden-section');
+                this.elements.explainerTotalInterestItem.classList.add('hidden-section');
+            }
+
             const advancedDeviceCostInput = document.getElementById('input_deviceCost'); if(advancedDeviceCostInput) { advancedDeviceCostInput.value = this.formatCurrency(results.costBreakdown.totalDeviceCostUntaxed, 0, false, true); }
             const advancedInfraCostInput = document.getElementById('input_constructionFee'); if(advancedInfraCostInput) { advancedInfraCostInput.value = this.formatCurrency(inputs.infrastructureCostMain, 0, false, true); }
         },
@@ -1218,20 +1262,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 const formula = inputs.revenueMethodAC === 'byCars'
                     ? `${inputs.carsPerGunPerDayAC}車/槍/日 x ${acGuns}槍 x ${inputs.avgKwhPerCar}kWh/車 x 365天`
                     : `${inputs.kwhPerGunPerMonthAC}kWh/槍/月 x ${acGuns}槍 x 12月`;
-                items.push({ label: 'AC 基本度數', value: details.kwh.base_ac, formula: formula });
+                items.push({ label: 'AC 年度度數', value: details.kwh.ac, formula: formula });
             }
             if (details.kwh.base_dc > 0) {
-                const formula = inputs.revenueMethodDC === 'byCars'
+                const formula_base = inputs.revenueMethodDC === 'byCars'
                     ? `${inputs.carsPerGunPerDayDC}車/槍/日 x ${dcGuns}槍 x ${inputs.avgKwhPerCar}kWh/車 x 365天`
                     : `${inputs.kwhPerGunPerMonthDC}kWh/槍/月 x ${dcGuns}槍 x 12月`;
-                items.push({ label: 'DC 基本度數', value: details.kwh.base_dc, formula: formula });
+                items.push({ label: 'DC 基本度數', value: details.kwh.base_dc, formula: formula_base });
+                if (year > 1) {
+                     items.push({ label: 'DC 需求成長', value: demandMultiplier, formula: `(1 + ${inputs.demandGrowthRate * 100}%) ^ (${year} - 1)` });
+                }
             }
-
-            items.push({ label: '需求成長乘數', value: demandMultiplier, formula: `(1 + ${inputs.demandGrowthRate * 100}%) ^ (${year} - 1)` });
             
             let gridHtml = '<div class="explainer-grid">';
             items.forEach(item => {
-                const valueDisplay = item.label === '需求成長乘數' ? `x ${item.value.toFixed(2)}` : `${this.formatCurrency(item.value, 0, false, true)} kWh`;
+                const valueDisplay = item.label === 'DC 需求成長' ? `x ${item.value.toFixed(2)}` : `${this.formatCurrency(item.value, 0, false, true)} kWh`;
                 gridHtml += `<span>${item.label}</span><span>${item.formula}</span><span>${valueDisplay}</span>`;
             });
             gridHtml += '</div>';
@@ -1256,10 +1301,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const revenueItems = Calculator.getRevenueBreakdown(yearData, inputs, results);
             const revenueHtml = `<div class="details-section"><h4>總營收細項</h4>${buildGrid(revenueItems, details.revenue['總營收'])}</div>`;
 
-            const totalKwhSold_yr = yearData.kwhPerYear;
-            const numberOfTransactions_yr = inputs.avgKwhPerCar > 0 ? totalKwhSold_yr / inputs.avgKwhPerCar : 0;
-            const totalGunCount = inputs.equipmentList.reduce((sum, e) => sum + e.gunCount, 0);
-            const costItems = Calculator.getCostBreakdown(results, inputs, yearData.year, totalKwhSold_yr, numberOfTransactions_yr, yearData.revenue, yearData.details.openingAccumulatedDepreciation, totalGunCount);
+            let costItems = yearData.details.costBreakdownItems;
+            if (inputs.financingEnabled && inputs.depreciationMethod !== 'none') {
+                costItems = costItems.filter(item => item.key !== 'principal');
+            }
             const costsHtml = `<div class="details-section"><h4>總成本細項</h4>${buildGrid(costItems, yearData.cost)}</div>`;
             
             const pnlDisplayWithSign = (value) => {
@@ -1285,21 +1330,31 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             </div>`;
 
-            const includeEquipmentInInitial = inputs.depreciationMethod === 'none';
-            const initialInvestmentForDetails = includeEquipmentInInitial 
-                ? -results.totalInvestment 
-                : -(results.totalInvestment - results.costBreakdown.equipmentCost);
+            let prevCumulativePnl;
+            let prevCumulativePnlLabel;
 
-            const prevCumulativePnl = yearData.year === 1 
-                ? initialInvestmentForDetails
-                : results.annualData[yearData.year - 2].cumulativePnl;
+            if (yearData.year === 1) {
+                if (inputs.financingEnabled) {
+                    prevCumulativePnl = -results.equity;
+                    prevCumulativePnlLabel = '(自有資金投入)';
+                } else {
+                    const includeEquipmentInInitial = inputs.depreciationMethod === 'none';
+                    prevCumulativePnl = includeEquipmentInInitial 
+                        ? -results.totalInvestment 
+                        : -(results.totalInvestment - results.costBreakdown.equipmentCost);
+                    prevCumulativePnlLabel = includeEquipmentInInitial ? '(含設備)' : '(不含設備)';
+                }
+            } else {
+                prevCumulativePnl = results.annualData[yearData.year - 2].cumulativePnl;
+                prevCumulativePnlLabel = '(前一年度累積)';
+            }
 
             const cumulativePnlHtml = `
             <div class="details-section">
                 <h4>累積稅前淨利</h4>
                 <div class="explainer-grid">
                     <span>上年度累積</span>
-                    <span>${yearData.year === 1 ? (includeEquipmentInInitial ? '(含設備)' : '(不含設備)') : '(前一年度累積)'}</span>
+                    <span>${prevCumulativePnlLabel}</span>
                     <span class="${prevCumulativePnl >= 0 ? '' : 'text-red-600'}">${this.formatCurrency(prevCumulativePnl, 0, false, true)}</span>
                     
                     <span>本年度淨利</span>
@@ -1458,6 +1513,11 @@ document.addEventListener('DOMContentLoaded', function () {
             this.elements.gunCountThreshold.value = 5;
             this.elements.siteFeePerGunMonthly.value = '600';
             
+            this.elements.financingToggle.checked = false;
+            this.elements.loanPercentage.value = 70;
+            this.elements.interestRate.value = 3.5;
+            this.elements.loanTerm.value = 7;
+
             Persistence.loadDefaultState();
         },
     };
@@ -1470,14 +1530,21 @@ document.addEventListener('DOMContentLoaded', function () {
     const Calculator = {
         lastResults: {},
         run(inputs, params, deviceSpecs) {
-            const results = { annualData: [], totalInvestment: 0, paybackPeriod: 'N/A', costBreakdown: {}, avgChargeFeeAC: 0, avgChargeFeeDC: 0, totalChargingRevenue: 0, totalNetProfit: 0, roi: NaN, irr: NaN };
+            const results = { annualData: [], totalInvestment: 0, paybackPeriod: 'N/A', costBreakdown: {}, avgChargeFeeAC: 0, avgChargeFeeDC: 0, totalChargingRevenue: 0, totalNetProfit: 0, totalInterestPaid: 0, roi: NaN, roe: NaN, irr: NaN };
             const investmentBreakdown = this.getInvestmentBreakdown(inputs, params);
             results.totalInvestment = investmentBreakdown.reduce((sum, item) => sum + item.value, 0);
             const equipmentCostItem = investmentBreakdown.find(i => i.key === 'deviceCost');
             results.costBreakdown = { equipmentCost: equipmentCostItem?.value || 0, totalDeviceCostUntaxed: equipmentCostItem?.untaxedValue || 0, totalSalvageValue: this.calculateSalvageValue(inputs, deviceSpecs) };
             
+            const loanAmount = inputs.financingEnabled ? results.costBreakdown.equipmentCost * inputs.loanPercentage : 0;
+            const equity = results.totalInvestment - loanAmount;
+            results.loanAmount = loanAmount;
+            results.equity = equity;
+
             let cumulativePnl;
-            if (inputs.depreciationMethod === 'none') {
+            if (inputs.financingEnabled) {
+                cumulativePnl = -equity;
+            } else if (inputs.depreciationMethod === 'none') {
                 cumulativePnl = -results.totalInvestment;
             } else {
                 cumulativePnl = -(results.totalInvestment - results.costBreakdown.equipmentCost);
@@ -1486,7 +1553,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             let paybackFound = false; 
             let totalChargingRevenue = 0; 
-            const cashFlows = [-results.totalInvestment];
+            let totalInterestPaid = 0;
+            const cashFlows = [-equity];
             
             const acGuns = inputs.equipmentList.reduce((sum, e) => e.spec.type === 'AC' ? sum + e.gunCount : sum, 0);
             const dcGuns = inputs.equipmentList.reduce((sum, e) => e.spec.type !== 'AC' ? sum + e.gunCount : sum, 0);
@@ -1494,6 +1562,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             results.avgChargeFeeAC = inputs.chargeFeePerKwhAC;
             results.avgChargeFeeDC = (inputs.billingMethodDC === 'fixed') ? inputs.chargeFeePerKwhDC : (inputs.peakRate * inputs.touRatios.peak) + (inputs.offPeakRate * inputs.touRatios.offpeak) + (inputs.holidayRate * inputs.touRatios.holiday);
+            
+            let remainingLoanPrincipal = loanAmount;
 
             for (let year = 1; year <= inputs.operationYears; year++) {
                 const demandMultiplier = Math.pow(1 + inputs.demandGrowthRate, year - 1);
@@ -1506,8 +1576,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     kwhDC = inputs.revenueMethodDC === 'byCars' ? (inputs.carsPerGunPerDayDC * dcGuns * inputs.avgKwhPerCar * 365) : (inputs.kwhPerGunPerMonthDC * dcGuns * 12);
                 }
 
-                const annualKwhAC = kwhAC * demandMultiplier;
-                const annualKwhDC = kwhDC * demandMultiplier;
+                const annualKwhAC = kwhAC; // AC does not have demand growth
+                const annualKwhDC = kwhDC * demandMultiplier; // DC has demand growth
                 const totalKwhSold = annualKwhAC + annualKwhDC;
 
                 const revenueAC = annualKwhAC * results.avgChargeFeeAC;
@@ -1517,36 +1587,53 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const openingAccumulatedDepreciation = accumulatedDepreciation;
                 const numberOfTransactions = inputs.avgKwhPerCar > 0 ? totalKwhSold / inputs.avgKwhPerCar : 0;
-                const costBreakdown = this.getCostBreakdown(results, inputs, year, totalKwhSold, numberOfTransactions, revenue, openingAccumulatedDepreciation, totalGunCount);
+                const costBreakdown = this.getCostBreakdown(results, inputs, year, totalKwhSold, numberOfTransactions, revenue, openingAccumulatedDepreciation, totalGunCount, remainingLoanPrincipal);
                 
-                const totalAnnualCostWithDep = costBreakdown.reduce((sum, item) => sum + item.value, 0);
+                const principalPayment = costBreakdown.find(item => item.key === 'principal')?.value || 0;
+                
+                let costItemsForPNL = costBreakdown;
+                if (inputs.financingEnabled && inputs.depreciationMethod !== 'none') {
+                    costItemsForPNL = costBreakdown.filter(item => item.key !== 'principal');
+                }
+                const totalAnnualCostForPNL = costItemsForPNL.reduce((sum, item) => sum + item.value, 0);
+                
                 const depreciation = costBreakdown.find(item => item.label === '折舊')?.value || 0;
                 accumulatedDepreciation += depreciation;
 
                 let pnl;
-                let finalAnnualCost;
+                let finalAnnualCostForDisplay;
 
                 if (inputs.depreciationMethod === 'none') {
-                    finalAnnualCost = totalAnnualCostWithDep - depreciation;
-                    pnl = revenue - finalAnnualCost;
+                    finalAnnualCostForDisplay = totalAnnualCostForPNL - depreciation;
+                    pnl = revenue - finalAnnualCostForDisplay;
                 } else {
-                    finalAnnualCost = totalAnnualCostWithDep;
-                    pnl = revenue - finalAnnualCost;
+                    finalAnnualCostForDisplay = totalAnnualCostForPNL;
+                    pnl = revenue - finalAnnualCostForDisplay;
                 }
                 cumulativePnl += pnl;
 
-                const cashFlow = revenue - (totalAnnualCostWithDep - depreciation);
+                const interestPayment = costBreakdown.find(item => item.key === 'interest') ?.value || 0;
+                remainingLoanPrincipal -= principalPayment;
+                totalInterestPaid += interestPayment;
+
+                const cashOutExpenses = (finalAnnualCostForDisplay - depreciation) + principalPayment;
+                const cashFlow = revenue - cashOutExpenses;
                 cashFlows.push(cashFlow);
                 
                 const detailsCosts = costBreakdown.reduce((obj, item) => ({...obj, [item.label]: item.value }), {});
-                results.annualData.push({ year, revenue, cost: finalAnnualCost, pnl, cumulativePnl, kwhPerYear: totalKwhSold, kwhPerMonth: totalKwhSold / 12, kwhPerDay: totalKwhSold / 365, details: { revenue: {'AC 充電服務費': revenueAC, 'DC 充電服務費': revenueDC, '總營收': revenue}, kwh: { ac: annualKwhAC, dc: annualKwhDC, base_ac: kwhAC, base_dc: kwhDC }, costs: detailsCosts, openingAccumulatedDepreciation } });
+                results.annualData.push({ year, revenue, cost: finalAnnualCostForDisplay, pnl, cumulativePnl, kwhPerYear: totalKwhSold, kwhPerMonth: totalKwhSold / 12, kwhPerDay: totalKwhSold / 365, details: { revenue: {'AC 充電服務費': revenueAC, 'DC 充電服務費': revenueDC, '總營收': revenue}, kwh: { ac: annualKwhAC, dc: annualKwhDC, base_ac: kwhAC, base_dc: kwhDC }, costs: detailsCosts, costBreakdownItems: costBreakdown, openingAccumulatedDepreciation } });
                 
                 if (cumulativePnl >= 0 && !paybackFound) {
-                    const includeEquipmentInInitialPayback = inputs.depreciationMethod === 'none';
-                    const initialInvestmentForPayback = includeEquipmentInInitialPayback 
-                        ? -results.totalInvestment 
-                        : -(results.totalInvestment - results.costBreakdown.equipmentCost);
-                    const prevCumulativePnl = results.annualData[year - 2]?.cumulativePnl || initialInvestmentForPayback;
+                    let initialOutlayForPayback;
+                    if(inputs.financingEnabled) {
+                        initialOutlayForPayback = -equity;
+                    } else if (inputs.depreciationMethod === 'none') {
+                        initialOutlayForPayback = -results.totalInvestment;
+                    } else {
+                        initialOutlayForPayback = -(results.totalInvestment - results.costBreakdown.equipmentCost);
+                    }
+
+                    const prevCumulativePnl = results.annualData[year - 2]?.cumulativePnl || initialOutlayForPayback;
                     const fractionOfYear = pnl > 0 ? (-prevCumulativePnl / pnl) : 0;
                     results.paybackPeriod = `${(year - 1 + fractionOfYear).toFixed(1)} 年`;
                     paybackFound = true;
@@ -1555,7 +1642,9 @@ document.addEventListener('DOMContentLoaded', function () {
             const totalNetProfit = results.annualData.reduce((sum, d) => sum + d.pnl, 0);
             results.totalNetProfit = totalNetProfit;
             results.totalChargingRevenue = totalChargingRevenue; 
-            if (results.totalInvestment > 0) results.roi = (totalNetProfit / results.totalInvestment) * 100; 
+            results.totalInterestPaid = totalInterestPaid;
+            if (results.totalInvestment > 0) results.roi = ((totalNetProfit + totalInterestPaid) / results.totalInvestment) * 100; 
+            if (equity > 0) results.roe = (totalNetProfit / equity) * 100;
             results.irr = this.calculateIRR(cashFlows) * 100; 
             this.lastResults = results; 
             return results;
@@ -1616,7 +1705,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const num = Number(value);
             return num.toLocaleString('en-US', { minimumFractionDigits: precision, maximumFractionDigits: precision });
         },
-        getCostBreakdown(results, inputs, year, totalKwhSold, numberOfTransactions, revenue, accumulatedDepreciation, totalGunCount) {
+        getCostBreakdown(results, inputs, year, totalKwhSold, numberOfTransactions, revenue, accumulatedDepreciation, totalGunCount, remainingLoanPrincipal) {
             const items = []; const p = Config.calculationParams; 
             const totalPileCount = inputs.equipmentList.reduce((sum, item) => sum + item.pileCount, 0);
             const hasDC = inputs.equipmentList.some(item => item.spec.type !== 'AC');
@@ -1664,6 +1753,16 @@ document.addEventListener('DOMContentLoaded', function () {
             if (p.tdxUploadFee.enabled) items.push({ label: 'TDX上傳費', value: p.tdxUploadFee.value * totalGunCount * 12, formula: `${this.formatCurrencyForFormula(p.tdxUploadFee.value,0)} x ${totalGunCount} 槍 x 12 個月` });
             if (inputs.rentMethod !== 'none') { const totalParkingSpaces = inputs.equipmentList.reduce((sum, item) => sum + item.parkingSpaces, 0); let rentCost = (inputs.rentMethod === 'bySpace') ? inputs.rentPerSpace * totalParkingSpaces * 12 : inputs.rentPerLand * 12; let formula = (inputs.rentMethod === 'bySpace') ? `${this.formatCurrencyForFormula(inputs.rentPerSpace,0)} x ${totalParkingSpaces} 車位 x 12 個月` : `${this.formatCurrencyForFormula(inputs.rentPerLand,0)} x 12 個月`; items.push({ label: '租金', value: rentCost, formula }); }
             
+            if (inputs.financingEnabled && year <= inputs.loanTerm && remainingLoanPrincipal > 0) {
+                const interestPayment = remainingLoanPrincipal * inputs.interestRate;
+                const monthlyPayment = (remainingLoanPrincipal * (inputs.interestRate / 12)) / (1 - Math.pow(1 + (inputs.interestRate / 12), - (inputs.loanTerm - year + 1) * 12));
+                const annualPayment = monthlyPayment * 12;
+                const principalPayment = annualPayment - interestPayment;
+                const formattedInterestRate = parseFloat((inputs.interestRate * 100).toFixed(2));
+                items.push({ key: 'interest', label: '利息支出', value: interestPayment, formula: `剩餘本金 x ${formattedInterestRate}%` });
+                items.push({ key: 'principal', label: '本金攤還', value: principalPayment, formula: '年度攤還本金' });
+            }
+
             if (inputs.depreciationMethod !== 'none') {
                 let effectiveDepYears;
                 if (inputs.depreciationMethod === 'syd') {
@@ -1713,7 +1812,41 @@ document.addEventListener('DOMContentLoaded', function () {
         init() {
             const yAxisTickFormatter = (v) => { if (isNaN(v) || v === null) return ''; const n = Number(v); if (Math.abs(n) >= 1e6) return `${(n / 1e6).toFixed(1)}M`; if (Math.abs(n) >= 1e3) return `${(n / 1e3).toFixed(0)}K`; return n.toLocaleString('en-US'); };
             const commonOptions = { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'top' }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${UI.formatCurrency(c.raw)}` } }, title: { display: true, text: '單位：元', position: 'top', align: 'start', font: { weight: 'normal' }, color: '#6b7280' } } };
-            this.instances.pnl = new Chart(UI.elements.pnlChart, { type: 'bar', data: { labels: [], datasets: [] }, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
+            
+            const pnlCtx = UI.elements.pnlChart.getContext('2d');
+            
+            this.instances.pnl = new Chart(pnlCtx, { 
+                type: 'bar', 
+                data: { labels: [], datasets: [] }, 
+                options: { ...commonOptions, 
+                    scales: { 
+                        x: { grid: { display: false } }, 
+                        y: { 
+                            ticks: { callback: yAxisTickFormatter },
+                            grid: { color: '#e5e7eb' }
+                        } 
+                    },
+                    elements: {
+                        bar: {
+                            borderRadius: 5,
+                        }
+                    },
+                    plugins: {
+                        ...commonOptions.plugins,
+                        tooltip: {
+                            backgroundColor: '#111827',
+                            titleFont: { size: 14, weight: 'bold' },
+                            bodyFont: { size: 12 },
+                            padding: 12,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: c => `${c.dataset.label}: ${UI.formatCurrency(c.raw)}`
+                            }
+                        }
+                    }
+                } 
+            });
+
             this.instances.revenueCost = new Chart(UI.elements.revenueCostChart, { type: 'bar', data: { labels: [], datasets: [] }, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
             this.instances.cumulative = new Chart(UI.elements.cumulativePnlChart, { type: 'line', data: { labels: [], datasets: [] }, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
             this.instances.tou = new Chart(UI.elements.touPieChart, { type: 'doughnut', data: { labels: [], datasets: [] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.label}: ${c.raw}%` } } } } });
@@ -1721,7 +1854,25 @@ document.addEventListener('DOMContentLoaded', function () {
         update(inputs, results) {
             if (!this.instances.pnl) this.init();
             const labels = results.annualData.map(d => `第 ${d.year} 年`);
-            this.instances.pnl.data.labels = labels; this.instances.pnl.data.datasets = [{ label: '充電淨利', data: results.annualData.map(d => d.pnl), backgroundColor: results.annualData.map(d => d.pnl >= 0 ? 'rgba(22, 163, 74, 0.6)' : 'rgba(220, 38, 38, 0.6)'), borderColor: results.annualData.map(d => d.pnl >= 0 ? 'rgba(22, 163, 74, 1)' : 'rgba(220, 38, 38, 1)'), borderWidth: 1 }]; this.instances.pnl.update();
+            
+            const pnlCtx = UI.elements.pnlChart.getContext('2d');
+            const profitGradient = pnlCtx.createLinearGradient(0, 0, 0, 300);
+            profitGradient.addColorStop(0, 'rgba(16, 185, 129, 0.7)');
+            profitGradient.addColorStop(1, 'rgba(6, 182, 212, 0.7)');
+            const lossGradient = pnlCtx.createLinearGradient(0, 0, 0, 300);
+            lossGradient.addColorStop(0, 'rgba(239, 68, 68, 0.7)');
+            lossGradient.addColorStop(1, 'rgba(249, 115, 22, 0.7)');
+
+            this.instances.pnl.data.labels = labels; 
+            this.instances.pnl.data.datasets = [{ 
+                label: '充電淨利', 
+                data: results.annualData.map(d => d.pnl), 
+                backgroundColor: results.annualData.map(d => d.pnl >= 0 ? profitGradient : lossGradient), 
+                borderColor: results.annualData.map(d => d.pnl >= 0 ? 'rgba(16, 185, 129, 1)' : 'rgba(239, 68, 68, 1)'), 
+                borderWidth: 0
+            }]; 
+            this.instances.pnl.update();
+
             this.instances.revenueCost.data.labels = labels; this.instances.revenueCost.data.datasets = [{ label: '總營收', data: results.annualData.map(d => d.revenue), backgroundColor: 'rgba(75, 192, 192, 0.6)' }, { label: '總成本', data: results.annualData.map(d => d.cost), backgroundColor: 'rgba(255, 159, 64, 0.6)' }]; this.instances.revenueCost.update();
             
             this.instances.cumulative.data.labels = ['投資額', ...labels];
@@ -1957,11 +2108,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.querySelector(`input[name="rentMethod"][value="${inputs.rentMethod}"]`).checked = true;
                 document.querySelector(`input[name="depreciationMethod"][value="${inputs.depreciationMethod}"]`).checked = true;
                 if(inputs.profitShareMethod) document.querySelector(`input[name="profitShareMethod"][value="${inputs.profitShareMethod}"]`).checked = true;
+                if(typeof inputs.financingEnabled !== 'undefined') { UI.elements.financingToggle.checked = inputs.financingEnabled; }
 
                 Object.keys(inputs).forEach(key => {
                     const el = UI.elements[key];
                     if (el && typeof inputs[key] !== 'object' && typeof inputs[key] !== 'undefined') {
-                        if (key === 'demandGrowthRate' || key === 'profitSharePercentage') {
+                        if (key === 'demandGrowthRate' || key === 'profitSharePercentage' || key === 'loanPercentage' || key === 'interestRate') {
                             el.value = inputs[key] * 100;
                         } else if (!['billingMethod', 'chargeFeePerKwh'].includes(key)) { // Avoid overwriting new separate inputs
                             el.value = inputs[key];
