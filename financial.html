@@ -233,10 +233,19 @@
         .salvage-display { color: #ef4444; font-weight: 500; vertical-align: middle; }
 
         /* Explainer styles */
-        #explanationList li { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 1rem; }
-        #explanationList li > span { justify-self: end; white-space: nowrap; }
-        #explanationList li[data-target] { cursor: pointer; transition: color 0.2s ease, background-color 0.2s ease; padding: 0.25rem 0.5rem; border-radius: 0.375rem; margin-left: -0.5rem; }
+        #explanationList li {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: baseline;
+            gap: 1rem;
+        }
+        #explanationList li > span {
+            justify-self: end;
+            white-space: nowrap;
+        }
+        #explanationList li[data-target] { cursor: pointer; transition: color 0.2s ease, background-color 0.2s ease; padding: 0.25rem 0.5rem; border-radius: 0.375rem; margin: 0 -0.5rem; }
         #explanationList li[data-target]:hover { color: #4f46e5; background-color: #eef2ff; }
+        
         .explainer-grid { display: grid; grid-template-columns: auto 1fr auto; gap: 0 1.5rem; align-items: baseline; }
         .explainer-grid > span { padding: 0.75rem 0; border-bottom: 1px solid #f3f4f6; }
         .explainer-grid > span:nth-child(3n+1) { font-weight: 500; color: #374151; }
@@ -635,11 +644,11 @@
                             <h3 class="text-xl font-bold text-gray-800 mb-3">計算方式說明</h3>
                             <ul id="explanationList" class="list-disc list-inside text-gray-700 space-y-2">
                                 <li data-target="investment"><div><strong>總投資額：</strong>建置充電站所需的所有初期花費。</div><span id="explainerTotalInvestment" class="font-semibold text-blue-700"></span></li>
-                                <li id="explainerEquityItem" class="hidden-section"><div><strong>本金：</strong>自有資金投入金額。</div><span id="explainerEquity" class="font-semibold text-gray-700"></span></li>
-                                <li id="explainerLoanItem" class="hidden-section"><div><strong>融資：</strong>貸款金額。</div><span id="explainerLoan" class="font-semibold text-gray-700"></span></li>
-                                <li id="explainerTotalInterestItem" class="hidden-section"><div><strong>利息總額：</strong>貸款期間需支付的總利息。</div><span id="explainerTotalInterest" class="font-semibold text-red-700"></span></li>
-                                <li data-target="revenue"><div><strong>總營收：</strong>年度收入，依營收模型與需求年增率計算。</div><span id="explainerTotalRevenue" class="font-semibold text-green-700"></span></li>
-                                <li data-target="cost"><div><strong>總成本：</strong>年度營運的所有開銷，含電費、維護、折舊等。</div><span id="explainerTotalCost" class="font-semibold text-red-700"></span></li>
+                                <li id="explainerEquityItem" class="hidden-section" data-target="equity"><div><strong>本金：</strong>自有資金投入金額。</div><span id="explainerEquity" class="font-semibold text-gray-700"></span></li>
+                                <li id="explainerLoanItem" class="hidden-section" data-target="loan"><div><strong>融資：</strong>貸款金額。</div><span id="explainerLoan" class="font-semibold text-gray-700"></span></li>
+                                <li id="explainerTotalInterestItem" class="hidden-section" data-target="interest"><div><strong>利息總額：</strong>貸款期間需支付的總利息。</div><span id="explainerTotalInterest" class="font-semibold text-red-700"></span></li>
+                                <li data-target="revenue"><div><strong>總營收：</strong>營運期間的總收入。</div><span id="explainerTotalRevenue" class="font-semibold text-green-700"></span></li>
+                                <li data-target="cost"><div><strong>總成本：</strong>營運期間的所有開銷。</div><span id="explainerTotalCost" class="font-semibold text-red-700"></span></li>
                                 <li><div><strong>預計回收年限：</strong>「累積稅前淨利」由負轉正的年度。</div><span id="explainerPaybackPeriod" class="font-semibold text-gray-700"></span></li>
                             </ul>
                         </div>
@@ -1190,8 +1199,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const totalRevenue = results.annualData.reduce((sum, d) => sum + d.revenue, 0);
             const totalCost = results.annualData.reduce((sum, d) => sum + d.cost, 0);
             this.elements.explainerTotalInvestment.textContent = this.formatCurrency(results.totalInvestment);
-            this.elements.explainerTotalRevenue.textContent = `${this.formatCurrency(totalRevenue)} (營運期間總計)`;
-            this.elements.explainerTotalCost.textContent = `${this.formatCurrency(totalCost)} (營運期間總計)`;
+            this.elements.explainerTotalRevenue.textContent = `${this.formatCurrency(totalRevenue)}`;
+            this.elements.explainerTotalCost.textContent = `${this.formatCurrency(totalCost)}`;
             this.elements.explainerPaybackPeriod.textContent = results.paybackPeriod;
             
             if(inputs.financingEnabled) {
@@ -1430,20 +1439,68 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         },
         openExplanationModal(type, results, inputs) {
-            const { calculationParams } = Config; const body = this.elements.explanationModalBody; let title = ''; let contentHtml = ''; const firstYearData = results.annualData[0];
-            const buildGrid = (items, total) => { 
+            const { calculationParams } = Config; const body = this.elements.explanationModalBody; let title = ''; let contentHtml = '';
+            const buildGrid = (items, total, title = '總計') => { 
                 let gridHtml = '<div class="explainer-grid">';
                 items.forEach(item => {
                     gridHtml += `<span>${item.label}</span><span>${item.formula}</span><span class="font-semibold">${this.formatCurrency(item.value, 0, false, true)}</span>`;
                 });
                 gridHtml += '</div>';
-                gridHtml += `<div class="explainer-total-row"><span>總計</span><span>${this.formatCurrency(total, 0, false, true)}</span></div>`;
+                gridHtml += `<div class="explainer-total-row"><span>${title}</span><span>${this.formatCurrency(total, 0, false, true)}</span></div>`;
                 return gridHtml;
             };
             switch (type) {
                 case 'investment': title = '總投資額 計算說明'; const investmentItems = Calculator.getInvestmentBreakdown(inputs, calculationParams); contentHtml = buildGrid(investmentItems, results.totalInvestment); break;
-                case 'revenue': title = '總營收 計算說明 (第一年)'; if (firstYearData) { const revenueItems = Calculator.getRevenueBreakdown(firstYearData, inputs, results); contentHtml = buildGrid(revenueItems, firstYearData.revenue); } else { contentHtml = '<p>尚無第一年資料可供計算。</p>'; } break;
-                case 'cost': title = '總成本 計算說明 (第一年)'; if (firstYearData) { const totalKwhSold_yr1 = firstYearData.kwhPerYear; const numberOfTransactions_yr1 = inputs.avgKwhPerCar > 0 ? totalKwhSold_yr1 / inputs.avgKwhPerCar : 0; const costItems = Calculator.getCostBreakdown(results, inputs, 1, totalKwhSold_yr1, numberOfTransactions_yr1, firstYearData.revenue, firstYearData.details.openingAccumulatedDepreciation); contentHtml = buildGrid(costItems, firstYearData.cost); } else { contentHtml = '<p>尚無第一年資料可供計算。</p>'; } break;
+                case 'revenue': 
+                    title = '總營收 計算說明 (營運期間總計)'; 
+                    const totalRevenueItems = Calculator.getOverallRevenueBreakdown(results, inputs);
+                    contentHtml = buildGrid(totalRevenueItems, results.totalChargingRevenue); 
+                    break;
+                case 'cost': 
+                    title = '總成本 計算說明 (營運期間總計)'; 
+                    const totalCostItems = Calculator.getOverallCostBreakdown(results, inputs);
+                    const totalCost = results.annualData.reduce((sum, d) => sum + d.cost, 0);
+                    contentHtml = buildGrid(totalCostItems, totalCost); 
+                    break;
+                 case 'equity':
+                    title = '本金 計算說明';
+                    const equityItems = [
+                        { label: '總投資額', value: results.totalInvestment, formula: '所有初期建置成本' },
+                        { label: '融資金額', value: -results.loanAmount, formula: '僅針對設備費用貸款' }
+                    ];
+                    contentHtml = buildGrid(equityItems, results.equity, '本金 (自有資金)');
+                    break;
+                case 'loan':
+                    title = '融資 計算說明';
+                    let loanGridHtml = '<div class="explainer-grid">';
+                    loanGridHtml += `<span>設備費用(含稅)</span><span>所有設備含稅總價</span><span class="font-semibold">${this.formatCurrency(results.costBreakdown.equipmentCost, 0, false, true)}</span>`;
+                    loanGridHtml += `<span>貸款比例</span><span>使用者設定</span><span class="font-semibold">${(inputs.loanPercentage * 100).toFixed(0)}%</span>`;
+                    loanGridHtml += '</div>';
+                    loanGridHtml += `<div class="explainer-total-row"><span>融資金額</span><span>${this.formatCurrency(results.loanAmount, 0, false, true)}</span></div>`;
+                    contentHtml = loanGridHtml;
+                    break;
+                case 'interest':
+                    title = '利息總額 計算說明';
+                    const interestItems = [];
+                    let tempRemainingPrincipal = results.loanAmount;
+                    for (let year = 1; year <= inputs.loanTerm; year++) {
+                        if (tempRemainingPrincipal <= 0) break;
+                        const interestPayment = tempRemainingPrincipal * inputs.interestRate;
+                        const monthlyPayment = (tempRemainingPrincipal * (inputs.interestRate / 12)) / (1 - Math.pow(1 + (inputs.interestRate / 12), - (inputs.loanTerm - year + 1) * 12));
+                        const annualPayment = monthlyPayment * 12;
+                        const principalPayment = annualPayment - interestPayment;
+                        const formattedInterestRate = parseFloat((inputs.interestRate * 100).toFixed(2));
+                        
+                        interestItems.push({
+                            label: `第 ${year} 年利息`,
+                            value: interestPayment,
+                            formula: `${this.formatCurrency(tempRemainingPrincipal, 0, false, true)} x ${formattedInterestRate}%`
+                        });
+                        
+                        tempRemainingPrincipal -= principalPayment;
+                    }
+                    contentHtml = buildGrid(interestItems, results.totalInterestPaid, '利息總額');
+                    break;
             }
             this.elements.explanationModalTitle.textContent = title; body.innerHTML = contentHtml; this.openModal(this.elements.explanationModal);
         },
@@ -1570,7 +1627,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 
                 let kwhAC = 0, kwhDC = 0;
                 if (acGuns > 0) {
-                    kwhAC = inputs.revenueMethodAC === 'byCars' ? (Math.min(inputs.carsPerGunPerDayAC, 2) * acGuns * inputs.avgKwhPerCar * 365) : (Math.min(inputs.kwhPerGunPerMonthAC, 1800) * acGuns * 12);
+                    kwhAC = inputs.revenueMethodAC === 'byCars' ? (inputs.carsPerGunPerDayAC * acGuns * inputs.avgKwhPerCar * 365) : (inputs.kwhPerGunPerMonthAC * acGuns * 12);
                 }
                 if (dcGuns > 0) {
                     kwhDC = inputs.revenueMethodDC === 'byCars' ? (inputs.carsPerGunPerDayDC * dcGuns * inputs.avgKwhPerCar * 365) : (inputs.kwhPerGunPerMonthDC * dcGuns * 12);
@@ -1681,25 +1738,124 @@ document.addEventListener('DOMContentLoaded', function () {
             if (params.constructionFee.enabled) items.push({ key: 'constructionFee', label: params.constructionFee.label, value: inputs.infrastructureCostMain, formula: '由主畫面輸入' });
             return items;
         },
-        getRevenueBreakdown(yearData, inputs, results) { 
-            const items = [];
-            const { details } = yearData;
-            if (details.revenue['AC 充電服務費'] > 0) {
-                items.push({
+        getOverallRevenueBreakdown(results, inputs) {
+            const totalRevenueItems = {
+                'AC 充電服務費': { value: 0, totalKwh: 0 },
+                'DC 充電服務費': { value: 0, totalKwh: 0 },
+            };
+
+            results.annualData.forEach(yearData => {
+                totalRevenueItems['AC 充電服務費'].value += yearData.details.revenue['AC 充電服務費'] || 0;
+                totalRevenueItems['AC 充電服務費'].totalKwh += yearData.details.kwh.ac || 0;
+                totalRevenueItems['DC 充電服務費'].value += yearData.details.revenue['DC 充電服務費'] || 0;
+                totalRevenueItems['DC 充電服務費'].totalKwh += yearData.details.kwh.dc || 0;
+            });
+
+            const finalItems = [];
+            if (totalRevenueItems['AC 充電服務費'].value > 0) {
+                finalItems.push({
                     label: 'AC 充電服務費',
-                    value: details.revenue['AC 充電服務費'],
-                    formula: `${this.formatCurrencyForFormula(details.kwh.ac, 0)} kWh x ${this.formatCurrencyForFormula(results.avgChargeFeeAC, 2)}元`
+                    value: totalRevenueItems['AC 充電服務費'].value,
+                    formula: `${this.formatCurrencyForFormula(totalRevenueItems['AC 充電服務費'].totalKwh, 0)} kWh x ${this.formatCurrencyForFormula(results.avgChargeFeeAC, 2)}元`
                 });
             }
-            if (details.revenue['DC 充電服務費'] > 0) {
-                items.push({
+            if (totalRevenueItems['DC 充電服務費'].value > 0) {
+                finalItems.push({
                     label: 'DC 充電服務費',
-                    value: details.revenue['DC 充電服務費'],
-                    formula: `${this.formatCurrencyForFormula(details.kwh.dc, 0)} kWh x ${this.formatCurrencyForFormula(results.avgChargeFeeDC, 2)}元`
+                    value: totalRevenueItems['DC 充電服務費'].value,
+                    formula: `${this.formatCurrencyForFormula(totalRevenueItems['DC 充電服務費'].totalKwh, 0)} kWh x ${this.formatCurrencyForFormula(results.avgChargeFeeDC, 2)}元 (均價)`
                 });
             }
-            return items;
-           },
+            return finalItems;
+        },
+        getOverallCostBreakdown(results, inputs) {
+            const totalCostItemsMap = new Map();
+            const p = Config.calculationParams;
+            const totalKwh = results.annualData.reduce((sum, d) => sum + d.kwhPerYear, 0);
+            const totalTransactions = results.annualData.reduce((sum, d) => sum + (d.kwhPerYear / (inputs.avgKwhPerCar || 1)), 0);
+            const totalRevenue = results.totalChargingRevenue;
+            const totalPileCount = inputs.equipmentList.reduce((sum, item) => sum + item.pileCount, 0);
+            const totalGunCount = inputs.equipmentList.reduce((sum, item) => sum + item.gunCount, 0);
+
+            results.annualData.forEach(yearData => {
+                let costItems = yearData.details.costBreakdownItems;
+                if (inputs.financingEnabled && inputs.depreciationMethod !== 'none') {
+                    costItems = costItems.filter(item => item.key !== 'principal');
+                }
+                costItems.forEach(item => {
+                    if (totalCostItemsMap.has(item.label)) {
+                        totalCostItemsMap.get(item.label).value += item.value;
+                    } else {
+                        totalCostItemsMap.set(item.label, { value: item.value, formula: '' });
+                    }
+                });
+            });
+
+            totalCostItemsMap.forEach((data, label) => {
+                switch (label) {
+                    case p.taipowerFee.label:
+                        data.formula = `${this.formatCurrencyForFormula(totalKwh, 0)} kWh x ${p.taipowerFee.value}元 x (1 + ${p.powerLossRate.value*100}%)`;
+                        break;
+                    case '度電分潤':
+                        data.formula = `${this.formatCurrencyForFormula(totalKwh, 0)} kWh x ${inputs.profitShareAmount} 元`;
+                        break;
+                    case '營收分潤':
+                        data.formula = `${this.formatCurrencyForFormula(totalRevenue, 0)} x ${inputs.profitSharePercentage * 100}%`;
+                        break;
+                    case p.transactionFeeRate.label:
+                        data.formula = `${this.formatCurrencyForFormula(totalRevenue, 0)} x ${p.transactionFeeRate.value*100}%`;
+                        break;
+                    case p.electronicInvoiceFeePerTransaction.label:
+                        data.formula = `${this.formatCurrencyForFormula(totalTransactions, 0)} 張 x ${p.electronicInvoiceFeePerTransaction.value} 元`;
+                        break;
+                    case p.repairPartsRate.label:
+                        data.formula = `${this.formatCurrencyForFormula(results.costBreakdown.equipmentCost)} x ${p.repairPartsRate.value*100}% x ${inputs.operationYears}年`;
+                        break;
+                    case p.electricalTechnicianFee.label:
+                        data.formula = `${this.formatCurrencyForFormula(p.electricalTechnicianFee.value)} x ${inputs.operationYears}年`;
+                        break;
+                    case p.maintenanceFee.label:
+                         data.formula = `${this.formatCurrencyForFormula(p.maintenanceFee.value)} x ${inputs.operationYears}年`;
+                        break;
+                    case p.insuranceFee.label:
+                         data.formula = `${this.formatCurrencyForFormula(p.insuranceFee.value)} x ${inputs.operationYears}年`;
+                        break;
+                    case p.extendedWarrantyPerPile.label:
+                         data.formula = `${this.formatCurrencyForFormula(p.extendedWarrantyPerPile.value)} x ${totalPileCount}樁 x ${inputs.operationYears}年`;
+                        break;
+                    case p.laborCost.label:
+                         data.formula = `${this.formatCurrencyForFormula(p.laborCost.value)} x ${inputs.operationYears}年`;
+                        break;
+                    case '網路費':
+                         data.formula = `${this.formatCurrencyForFormula(p.internetFee.value)} x 12月 x ${inputs.operationYears}年`;
+                        break;
+                    case 'TDX上傳費':
+                         data.formula = `${this.formatCurrencyForFormula(p.tdxUploadFee.value)} x ${totalGunCount}槍 x 12月 x ${inputs.operationYears}年`;
+                        break;
+                    case '租金':
+                         data.formula = '營運期間總計';
+                        break;
+                    case '維運代管費':
+                         data.formula = '營運期間總計';
+                        break;
+                    case '利息支出':
+                        data.formula = '依貸款年期逐年計算總和';
+                        break;
+                    case '折舊':
+                        data.formula = `依折舊法攤提總額`;
+                        break;
+                    default:
+                        data.formula = '營運期間總計';
+                }
+            });
+
+            const aggregatedItems = [];
+            totalCostItemsMap.forEach((data, label) => {
+                aggregatedItems.push({ label, ...data });
+            });
+
+            return aggregatedItems;
+        },
         formatCurrencyForFormula(value, precision = 0) {
             if (isNaN(value) || value === null) return 'N/A';
             const num = Number(value);
