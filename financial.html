@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>充電站投資效益分析 (v12.4 - 錯誤修正)</title>
+    <title>智慧充電站投資效益分析 (v12.7)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -14,7 +14,7 @@
         }
         body {
             font-family: 'Noto Sans TC', 'Inter', sans-serif;
-            background-color: #f8fafc;
+            background-color: #f8fafc; /* slate-50 */
         }
         .input-field {
             background-color: white; 
@@ -197,7 +197,7 @@
         /* Modal Styles */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.6); display: none; justify-content: center; align-items: center; z-index: 1000; animation: fadeIn 0.3s ease-out forwards; }
         .modal-content { background-color: white; padding: 1.5rem; border-radius: 1rem; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); animation: slideIn 0.3s ease-out forwards; }
-         @media (min-width: 768px) {
+        @media (min-width: 768px) {
             .modal-content {
                 padding: 2rem;
             }
@@ -327,8 +327,8 @@
     <div class="max-w-7xl mx-auto">
         <header class="mb-10">
             <div class="text-center">
-                 <h1 class="text-3xl md:text-5xl font-extrabold text-gray-800 leading-tight">充電站投資效益分析</h1>
-                 <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v10.1 - 介面優化)</p>
+                 <h1 class="text-3xl md:text-5xl font-extrabold text-gray-800 leading-tight">智慧充電站投資效益分析</h1>
+                 <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v12.7)</p>
             </div>
             <div class="flex flex-col sm:flex-row justify-between items-center mt-6 bg-gray-100 p-3 rounded-xl shadow-sm gap-4">
                 <div>
@@ -380,13 +380,13 @@
                             <label class="radio-label w-full justify-center"><input type="checkbox" id="financingToggle"><span>融資借貸</span></label>
                             <div id="financingSection" class="hidden-section input-section bg-blue-50 space-y-4 mt-3">
                                  <div class="grid grid-cols-2 items-center gap-4">
-                                    <span class="label-text">貸款 (%)</span><input type="number" id="loanPercentage" class="input-field" value="70">
+                                     <span class="label-text">貸款 (%)</span><input type="number" id="loanPercentage" class="input-field" value="70">
                                 </div>
                                 <div class="grid grid-cols-2 items-center gap-4">
-                                    <span class="label-text">利息 (%)</span><input type="number" id="interestRate" class="input-field" value="3.5" step="0.1">
+                                     <span class="label-text">利息 (%)</span><input type="number" id="interestRate" class="input-field" value="3.5" step="0.1">
                                 </div>
                                 <div class="grid grid-cols-2 items-center gap-4">
-                                    <span class="label-text">貸款年期</span><input type="number" id="loanTerm" class="input-field" value="7">
+                                     <span class="label-text">貸款年期</span><input type="number" id="loanTerm" class="input-field" value="7">
                                 </div>
                             </div>
                         </div>
@@ -797,10 +797,10 @@ document.addEventListener('DOMContentLoaded', function () {
             // --- Header & Modal Listeners ---
             UI.elements.saveBtn.addEventListener('click', () => UI.openModal(UI.elements.saveRecordModal));
             UI.elements.recordsBtn.addEventListener('click', () => { UI.renderRecordsList(); UI.openModal(UI.elements.recordsModal); });
-            UI.elements.newAnalysisBtn.addEventListener('click', () => this.newAnalysis());
+            UI.elements.newAnalysisBtn.addEventListener('click', () => UI.openModal(UI.elements.newAnalysisConfirmModal));
             
             UI.elements.openAdvancedModalBtn.addEventListener('click', () => UI.openModal(UI.elements.advancedModal));
-            [UI.elements.closeAdvancedModalBtn, UI.elements.closeExplanationModalBtn, UI.elements.closeSaveModalBtn, UI.elements.closeRecordsModalBtn, UI.elements.cancelSaveBtn].forEach(btn => btn?.addEventListener('click', (e) => UI.closeModal(e.target.closest('.modal-overlay'))));
+            [UI.elements.closeAdvancedModalBtn, UI.elements.closeExplanationModalBtn, UI.elements.closeSaveModalBtn, UI.elements.closeRecordsModalBtn, UI.elements.cancelSaveBtn, UI.elements.cancelNewAnalysisBtn].forEach(btn => btn?.addEventListener('click', (e) => UI.closeModal(e.target.closest('.modal-overlay'))));
             
             UI.elements.loginAdvancedBtn.addEventListener('click', () => this.handleAdvancedLogin());
             UI.elements.advancedPassword.addEventListener('keydown', (e) => { if (e.key === 'Enter') this.handleAdvancedLogin(); });
@@ -810,6 +810,7 @@ document.addEventListener('DOMContentLoaded', function () {
             UI.elements.explanationList.addEventListener('click', (e) => this.handleExplanationClick(e));
             
             UI.elements.confirmSaveBtn.addEventListener('click', () => this.saveRecord());
+            UI.elements.confirmNewAnalysisBtn.addEventListener('click', () => this.newAnalysis());
 
             const enforceMax = (element, max) => {
                 if (UI.getNumericValue(element, 0) > max) {
@@ -820,7 +821,7 @@ document.addEventListener('DOMContentLoaded', function () {
             UI.elements.kwhPerGunPerMonthAC.addEventListener('input', () => enforceMax(UI.elements.kwhPerGunPerMonthAC, 1800));
             
             // --- Enhanced Modal Closing ---
-            [UI.elements.explanationModal, UI.elements.saveRecordModal, UI.elements.recordsModal].forEach(modal => {
+            [UI.elements.advancedModal, UI.elements.explanationModal, UI.elements.saveRecordModal, UI.elements.recordsModal, UI.elements.newAnalysisConfirmModal].forEach(modal => {
                 modal.addEventListener('click', (e) => { if (e.target === modal) UI.closeModal(modal); });
             });
             document.addEventListener('keydown', (e) => {
@@ -943,6 +944,7 @@ document.addEventListener('DOMContentLoaded', function () {
             Persistence.deleteSession();
             UI.resetForm();
             App.update();
+            UI.closeModal(UI.elements.newAnalysisConfirmModal);
         }
     };
 
@@ -994,7 +996,7 @@ document.addEventListener('DOMContentLoaded', function () {
         elements: {},
         init() { this.cacheDOMElements(); this.updateUIVisibility(); this.elements.addEquipmentBtn.addEventListener('click', () => { this.addEquipmentRow(); App.update(); }); },
         cacheDOMElements() {
-            const ids = ['siteNameDisplay', 'saveBtn', 'recordsBtn', 'newAnalysisBtn', 'saveRecordModal', 'closeSaveModalBtn', 'cancelSaveBtn', 'recordNameInput', 'saveRecordMessage', 'confirmSaveBtn', 'recordsModal', 'closeRecordsModalBtn', 'recordsList', 'equipmentListContainer', 'addEquipmentBtn', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'infrastructureCostMain', 'chargeFeePerKwhAC', 'chargeFeePerKwhDC', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'acSettingsBlock', 'dcSettingsBlock', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'fixedRateSectionDC', 'touRateSectionDC', 'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection', 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'pnlTable', 'cumulativePnlChart', 'touPieChart', 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'pnlChart', 'revenueCostChart', 'operationPeriodSummary', 'totalRevenueSummary', 'totalNetProfitSummary', 'roiSummary', 'irrSummary', 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn', 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage', 'advancedContentSection', 'specsModalTableBody', 'formulaContainer', 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage', 'saveAdvancedBtn', 'touGridEditor', 'touGridContainer', 'touEditorMessage', 'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost', 'explainerPaybackPeriod', 'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn', 'profitShareByAmountSection', 'profitShareByPercentageSection', 'profitShareAmount', 'profitSharePercentage', 'profitShareBySiteSection', 'siteFeeMonthly', 'gunCountThreshold', 'siteFeePerGunMonthly', 'siteFeeValidationMessage', 'financingToggle', 'financingSection', 'loanPercentage', 'interestRate', 'loanTerm', 'peakPercentDisplay', 'offpeakPercentDisplay', 'holidayPercentDisplay', 'totalInterestSummary', 'roeSummary', 'explainerEquityItem', 'explainerLoanItem', 'explainerTotalInterestItem', 'explainerEquity', 'explainerLoan', 'explainerTotalInterest'];
+            const ids = ['siteNameDisplay', 'saveBtn', 'recordsBtn', 'newAnalysisBtn', 'saveRecordModal', 'closeSaveModalBtn', 'cancelSaveBtn', 'recordNameInput', 'saveRecordMessage', 'confirmSaveBtn', 'recordsModal', 'closeRecordsModalBtn', 'recordsList', 'newAnalysisConfirmModal', 'cancelNewAnalysisBtn', 'confirmNewAnalysisBtn', 'equipmentListContainer', 'addEquipmentBtn', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'infrastructureCostMain', 'chargeFeePerKwhAC', 'chargeFeePerKwhDC', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'acSettingsBlock', 'dcSettingsBlock', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'fixedRateSectionDC', 'touRateSectionDC', 'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection', 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'pnlTable', 'cumulativePnlChart', 'touPieChart', 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'pnlChart', 'revenueCostChart', 'operationPeriodSummary', 'totalRevenueSummary', 'totalNetProfitSummary', 'roiSummary', 'irrSummary', 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn', 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage', 'advancedContentSection', 'specsModalTableBody', 'formulaContainer', 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage', 'saveAdvancedBtn', 'touGridEditor', 'touGridContainer', 'touEditorMessage', 'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost', 'explainerPaybackPeriod', 'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn', 'profitShareByAmountSection', 'profitShareByPercentageSection', 'profitShareAmount', 'profitSharePercentage', 'profitShareBySiteSection', 'siteFeeMonthly', 'gunCountThreshold', 'siteFeePerGunMonthly', 'siteFeeValidationMessage', 'financingToggle', 'financingSection', 'loanPercentage', 'interestRate', 'loanTerm', 'peakPercentDisplay', 'offpeakPercentDisplay', 'holidayPercentDisplay', 'totalInterestSummary', 'roeSummary', 'explainerEquityItem', 'explainerLoanItem', 'explainerTotalInterestItem', 'explainerEquity', 'explainerLoan', 'explainerTotalInterest'];
             ids.forEach(id => this.elements[id] = document.getElementById(id));
         },
         getNumericValue(element, defaultValue = 0) { if (!element) return defaultValue; const value = parseFloat(String(element.value).replace(/,/g, '')); return isNaN(value) ? defaultValue : value; },
@@ -1096,7 +1098,8 @@ document.addEventListener('DOMContentLoaded', function () {
             mainRow.append(powerSelect, countContainer, removeBtn);
 
             const cabinetRow = document.createElement('div');
-            cabinetRow.className = 'grid grid-cols-2 items-center gap-4 cabinet-count-container hidden-section';
+            // *** FIX: Removed 'hidden-section' class. Visibility will be controlled by inline style. ***
+            cabinetRow.className = 'grid grid-cols-2 items-center gap-4 cabinet-count-container';
             cabinetRow.innerHTML = `<span class="label-text">能源櫃數量</span><input type="number" class="input-field cabinet-count-display readonly" readonly>`;
 
             wrapper.append(mainRow, cabinetRow);
@@ -1120,13 +1123,14 @@ document.addEventListener('DOMContentLoaded', function () {
             
             countLabel.textContent = spec.type === 'DC_360' ? '終端機數' : '充電樁數';
             
+            // *** FIX: Changed from classList manipulation to direct style manipulation for robustness. ***
             if (spec.type === 'DC_360') {
-                cabinetRow.classList.remove('hidden-section');
+                cabinetRow.style.display = 'grid'; // Use 'grid' to match the CSS class
                 const terminalCount = this.getNumericValue(countInput, 1);
                 const cabinetCount = Math.ceil(terminalCount / 6);
                 cabinetCountDisplay.value = cabinetCount;
             } else {
-                cabinetRow.classList.add('hidden-section');
+                cabinetRow.style.display = 'none';
             }
         },
         updateUIVisibility() {
@@ -1691,7 +1695,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 
                 let costItemsForPNL = costBreakdown;
                 if (inputs.financingEnabled && inputs.depreciationMethod !== 'none') {
-                    costItemsForPNL = costBreakdown.filter(item => item.key !== 'principal');
+                    costItemsForPNL = costItemsForPNL.filter(item => item.key !== 'principal');
                 }
                 const totalAnnualCostForPNL = costItemsForPNL.reduce((sum, item) => sum + item.value, 0);
                 
@@ -2064,6 +2068,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             this.instances.revenueCost = new Chart(UI.elements.revenueCostChart, { type: 'bar', data: { labels: [], datasets: [] }, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
+            
             this.instances.cumulative = new Chart(UI.elements.cumulativePnlChart, { type: 'line', data: { labels: [], datasets: [] }, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
             this.instances.tou = new Chart(UI.elements.touPieChart, { type: 'doughnut', data: { labels: [], datasets: [] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.label}: ${c.raw}%` } } } } });
         },
@@ -2214,7 +2219,7 @@ document.addEventListener('DOMContentLoaded', function () {
      * =================================================================
      */
     const Persistence = {
-        STORAGE_KEY_PREFIX: 'chargingStationAnalysis_',
+        STORAGE_KEY_PREFIX: 'chargingStationAnalysis_v12_',
         
         init() {
             const lastSession = localStorage.getItem(`${this.STORAGE_KEY_PREFIX}lastSession`);
