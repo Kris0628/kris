@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智慧充電站投資效益分析 (v12.9 - 複選功能修正)</title>
+    <title>智慧充電站投資效益分析 (v12.9 - 圖表優化)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -329,7 +329,7 @@
         <header class="mb-10">
             <div class="text-center">
                  <h1 class="text-3xl md:text-5xl font-extrabold text-gray-800 leading-tight">智慧充電站投資效益分析</h1>
-                 <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v12.9 - 複選功能)</p>
+                 <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v12.9 - 介面優化)</p>
             </div>
             <div class="flex flex-col sm:flex-row justify-between items-center mt-6 bg-gray-100 p-3 rounded-xl shadow-sm gap-4">
                 <div>
@@ -568,13 +568,13 @@
                                 <label class="choice-label"><input type="checkbox" id="profitShareBySite"><span>站點計費</span></label>
                                 <label class="choice-label"><input type="checkbox" id="profitShareNone" checked><span>無</span></label>
                             </div>
-                            <div id="profitShareByAmountSection" class="hidden-section grid grid-cols-2 items-center gap-4">
+                            <div id="profitShareByAmountSection" class="hidden-section grid grid-cols-2 items-center gap-4 mt-4">
                                 <span class="label-text">每度電分潤 (元)</span><input type="number" id="profitShareAmount" class="input-field" value="1" step="0.1">
                             </div>
-                            <div id="profitShareByPercentageSection" class="hidden-section grid grid-cols-2 items-center gap-4">
+                            <div id="profitShareByPercentageSection" class="hidden-section grid grid-cols-2 items-center gap-4 mt-4">
                                 <span class="label-text">營收分潤 (%)</span><input type="number" id="profitSharePercentage" class="input-field" value="10" step="1">
                             </div>
-                            <div id="profitShareBySiteSection" class="hidden-section space-y-3">
+                            <div id="profitShareBySiteSection" class="hidden-section space-y-3 mt-4">
                                  <div class="grid grid-cols-2 items-center gap-4">
                                     <span class="label-text">每站收費(月)</span><input type="text" id="siteFeeMonthly" class="input-field" value="3,000">
                                 </div>
@@ -843,6 +843,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         cb.checked = false;
                     });
                 } else if (!profitShareCheckboxes.some(cb => cb.checked)) {
+                    // This logic prevents unchecking 'None' if no other option is selected, ensuring one is always active.
                     noneCheckbox.checked = true;
                 }
                 App.update();
@@ -1646,10 +1647,6 @@ document.addEventListener('DOMContentLoaded', function () {
             this.elements.profitShareByPercentage.checked = false;
             this.elements.profitShareBySite.checked = false;
             this.elements.profitShareNone.checked = true;
-            
-            const profitShareCheckboxes = [this.elements.profitShareByAmount, this.elements.profitShareByPercentage, this.elements.profitShareBySite];
-            profitShareCheckboxes.forEach(cb => { cb.disabled = true; });
-            this.elements.profitShareNone.disabled = false;
 
             this.elements.profitShareAmount.value = 1;
             this.elements.profitSharePercentage.value = 10;
@@ -1994,7 +1991,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         managementCost = inputs.siteFeeMonthly * 12;
                         formula = `${this.formatCurrencyForFormula(inputs.siteFeeMonthly, 0)}/月 x 12 個月`;
                     }
-                    items.push({ key: 'management_bySite', label: '站點計費維運', value: managementCost, formula });
+                    items.push({ key: 'management_bySite', label: '站點計費', value: managementCost, formula });
                 }
             }
 
@@ -2133,17 +2130,48 @@ document.addEventListener('DOMContentLoaded', function () {
 
             this.instances.revenueCost.data.labels = labels; this.instances.revenueCost.data.datasets = [{ label: '總營收', data: results.annualData.map(d => d.revenue), backgroundColor: 'rgba(75, 192, 192, 0.6)' }, { label: '總成本', data: results.annualData.map(d => d.cost), backgroundColor: 'rgba(255, 159, 64, 0.6)' }]; this.instances.revenueCost.update();
             
-            const managementData = results.annualData.map(d => {
-                return d.details.costBreakdownItems
-                    .filter(item => item.key && item.key.startsWith('management_'))
-                    .reduce((sum, item) => sum + item.value, 0);
-            });
+            const managementDatasets = [];
+            const managementColors = {
+                byAmount: 'rgba(168, 85, 247, 0.7)', // Purple
+                byPercentage: 'rgba(20, 184, 166, 0.7)', // Teal
+                bySite: 'rgba(249, 115, 22, 0.7)' // Orange
+            };
+
+            if (inputs.profitShareMethods.byAmount) {
+                managementDatasets.push({
+                    label: '度電分潤',
+                    data: results.annualData.map(d => d.details.costBreakdownItems.find(item => item.key === 'management_byAmount')?.value || 0),
+                    backgroundColor: managementColors.byAmount,
+                    borderRadius: 5,
+                });
+            }
+            if (inputs.profitShareMethods.byPercentage) {
+                managementDatasets.push({
+                    label: '營收分潤',
+                    data: results.annualData.map(d => d.details.costBreakdownItems.find(item => item.key === 'management_byPercentage')?.value || 0),
+                    backgroundColor: managementColors.byPercentage,
+                    borderRadius: 5,
+                });
+            }
+            if (inputs.profitShareMethods.bySite) {
+                managementDatasets.push({
+                    label: '站點計費',
+                    data: results.annualData.map(d => d.details.costBreakdownItems.find(item => item.key === 'management_bySite')?.value || 0),
+                    backgroundColor: managementColors.bySite,
+                    borderRadius: 5,
+                });
+            }
+
+            if (managementDatasets.length === 0) {
+                 managementDatasets.push({
+                    label: '維運代管費',
+                    data: [], // Empty data
+                    backgroundColor: 'rgba(168, 85, 247, 0.6)'
+                });
+            }
+
             this.instances.management.data.labels = labels;
-            this.instances.management.data.datasets = [{
-                label: '維運代管費',
-                data: managementData,
-                backgroundColor: 'rgba(168, 85, 247, 0.6)' // Purple-400
-            }];
+            this.instances.management.data.datasets = managementDatasets;
             this.instances.management.update();
 
             this.instances.cumulative.data.labels = ['投資額', ...labels];
@@ -2395,14 +2423,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 const profitShareCheckboxes = [UI.elements.profitShareByAmount, UI.elements.profitShareByPercentage, UI.elements.profitShareBySite];
                 const noneCheckbox = UI.elements.profitShareNone;
                 if (noneCheckbox.checked) {
-                    profitShareCheckboxes.forEach(cb => { cb.checked = false; cb.disabled = true; });
-                } else {
-                    profitShareCheckboxes.forEach(cb => { cb.disabled = false; });
-                    if (profitShareCheckboxes.some(cb => cb.checked)) {
-                        noneCheckbox.disabled = true;
-                    }
+                    profitShareCheckboxes.forEach(cb => { cb.checked = false; });
                 }
-
+                
                 if(typeof inputs.financingEnabled !== 'undefined') { UI.elements.financingToggle.checked = inputs.financingEnabled; }
 
                 Object.keys(inputs).forEach(key => {
@@ -2410,7 +2433,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (el && typeof inputs[key] !== 'object' && typeof inputs[key] !== 'undefined') {
                         if (key === 'demandGrowthRate' || key === 'profitSharePercentage' || key === 'loanPercentage' || key === 'interestRate') {
                             el.value = inputs[key] * 100;
-                        } else if (!['billingMethod', 'chargeFeePerKwh', 'profitShareMethod'].includes(key)) { 
+                        } else if (!['billingMethod', 'chargeFeePerKwh', 'profitShareMethod', 'profitShareMethods'].includes(key)) { 
                             el.value = inputs[key];
                         }
                     }
