@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智慧充電站投資效益分析 (v12.7)</title>
+    <title>智慧充電站投資效益分析 (v12.8)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -606,6 +606,7 @@
                 <div class="card bg-sky-50"><h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-5">年度充電淨利</h2><div class="flex-grow h-80"><canvas id="pnlChart"></canvas></div></div>
                 <div class="card bg-sky-50"><h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-5">累積損益趨勢</h2><div class="flex-grow h-80"><canvas id="cumulativePnlChart"></canvas></div></div>
                 <div class="card bg-sky-50"><h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-5">年度營收與成本圖表</h2><div class="flex-grow h-80"><canvas id="revenueCostChart"></canvas></div></div>
+                <div class="card bg-sky-50"><h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-5">維運代管圖表</h2><div class="flex-grow h-80"><canvas id="managementChart"></canvas></div></div>
             </div>
         </div>
 
@@ -996,7 +997,7 @@ document.addEventListener('DOMContentLoaded', function () {
         elements: {},
         init() { this.cacheDOMElements(); this.updateUIVisibility(); this.elements.addEquipmentBtn.addEventListener('click', () => { this.addEquipmentRow(); App.update(); }); },
         cacheDOMElements() {
-            const ids = ['siteNameDisplay', 'saveBtn', 'recordsBtn', 'newAnalysisBtn', 'saveRecordModal', 'closeSaveModalBtn', 'cancelSaveBtn', 'recordNameInput', 'saveRecordMessage', 'confirmSaveBtn', 'recordsModal', 'closeRecordsModalBtn', 'recordsList', 'newAnalysisConfirmModal', 'cancelNewAnalysisBtn', 'confirmNewAnalysisBtn', 'equipmentListContainer', 'addEquipmentBtn', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'infrastructureCostMain', 'chargeFeePerKwhAC', 'chargeFeePerKwhDC', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'acSettingsBlock', 'dcSettingsBlock', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'fixedRateSectionDC', 'touRateSectionDC', 'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection', 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'pnlTable', 'cumulativePnlChart', 'touPieChart', 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'pnlChart', 'revenueCostChart', 'operationPeriodSummary', 'totalRevenueSummary', 'totalNetProfitSummary', 'roiSummary', 'irrSummary', 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn', 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage', 'advancedContentSection', 'specsModalTableBody', 'formulaContainer', 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage', 'saveAdvancedBtn', 'touGridEditor', 'touGridContainer', 'touEditorMessage', 'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost', 'explainerPaybackPeriod', 'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn', 'profitShareByAmountSection', 'profitShareByPercentageSection', 'profitShareAmount', 'profitSharePercentage', 'profitShareBySiteSection', 'siteFeeMonthly', 'gunCountThreshold', 'siteFeePerGunMonthly', 'siteFeeValidationMessage', 'financingToggle', 'financingSection', 'loanPercentage', 'interestRate', 'loanTerm', 'peakPercentDisplay', 'offpeakPercentDisplay', 'holidayPercentDisplay', 'totalInterestSummary', 'roeSummary', 'explainerEquityItem', 'explainerLoanItem', 'explainerTotalInterestItem', 'explainerEquity', 'explainerLoan', 'explainerTotalInterest'];
+            const ids = ['siteNameDisplay', 'saveBtn', 'recordsBtn', 'newAnalysisBtn', 'saveRecordModal', 'closeSaveModalBtn', 'cancelSaveBtn', 'recordNameInput', 'saveRecordMessage', 'confirmSaveBtn', 'recordsModal', 'closeRecordsModalBtn', 'recordsList', 'newAnalysisConfirmModal', 'cancelNewAnalysisBtn', 'confirmNewAnalysisBtn', 'equipmentListContainer', 'addEquipmentBtn', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'infrastructureCostMain', 'chargeFeePerKwhAC', 'chargeFeePerKwhDC', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'acSettingsBlock', 'dcSettingsBlock', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'fixedRateSectionDC', 'touRateSectionDC', 'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection', 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'pnlTable', 'cumulativePnlChart', 'touPieChart', 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'pnlChart', 'revenueCostChart', 'managementChart', 'operationPeriodSummary', 'totalRevenueSummary', 'totalNetProfitSummary', 'roiSummary', 'irrSummary', 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn', 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage', 'advancedContentSection', 'specsModalTableBody', 'formulaContainer', 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage', 'saveAdvancedBtn', 'touGridEditor', 'touGridContainer', 'touEditorMessage', 'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost', 'explainerPaybackPeriod', 'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn', 'profitShareByAmountSection', 'profitShareByPercentageSection', 'profitShareAmount', 'profitSharePercentage', 'profitShareBySiteSection', 'siteFeeMonthly', 'gunCountThreshold', 'siteFeePerGunMonthly', 'siteFeeValidationMessage', 'financingToggle', 'financingSection', 'loanPercentage', 'interestRate', 'loanTerm', 'peakPercentDisplay', 'offpeakPercentDisplay', 'holidayPercentDisplay', 'totalInterestSummary', 'roeSummary', 'explainerEquityItem', 'explainerLoanItem', 'explainerTotalInterestItem', 'explainerEquity', 'explainerLoan', 'explainerTotalInterest'];
             ids.forEach(id => this.elements[id] = document.getElementById(id));
         },
         getNumericValue(element, defaultValue = 0) { if (!element) return defaultValue; const value = parseFloat(String(element.value).replace(/,/g, '')); return isNaN(value) ? defaultValue : value; },
@@ -1098,7 +1099,6 @@ document.addEventListener('DOMContentLoaded', function () {
             mainRow.append(powerSelect, countContainer, removeBtn);
 
             const cabinetRow = document.createElement('div');
-            // *** FIX: Removed 'hidden-section' class. Visibility will be controlled by inline style. ***
             cabinetRow.className = 'grid grid-cols-2 items-center gap-4 cabinet-count-container';
             cabinetRow.innerHTML = `<span class="label-text">能源櫃數量</span><input type="number" class="input-field cabinet-count-display readonly" readonly>`;
 
@@ -1123,9 +1123,8 @@ document.addEventListener('DOMContentLoaded', function () {
             
             countLabel.textContent = spec.type === 'DC_360' ? '終端機數' : '充電樁數';
             
-            // *** FIX: Changed from classList manipulation to direct style manipulation for robustness. ***
             if (spec.type === 'DC_360') {
-                cabinetRow.style.display = 'grid'; // Use 'grid' to match the CSS class
+                cabinetRow.style.display = 'grid';
                 const terminalCount = this.getNumericValue(countInput, 1);
                 const cabinetCount = Math.ceil(terminalCount / 6);
                 cabinetCountDisplay.value = cabinetCount;
@@ -1929,7 +1928,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const items = []; const p = Config.calculationParams; 
             const totalPileCount = inputs.equipmentList.reduce((sum, item) => sum + item.pileCount, 0);
             const hasDC = inputs.equipmentList.some(item => item.spec.type !== 'AC');
-            if (p.taipowerFee.enabled) { const val = totalKwhSold * p.taipowerFee.value * (1 + (p.powerLossRate.enabled ? p.powerLossRate.value : 0)); items.push({ label: p.taipowerFee.label, value: val, formula: `${this.formatCurrencyForFormula(totalKwhSold,0)} kWh x ${p.taipowerFee.value}元 x (1 + ${p.powerLossRate.value*100}%)` }); }
+            if (p.taipowerFee.enabled) { const val = totalKwhSold * p.taipowerFee.value * (1 + (p.powerLossRate.enabled ? p.powerLossRate.value : 0)); items.push({ key: 'taipowerFee', label: p.taipowerFee.label, value: val, formula: `${this.formatCurrencyForFormula(totalKwhSold,0)} kWh x ${p.taipowerFee.value}元 x (1 + ${p.powerLossRate.value*100}%)` }); }
             
             if (inputs.profitShareMethod !== 'none') {
                 let managementCost = 0;
@@ -1958,20 +1957,20 @@ document.addEventListener('DOMContentLoaded', function () {
                         label = '維運代管費';
                         break;
                 }
-                items.push({ label: label, value: managementCost, formula });
+                items.push({ key: 'management', label: label, value: managementCost, formula });
             }
 
-            if (p.transactionFeeRate.enabled) items.push({ label: p.transactionFeeRate.label, value: revenue * p.transactionFeeRate.value, formula: `${this.formatCurrencyForFormula(revenue)} x ${p.transactionFeeRate.value*100}%` });
-            if (p.electronicInvoiceFeePerTransaction.enabled) items.push({ label: p.electronicInvoiceFeePerTransaction.label, value: numberOfTransactions * p.electronicInvoiceFeePerTransaction.value, formula: `${this.formatCurrencyForFormula(numberOfTransactions,0)} 張 x ${p.electronicInvoiceFeePerTransaction.value} 元` });
-            if (p.repairPartsRate.enabled) items.push({ label: p.repairPartsRate.label, value: results.costBreakdown.equipmentCost * p.repairPartsRate.value, formula: `${this.formatCurrencyForFormula(results.costBreakdown.equipmentCost)} x ${p.repairPartsRate.value*100}%` });
-            if (p.electricalTechnicianFee.enabled && hasDC) items.push({ label: p.electricalTechnicianFee.label, value: p.electricalTechnicianFee.value, formula: '固定年費' });
-            if (p.maintenanceFee.enabled) items.push({ label: p.maintenanceFee.label, value: p.maintenanceFee.value, formula: '固定年費' });
-            if (p.insuranceFee.enabled) items.push({ label: p.insuranceFee.label, value: p.insuranceFee.value, formula: '固定年費' });
-            if (p.extendedWarrantyPerPile.enabled) items.push({ label: p.extendedWarrantyPerPile.label, value: totalPileCount * p.extendedWarrantyPerPile.value, formula: `${this.formatCurrencyForFormula(p.extendedWarrantyPerPile.value,0)} x ${totalPileCount} 樁` });
-            if (p.laborCost.enabled) items.push({ label: p.laborCost.label, value: p.laborCost.value, formula: '固定年費' });
-            if (p.internetFee.enabled) items.push({ label: '網路費', value: p.internetFee.value * 12, formula: `${this.formatCurrencyForFormula(p.internetFee.value,0)} x 12 個月` });
-            if (p.tdxUploadFee.enabled) items.push({ label: 'TDX上傳費', value: p.tdxUploadFee.value * totalGunCount * 12, formula: `${this.formatCurrencyForFormula(p.tdxUploadFee.value,0)} x ${totalGunCount} 槍 x 12 個月` });
-            if (inputs.rentMethod !== 'none') { const totalParkingSpaces = inputs.equipmentList.reduce((sum, item) => sum + item.parkingSpaces, 0); let rentCost = (inputs.rentMethod === 'bySpace') ? inputs.rentPerSpace * totalParkingSpaces * 12 : inputs.rentPerLand * 12; let formula = (inputs.rentMethod === 'bySpace') ? `${this.formatCurrencyForFormula(inputs.rentPerSpace,0)} x ${totalParkingSpaces} 車位 x 12 個月` : `${this.formatCurrencyForFormula(inputs.rentPerLand,0)} x 12 個月`; items.push({ label: '租金', value: rentCost, formula }); }
+            if (p.transactionFeeRate.enabled) items.push({ key: 'transactionFee', label: p.transactionFeeRate.label, value: revenue * p.transactionFeeRate.value, formula: `${this.formatCurrencyForFormula(revenue)} x ${p.transactionFeeRate.value*100}%` });
+            if (p.electronicInvoiceFeePerTransaction.enabled) items.push({ key: 'invoiceFee', label: p.electronicInvoiceFeePerTransaction.label, value: numberOfTransactions * p.electronicInvoiceFeePerTransaction.value, formula: `${this.formatCurrencyForFormula(numberOfTransactions,0)} 張 x ${p.electronicInvoiceFeePerTransaction.value} 元` });
+            if (p.repairPartsRate.enabled) items.push({ key: 'repairFee', label: p.repairPartsRate.label, value: results.costBreakdown.equipmentCost * p.repairPartsRate.value, formula: `${this.formatCurrencyForFormula(results.costBreakdown.equipmentCost)} x ${p.repairPartsRate.value*100}%` });
+            if (p.electricalTechnicianFee.enabled && hasDC) items.push({ key: 'electricalTechFee', label: p.electricalTechnicianFee.label, value: p.electricalTechnicianFee.value, formula: '固定年費' });
+            if (p.maintenanceFee.enabled) items.push({ key: 'maintenanceFee', label: p.maintenanceFee.label, value: p.maintenanceFee.value, formula: '固定年費' });
+            if (p.insuranceFee.enabled) items.push({ key: 'insuranceFee', label: p.insuranceFee.label, value: p.insuranceFee.value, formula: '固定年費' });
+            if (p.extendedWarrantyPerPile.enabled) items.push({ key: 'warrantyFee', label: p.extendedWarrantyPerPile.label, value: totalPileCount * p.extendedWarrantyPerPile.value, formula: `${this.formatCurrencyForFormula(p.extendedWarrantyPerPile.value,0)} x ${totalPileCount} 樁` });
+            if (p.laborCost.enabled) items.push({ key: 'laborCost', label: p.laborCost.label, value: p.laborCost.value, formula: '固定年費' });
+            if (p.internetFee.enabled) items.push({ key: 'internetFee', label: '網路費', value: p.internetFee.value * 12, formula: `${this.formatCurrencyForFormula(p.internetFee.value,0)} x 12 個月` });
+            if (p.tdxUploadFee.enabled) items.push({ key: 'tdxFee', label: 'TDX上傳費', value: p.tdxUploadFee.value * totalGunCount * 12, formula: `${this.formatCurrencyForFormula(p.tdxUploadFee.value,0)} x ${totalGunCount} 槍 x 12 個月` });
+            if (inputs.rentMethod !== 'none') { const totalParkingSpaces = inputs.equipmentList.reduce((sum, item) => sum + item.parkingSpaces, 0); let rentCost = (inputs.rentMethod === 'bySpace') ? inputs.rentPerSpace * totalParkingSpaces * 12 : inputs.rentPerLand * 12; let formula = (inputs.rentMethod === 'bySpace') ? `${this.formatCurrencyForFormula(inputs.rentPerSpace,0)} x ${totalParkingSpaces} 車位 x 12 個月` : `${this.formatCurrencyForFormula(inputs.rentPerLand,0)} x 12 個月`; items.push({ key: 'rent', label: '租金', value: rentCost, formula }); }
             
             if (inputs.financingEnabled && year <= inputs.loanTerm && remainingLoanPrincipal > 0) {
                 const interestPayment = remainingLoanPrincipal * inputs.interestRate;
@@ -2004,7 +2003,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         depreciation = depreciableBase * (remainingLife / sydDenominator);
                         formula = `(${this.formatCurrencyForFormula(results.costBreakdown.equipmentCost)} - ${this.formatCurrencyForFormula(results.costBreakdown.totalSalvageValue)}) x ${remainingLife}/${sydDenominator}`;
                     }
-                    items.push({ label: '折舊', value: depreciation, formula });
+                    items.push({ key: 'depreciation', label: '折舊', value: depreciation, formula });
                 }
             }
             return items;
@@ -2068,7 +2067,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             this.instances.revenueCost = new Chart(UI.elements.revenueCostChart, { type: 'bar', data: { labels: [], datasets: [] }, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
-            
+            this.instances.management = new Chart(UI.elements.managementChart, { type: 'bar', data: { labels: [], datasets: [] }, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
             this.instances.cumulative = new Chart(UI.elements.cumulativePnlChart, { type: 'line', data: { labels: [], datasets: [] }, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
             this.instances.tou = new Chart(UI.elements.touPieChart, { type: 'doughnut', data: { labels: [], datasets: [] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.label}: ${c.raw}%` } } } } });
         },
@@ -2096,6 +2095,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
             this.instances.revenueCost.data.labels = labels; this.instances.revenueCost.data.datasets = [{ label: '總營收', data: results.annualData.map(d => d.revenue), backgroundColor: 'rgba(75, 192, 192, 0.6)' }, { label: '總成本', data: results.annualData.map(d => d.cost), backgroundColor: 'rgba(255, 159, 64, 0.6)' }]; this.instances.revenueCost.update();
             
+            const managementData = results.annualData.map(d => {
+                const managementItem = d.details.costBreakdownItems.find(item => item.key === 'management');
+                return managementItem ? managementItem.value : 0;
+            });
+            this.instances.management.data.labels = labels;
+            this.instances.management.data.datasets = [{
+                label: '維運代管費',
+                data: managementData,
+                backgroundColor: 'rgba(168, 85, 247, 0.6)' // Purple-400
+            }];
+            this.instances.management.update();
+
             this.instances.cumulative.data.labels = ['投資額', ...labels];
             this.instances.cumulative.data.datasets = [{
                 label: '累積稅前淨利',
