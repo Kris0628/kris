@@ -1008,19 +1008,29 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         },
         getInputs() {
-            const equipmentList = Array.from(document.querySelectorAll('.equipment-row')).map(row => {
-                const powerSelect = row.querySelector('.device-power-select');
-                const countInput = row.querySelector('.equipment-count');
+            const equipmentList = Array.from(document.querySelectorAll('.equipment-row-wrapper')).map(wrapper => {
+                const powerSelect = wrapper.querySelector('.device-power-select');
+                const countInput = wrapper.querySelector('.equipment-count');
                 const power = powerSelect.value;
                 const spec = Config.deviceSpecs[power];
                 const count = this.getNumericValue(countInput, 1);
                 let pileCount = 0, gunCount = 0, parkingSpaces = 0, cabinetCount = 0;
 
-                if (spec.type === 'DC_360') {
-                    gunCount = count; cabinetCount = Math.ceil(gunCount / 6); pileCount = gunCount; parkingSpaces = gunCount;
+                pileCount = count; // For all types, the input count is the number of piles/terminals.
+                
+                // All DC chargers over 30kW, including the 360kW terminal, are 1-pile-2-guns.
+                if ((spec.type === 'DC' || spec.type === 'DC_360') && spec.power > 30) {
+                    gunCount = pileCount * 2;
                 } else {
-                    pileCount = count; gunCount = (spec.type === 'DC' && spec.power > 30) ? pileCount * 2 : pileCount; parkingSpaces = gunCount;
+                    gunCount = pileCount;
                 }
+                
+                parkingSpaces = gunCount;
+
+                if (spec.type === 'DC_360') {
+                    cabinetCount = Math.ceil(pileCount / 6); // Cabinet count is based on number of terminals (piles).
+                }
+
                 return { power, spec, count, pileCount, gunCount, parkingSpaces, cabinetCount };
             });
 
@@ -1045,9 +1055,9 @@ document.addEventListener('DOMContentLoaded', function () {
             return { equipmentList, chargeFeePerKwhAC: this.getNumericValue(this.elements.chargeFeePerKwhAC), billingMethodDC: document.querySelector('input[name="billingMethodDC"]:checked').value, chargeFeePerKwhDC: this.getNumericValue(this.elements.chargeFeePerKwhDC), peakRate: this.getNumericValue(this.elements.peakRate), offPeakRate: this.getNumericValue(this.elements.offPeakRate), holidayRate: this.getNumericValue(this.elements.holidayRate), revenueMethodDC: document.querySelector('input[name="revenueMethodDC"]:checked').value, carsPerGunPerDayDC: this.getNumericValue(this.elements.carsPerGunPerDayDC), kwhPerGunPerMonthDC: this.getNumericValue(this.elements.kwhPerGunPerMonthDC), revenueMethodAC: document.querySelector('input[name="revenueMethodAC"]:checked').value, carsPerGunPerDayAC: this.getNumericValue(this.elements.carsPerGunPerDayAC), kwhPerGunPerMonthAC: this.getNumericValue(this.elements.kwhPerGunPerMonthAC), avgKwhPerCar: this.getNumericValue(this.elements.avgKwhPerCar), demandGrowthRate: this.getNumericValue(this.elements.demandGrowthRate) / 100, operationYears: this.getNumericValue(this.elements.operationYears, 1), depreciationYears: this.getNumericValue(this.elements.depreciationYears, 1), depreciationMethod: document.querySelector('input[name="depreciationMethod"]:checked').value, infrastructureCostMain: this.getNumericValue(this.elements.infrastructureCostMain), rentMethod, rentPerSpace, rentPerLand, profitShareMethod, profitShareAmount, profitSharePercentage, siteFeeMonthly, gunCountThreshold, siteFeePerGunMonthly, financingEnabled, loanPercentage: financingEnabled ? this.getNumericValue(this.elements.loanPercentage, 0) / 100 : 0, interestRate: financingEnabled ? this.getNumericValue(this.elements.interestRate, 0) / 100 : 0, loanTerm: financingEnabled ? this.getNumericValue(this.elements.loanTerm, 0) : 0, touRatios: { peak: this.getNumericValue(this.elements.peakUsageRatio) / 100, offpeak: this.getNumericValue(this.elements.offPeakUsageRatio) / 100, holiday: this.getNumericValue(this.elements.holidayUsageRatio) / 100, } };
         },
         getEquipmentConfig() {
-            return Array.from(document.querySelectorAll('.equipment-row')).map(row => {
-                const powerSelect = row.querySelector('.device-power-select');
-                const countInput = row.querySelector('.equipment-count');
+            return Array.from(document.querySelectorAll('.equipment-row-wrapper')).map(wrapper => {
+                const powerSelect = wrapper.querySelector('.device-power-select');
+                const countInput = wrapper.querySelector('.equipment-count');
                 return {
                     power: powerSelect.value,
                     count: this.getNumericValue(countInput, 1)
@@ -1056,8 +1066,11 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         addEquipmentRow(config = {}) {
             const container = UI.elements.equipmentListContainer;
-            const row = document.createElement('div');
-            row.className = 'equipment-row';
+            const wrapper = document.createElement('div');
+            wrapper.className = 'equipment-row-wrapper p-3 border border-gray-200 rounded-lg space-y-3';
+
+            const mainRow = document.createElement('div');
+            mainRow.className = 'equipment-row';
 
             const powerSelect = document.createElement('select');
             powerSelect.className = 'input-field device-power-select';
@@ -1074,19 +1087,47 @@ document.addEventListener('DOMContentLoaded', function () {
             removeBtn.className = 'remove-equip-btn';
             removeBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd" /></svg>`;
             removeBtn.onclick = () => {
-                if (container.children.length > 1) { row.remove(); App.update(); }
+                if (container.children.length > 1) {
+                    wrapper.remove();
+                    App.update();
+                }
             };
 
-            row.append(powerSelect, countContainer, removeBtn);
-            container.appendChild(row);
+            mainRow.append(powerSelect, countContainer, removeBtn);
+
+            const cabinetRow = document.createElement('div');
+            cabinetRow.className = 'grid grid-cols-2 items-center gap-4 cabinet-count-container hidden-section';
+            cabinetRow.innerHTML = `<span class="label-text">能源櫃數量</span><input type="number" class="input-field cabinet-count-display readonly" readonly>`;
+
+            wrapper.append(mainRow, cabinetRow);
+            container.appendChild(wrapper);
+
+            const countInput = wrapper.querySelector('.equipment-count');
             
-            powerSelect.addEventListener('change', () => this.updatePileCountUI(Config.deviceSpecs[powerSelect.value], row));
-            this.updatePileCountUI(Config.deviceSpecs[powerSelect.value], row);
+            powerSelect.addEventListener('change', () => { this.updateEquipmentRowUI(wrapper); App.update(); });
+            countInput.addEventListener('input', () => { this.updateEquipmentRowUI(wrapper); App.update(); });
+            
+            this.updateEquipmentRowUI(wrapper);
         },
-        updatePileCountUI(spec, row) {
-             const countLabel = row.querySelector('.count-label');
-             if (spec.type === 'DC_360') { countLabel.textContent = '終端機數'; } 
-             else { countLabel.textContent = '充電樁數'; }
+        updateEquipmentRowUI(wrapper) {
+            const powerSelect = wrapper.querySelector('.device-power-select');
+            const countInput = wrapper.querySelector('.equipment-count');
+            const countLabel = wrapper.querySelector('.count-label');
+            const cabinetRow = wrapper.querySelector('.cabinet-count-container');
+            const cabinetCountDisplay = wrapper.querySelector('.cabinet-count-display');
+            
+            const spec = Config.deviceSpecs[powerSelect.value];
+            
+            countLabel.textContent = spec.type === 'DC_360' ? '終端機數' : '充電樁數';
+            
+            if (spec.type === 'DC_360') {
+                cabinetRow.classList.remove('hidden-section');
+                const terminalCount = this.getNumericValue(countInput, 1);
+                const cabinetCount = Math.ceil(terminalCount / 6);
+                cabinetCountDisplay.value = cabinetCount;
+            } else {
+                cabinetRow.classList.add('hidden-section');
+            }
         },
         updateUIVisibility() {
             const hasAC = this.getInputs().equipmentList.some(e => e.spec.type === 'AC');
@@ -1720,7 +1761,7 @@ document.addEventListener('DOMContentLoaded', function () {
             inputs.equipmentList.forEach(item => {
                 const { spec, count, pileCount, gunCount, cabinetCount } = item;
                 if (spec.type === 'AC') hasAC = true; else hasDC = true;
-                totalDeviceCostUntaxed += (spec.type === 'DC_360') ? (cabinetCount * spec.cabinetCost) + (gunCount * spec.terminalCost) : pileCount * spec.cost;
+                totalDeviceCostUntaxed += (spec.type === 'DC_360') ? (cabinetCount * spec.cabinetCost) + (count * spec.terminalCost) : pileCount * spec.cost;
                 totalPowerKw += spec.power * (spec.type === 'DC_360' ? cabinetCount : pileCount);
                 totalGunCount += gunCount;
                 totalPileCount += pileCount;
@@ -1736,6 +1777,25 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             if (params.distributionPanelFee.enabled) { const fee = hasAC && !hasDC ? 30000 : params.distributionPanelFee.value; items.push({ key: 'distributionPanelFee', label: params.distributionPanelFee.label, value: fee, formula: hasAC && !hasDC ? 'AC 專案費用' : '一次性費用' }); }
             if (params.constructionFee.enabled) items.push({ key: 'constructionFee', label: params.constructionFee.label, value: inputs.infrastructureCostMain, formula: '由主畫面輸入' });
+            return items;
+        },
+        getRevenueBreakdown(yearData, inputs, results) { 
+            const items = [];
+            const { details } = yearData;
+            if (details.revenue['AC 充電服務費'] > 0) {
+                items.push({
+                    label: 'AC 充電服務費',
+                    value: details.revenue['AC 充電服務費'],
+                    formula: `${this.formatCurrencyForFormula(details.kwh.ac, 0)} kWh x ${this.formatCurrencyForFormula(results.avgChargeFeeAC, 2)}元`
+                });
+            }
+            if (details.revenue['DC 充電服務費'] > 0) {
+                items.push({
+                    label: 'DC 充電服務費',
+                    value: details.revenue['DC 充電服務費'],
+                    formula: `${this.formatCurrencyForFormula(details.kwh.dc, 0)} kWh x ${this.formatCurrencyForFormula(results.avgChargeFeeDC, 2)}元 (均價)`
+                });
+            }
             return items;
         },
         getOverallRevenueBreakdown(results, inputs) {
