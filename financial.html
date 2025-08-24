@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智慧充電站投資效益分析 (v12.9.2 - 圖表優化)</title>
+    <title>智慧充電站投資效益分析 (v12.9.4 - 圖表優化)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -606,10 +606,38 @@
                     <div class="summary-card"><div class="summary-label">ROE (股東權益報酬率)</div><div id="roeSummary" class="summary-value"></div></div>
                     <div class="summary-card"><div class="summary-label">IRR (內部報酬率)</div><div id="irrSummary" class="summary-value"></div></div>
                 </div>
-                <div class="card bg-sky-50"><h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-5">年度充電淨利</h2><div class="flex-grow h-80"><canvas id="pnlChart"></canvas></div></div>
-                <div class="card bg-sky-50"><h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-5">累積損益趨勢</h2><div class="flex-grow h-80"><canvas id="cumulativePnlChart"></canvas></div></div>
-                <div class="card bg-sky-50"><h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-5">年度營收與成本圖表</h2><div class="flex-grow h-80"><canvas id="revenueCostChart"></canvas></div></div>
-                <div class="card bg-sky-50"><h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-5">維運代管圖表</h2><div class="flex-grow h-80"><canvas id="managementChart"></canvas></div></div>
+                <div class="card bg-sky-50">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-2">
+                        <h2 class="text-xl md:text-2xl font-bold text-gray-800">年度充電淨利</h2>
+                        <span class="text-sm font-medium text-gray-500 mt-1 sm:mt-0">單位：元</span>
+                    </div>
+                    <div id="pnlChartLegend" class="flex flex-wrap gap-x-4 gap-y-1 justify-center mb-3"></div>
+                    <div class="flex-grow h-80"><canvas id="pnlChart"></canvas></div>
+                </div>
+                <div class="card bg-sky-50">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-2">
+                        <h2 class="text-xl md:text-2xl font-bold text-gray-800">累積損益趨勢</h2>
+                        <span class="text-sm font-medium text-gray-500 mt-1 sm:mt-0">單位：元</span>
+                    </div>
+                    <div id="cumulativePnlChartLegend" class="flex flex-wrap gap-x-4 gap-y-1 justify-center mb-3"></div>
+                    <div class="flex-grow h-80"><canvas id="cumulativePnlChart"></canvas></div>
+                </div>
+                <div class="card bg-sky-50">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-2">
+                        <h2 class="text-xl md:text-2xl font-bold text-gray-800">年度營收與成本圖表</h2>
+                        <span class="text-sm font-medium text-gray-500 mt-1 sm:mt-0">單位：元</span>
+                    </div>
+                    <div id="revenueCostChartLegend" class="flex flex-wrap gap-x-4 gap-y-1 justify-center mb-3"></div>
+                    <div class="flex-grow h-80"><canvas id="revenueCostChart"></canvas></div>
+                </div>
+                <div class="card bg-sky-50">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-2">
+                        <h2 class="text-xl md:text-2xl font-bold text-gray-800">維運代管圖表</h2>
+                        <span class="text-sm font-medium text-gray-500 mt-1 sm:mt-0">單位：元</span>
+                    </div>
+                    <div id="managementChartLegend" class="flex flex-wrap gap-x-4 gap-y-1 justify-center mb-3"></div>
+                    <div class="flex-grow h-80"><canvas id="managementChart"></canvas></div>
+                </div>
             </div>
         </div>
 
@@ -868,6 +896,47 @@ document.addEventListener('DOMContentLoaded', function () {
             ['infrastructureCostMain', 'rentPerSpace', 'rentPerLand', 'kwhPerGunPerMonthDC', 'siteFeeMonthly', 'siteFeePerGunMonthly'].forEach(id => { 
                 UI.elements[id]?.addEventListener('input', (e) => UI.formatNumericInput(e.target)); 
             });
+
+            // --- Arrow Key Listeners for number inputs ---
+            const setupArrowKeyListeners = () => {
+                const fields = [
+                    { id: 'profitShareAmount', step: 0.1, isFormatted: false },
+                    { id: 'profitSharePercentage', step: 1, isFormatted: false },
+                    { id: 'siteFeeMonthly', step: 100, isFormatted: true },
+                    { id: 'gunCountThreshold', step: 1, isFormatted: false },
+                    { id: 'siteFeePerGunMonthly', step: 100, isFormatted: true }
+                ];
+
+                const handleKeyDown = (e, step, isFormatted) => {
+                    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+                    e.preventDefault();
+
+                    const input = e.target;
+                    const currentValue = UI.getNumericValue(input, 0);
+                    let newValue = e.key === 'ArrowUp' ? currentValue + step : currentValue - step;
+                    
+                    if (newValue < 0) newValue = 0;
+                    
+                    if (isFormatted) {
+                        input.value = newValue.toLocaleString('en-US');
+                    } else {
+                        const decimalPlaces = (String(step).split('.')[1] || []).length;
+                        input.value = parseFloat(newValue.toFixed(decimalPlaces));
+                    }
+                    
+                    // Create and dispatch an 'input' event to trigger the main update
+                    const event = new Event('input', { bubbles: true, cancelable: true });
+                    input.dispatchEvent(event);
+                };
+
+                fields.forEach(field => {
+                    const element = UI.elements[field.id];
+                    if (element) {
+                        element.addEventListener('keydown', (e) => handleKeyDown(e, field.step, field.isFormatted));
+                    }
+                });
+            };
+            setupArrowKeyListeners();
         },
 
         update() {
@@ -1028,7 +1097,7 @@ document.addEventListener('DOMContentLoaded', function () {
         elements: {},
         init() { this.cacheDOMElements(); this.updateUIVisibility(); this.elements.addEquipmentBtn.addEventListener('click', () => { this.addEquipmentRow(); App.update(); }); },
         cacheDOMElements() {
-            const ids = ['siteNameDisplay', 'saveBtn', 'recordsBtn', 'newAnalysisBtn', 'saveRecordModal', 'closeSaveModalBtn', 'cancelSaveBtn', 'recordNameInput', 'saveRecordMessage', 'confirmSaveBtn', 'recordsModal', 'closeRecordsModalBtn', 'recordsList', 'newAnalysisConfirmModal', 'cancelNewAnalysisBtn', 'confirmNewAnalysisBtn', 'equipmentListContainer', 'addEquipmentBtn', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'infrastructureCostMain', 'chargeFeePerKwhAC', 'chargeFeePerKwhDC', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'acSettingsBlock', 'dcSettingsBlock', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'fixedRateSectionDC', 'touRateSectionDC', 'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection', 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'pnlTable', 'cumulativePnlChart', 'touPieChart', 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'pnlChart', 'revenueCostChart', 'managementChart', 'operationPeriodSummary', 'totalRevenueSummary', 'totalNetProfitSummary', 'roiSummary', 'irrSummary', 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn', 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage', 'advancedContentSection', 'specsModalTableBody', 'formulaContainer', 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage', 'saveAdvancedBtn', 'touGridEditor', 'touGridContainer', 'touEditorMessage', 'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost', 'explainerPaybackPeriod', 'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn', 'profitShareByAmount', 'profitShareByPercentage', 'profitShareBySite', 'profitShareNone', 'profitShareByAmountSection', 'profitShareByPercentageSection', 'profitShareAmount', 'profitSharePercentage', 'profitShareBySiteSection', 'siteFeeMonthly', 'gunCountThreshold', 'siteFeePerGunMonthly', 'siteFeeValidationMessage', 'financingToggle', 'financingSection', 'loanPercentage', 'interestRate', 'loanTerm', 'peakPercentDisplay', 'offpeakPercentDisplay', 'holidayPercentDisplay', 'totalInterestSummary', 'roeSummary', 'explainerEquityItem', 'explainerLoanItem', 'explainerTotalInterestItem', 'explainerEquity', 'explainerLoan', 'explainerTotalInterest'];
+            const ids = ['siteNameDisplay', 'saveBtn', 'recordsBtn', 'newAnalysisBtn', 'saveRecordModal', 'closeSaveModalBtn', 'cancelSaveBtn', 'recordNameInput', 'saveRecordMessage', 'confirmSaveBtn', 'recordsModal', 'closeRecordsModalBtn', 'recordsList', 'newAnalysisConfirmModal', 'cancelNewAnalysisBtn', 'confirmNewAnalysisBtn', 'equipmentListContainer', 'addEquipmentBtn', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'infrastructureCostMain', 'chargeFeePerKwhAC', 'chargeFeePerKwhDC', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'acSettingsBlock', 'dcSettingsBlock', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'fixedRateSectionDC', 'touRateSectionDC', 'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection', 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'pnlTable', 'cumulativePnlChart', 'touPieChart', 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'pnlChart', 'revenueCostChart', 'managementChart', 'operationPeriodSummary', 'totalRevenueSummary', 'totalNetProfitSummary', 'roiSummary', 'irrSummary', 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn', 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage', 'advancedContentSection', 'specsModalTableBody', 'formulaContainer', 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage', 'saveAdvancedBtn', 'touGridEditor', 'touGridContainer', 'touEditorMessage', 'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost', 'explainerPaybackPeriod', 'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn', 'profitShareByAmount', 'profitShareByPercentage', 'profitShareBySite', 'profitShareNone', 'profitShareByAmountSection', 'profitShareByPercentageSection', 'profitShareAmount', 'profitSharePercentage', 'profitShareBySiteSection', 'siteFeeMonthly', 'gunCountThreshold', 'siteFeePerGunMonthly', 'siteFeeValidationMessage', 'financingToggle', 'financingSection', 'loanPercentage', 'interestRate', 'loanTerm', 'peakPercentDisplay', 'offpeakPercentDisplay', 'holidayPercentDisplay', 'totalInterestSummary', 'roeSummary', 'explainerEquityItem', 'explainerLoanItem', 'explainerTotalInterestItem', 'explainerEquity', 'explainerLoan', 'explainerTotalInterest', 'pnlChartLegend', 'cumulativePnlChartLegend', 'revenueCostChartLegend', 'managementChartLegend'];
             ids.forEach(id => this.elements[id] = document.getElementById(id));
         },
         getNumericValue(element, defaultValue = 0) { if (!element) return defaultValue; const value = parseFloat(String(element.value).replace(/,/g, '')); return isNaN(value) ? defaultValue : value; },
@@ -2067,46 +2136,64 @@ document.addEventListener('DOMContentLoaded', function () {
         instances: {},
         init() {
             const yAxisTickFormatter = (v) => { if (isNaN(v) || v === null) return ''; const n = Number(v); if (Math.abs(n) >= 1e6) return `${(n / 1e6).toFixed(1)}M`; if (Math.abs(n) >= 1e3) return `${(n / 1e3).toFixed(0)}K`; return n.toLocaleString('en-US'); };
-            const commonOptions = { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'top' }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${UI.formatCurrency(c.raw)}` } }, title: { display: true, text: '單位：元', position: 'top', align: 'start', font: { weight: 'normal' }, color: '#6b7280' } } };
-            
-            const pnlCtx = UI.elements.pnlChart.getContext('2d');
-            
-            this.instances.pnl = new Chart(pnlCtx, { 
-                type: 'bar', 
-                data: { labels: [], datasets: [] }, 
-                options: { ...commonOptions, 
-                    scales: { 
-                        x: { grid: { display: false } }, 
-                        y: { 
-                            ticks: { callback: yAxisTickFormatter },
-                            grid: { color: '#e5e7eb' }
-                        } 
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: {
+                        display: false
                     },
-                    elements: {
-                        bar: {
-                            borderRadius: 5,
+                    tooltip: {
+                        callbacks: {
+                            label: c => `${c.dataset.label}: ${UI.formatCurrency(c.raw)}`
                         }
                     },
-                    plugins: {
-                        ...commonOptions.plugins,
-                        tooltip: {
-                            backgroundColor: '#111827',
-                            titleFont: { size: 14, weight: 'bold' },
-                            bodyFont: { size: 12 },
-                            padding: 12,
-                            cornerRadius: 8,
-                            callbacks: {
-                                label: c => `${c.dataset.label}: ${UI.formatCurrency(c.raw)}`
-                            }
-                        }
+                    title: {
+                        display: false
                     }
-                } 
-            });
-
+                }
+            };
+            
+            this.instances.pnl = new Chart(UI.elements.pnlChart, { type: 'bar', data: { labels: [], datasets: [] }, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter }, grid: { color: '#e5e7eb' } } } } });
             this.instances.revenueCost = new Chart(UI.elements.revenueCostChart, { type: 'bar', data: { labels: [], datasets: [] }, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
             this.instances.management = new Chart(UI.elements.managementChart, { type: 'bar', data: { labels: [], datasets: [] }, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
             this.instances.cumulative = new Chart(UI.elements.cumulativePnlChart, { type: 'line', data: { labels: [], datasets: [] }, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
             this.instances.tou = new Chart(UI.elements.touPieChart, { type: 'doughnut', data: { labels: [], datasets: [] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.label}: ${c.raw}%` } } } } });
+        },
+        generateLegend(chart, container) {
+            if (!chart || !container) return;
+            container.innerHTML = '';
+            const legendItems = chart.legend.legendItems;
+            if (!legendItems) return;
+
+            legendItems.forEach(item => {
+                const li = document.createElement('div');
+                li.className = 'flex items-center cursor-pointer';
+                
+                const box = document.createElement('span');
+                box.className = 'h-3 w-3 rounded-full mr-2';
+                if (typeof item.fillStyle === 'string') {
+                    box.style.backgroundColor = item.fillStyle;
+                } else {
+                    box.style.backgroundColor = item.strokeStyle;
+                }
+
+                const text = document.createElement('span');
+                text.className = 'text-gray-700';
+                text.style.textDecoration = item.hidden ? 'line-through' : '';
+                text.innerText = item.text;
+
+                li.appendChild(box);
+                li.appendChild(text);
+
+                li.onclick = () => {
+                    chart.toggleDataVisibility(item.datasetIndex);
+                    chart.update();
+                };
+
+                container.appendChild(li);
+            });
         },
         update(inputs, results) {
             if (!this.instances.pnl) this.init();
@@ -2129,8 +2216,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 borderWidth: 0
             }]; 
             this.instances.pnl.update();
+            this.generateLegend(this.instances.pnl, UI.elements.pnlChartLegend);
 
             this.instances.revenueCost.data.labels = labels; this.instances.revenueCost.data.datasets = [{ label: '總營收', data: results.annualData.map(d => d.revenue), backgroundColor: 'rgba(75, 192, 192, 0.6)' }, { label: '總成本', data: results.annualData.map(d => d.cost), backgroundColor: 'rgba(255, 159, 64, 0.6)' }]; this.instances.revenueCost.update();
+            this.generateLegend(this.instances.revenueCost, UI.elements.revenueCostChartLegend);
             
             const managementDatasets = [];
             const managementColors = {
@@ -2177,6 +2266,7 @@ document.addEventListener('DOMContentLoaded', function () {
             this.instances.management.options.scales.x.stacked = false;
             this.instances.management.options.scales.y.stacked = false;
             this.instances.management.update();
+            this.generateLegend(this.instances.management, UI.elements.managementChartLegend);
 
             this.instances.cumulative.data.labels = ['投資額', ...labels];
             this.instances.cumulative.data.datasets = [{
@@ -2188,6 +2278,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 backgroundColor: (c) => { const { ctx, chartArea, scales } = c.chart; if (!chartArea) return null; const g = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom); const z = scales.y.getPixelForValue(0); const zp = (z - chartArea.top) / chartArea.height; if (!isFinite(zp)) return 'rgba(219, 234, 254, 0.6)'; const cz = Math.max(0, Math.min(1, zp)); g.addColorStop(0, 'rgba(219, 234, 254, 0.6)'); g.addColorStop(cz, 'rgba(219, 234, 254, 0.6)'); g.addColorStop(cz, 'rgba(254, 226, 226, 0.6)'); g.addColorStop(1, 'rgba(254, 226, 226, 0.6)'); return g; }
             }];
             this.instances.cumulative.update();
+            this.generateLegend(this.instances.cumulative, UI.elements.cumulativePnlChartLegend);
 
             UI.elements.touPieChartContainer.style.display = inputs.billingMethodDC === 'tou' ? 'block' : 'none';
             if (inputs.billingMethodDC === 'tou') { this.instances.tou.data.labels = ['尖峰', '離峰', '假日']; this.instances.tou.data.datasets = [{ data: [inputs.touRatios.peak * 100, inputs.touRatios.offpeak * 100, inputs.touRatios.holiday * 100].map(v => v.toFixed(0)), backgroundColor: ['#ef4444', '#10b981', '#3b82f6'] }]; this.instances.tou.update(); }
