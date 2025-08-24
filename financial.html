@@ -910,38 +910,6 @@ document.addEventListener('DOMContentLoaded', function () {
             ['infrastructureCostMain', 'rentPerSpace', 'rentPerLand', 'kwhPerGunPerMonthDC', 'siteFeeMonthly', 'siteFeePerGunMonthly'].forEach(id => { 
                 UI.elements[id]?.addEventListener('input', (e) => UI.formatNumericInput(e.target)); 
             });
-
-            // --- Arrow Key Listeners for number inputs ---
-            const setupArrowKeyListeners = (fieldId, step, isFormatted) => {
-                const element = UI.elements[fieldId];
-                if (!element) return;
-
-                element.addEventListener('keydown', (e) => {
-                    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
-                    e.preventDefault();
-
-                    const currentValue = UI.getNumericValue(element, 0);
-                    let newValue = e.key === 'ArrowUp' ? currentValue + step : currentValue - step;
-                    
-                    if (newValue < 0) newValue = 0;
-                    
-                    if (isFormatted) {
-                        element.value = newValue.toLocaleString('en-US');
-                    } else {
-                        const decimalPlaces = (String(step).split('.')[1] || []).length;
-                        element.value = parseFloat(newValue.toFixed(decimalPlaces));
-                    }
-                    
-                    const event = new Event('input', { bubbles: true, cancelable: true });
-                    element.dispatchEvent(event);
-                });
-            };
-            
-            setupArrowKeyListeners('profitShareAmount', 0.1, false);
-            setupArrowKeyListeners('profitSharePercentage', 1, false);
-            setupArrowKeyListeners('siteFeeMonthly', 100, true);
-            setupArrowKeyListeners('gunCountThreshold', 1, false);
-            setupArrowKeyListeners('siteFeePerGunMonthly', 100, true);
         },
 
         update() {
@@ -1542,7 +1510,7 @@ document.addEventListener('DOMContentLoaded', function () {
         populateSpecsModal(deviceSpecs, calculationParams) {
             const tableBody = this.elements.specsModalTableBody; tableBody.innerHTML = ''; const taxRate = calculationParams.taxRate.enabled ? calculationParams.taxRate.value : 0;
             Object.entries(deviceSpecs).forEach(([power, spec]) => {
-                if (spec.type === 'DC_360') { const createRow = (component, cost, salvage) => { const costTaxed = cost * (1 + taxRate); const salvagePercentage = cost > 0 ? (salvage / cost * 100).toFixed(1) : 10; return `<td>${component}</td><td><input type="text" class="modal-table-input cost-input" data-power="${power}" data-type="${component.toLowerCase()}Cost" value="${cost.toLocaleString('en-US')}"></td><td class="text-right p-2">${this.formatCurrency(costTaxed, 0, false, true)}</td><td><input type="number" class="modal-table-input salvage-percent-input" value="${salvagePercentage}"></td><td class="text-right salvage-display p-2" data-power="${power}" data-type="${component.toLowerCase()}Salvage">${salvage.toLocaleString('en-US')}</td>`; }; tableBody.insertAdjacentHTML('beforeend', `<tr><td class="font-semibold align-middle" rowspan="2">${spec.name}</td>${createRow('Cabinet', spec.cabinetCost, spec.cabinetSalvage)}</tr><tr>${createRow('Terminal', spec.terminalCost, spec.terminalSalvage)}</tr>`); } else { const costTaxed = spec.cost * (1 + taxRate); const salvagePercentage = spec.cost > 0 ? (spec.salvage / spec.cost * 100).toFixed(1) : 10; tableBody.insertAdjacentHTML('beforeend', `<tr><td class="font-semibold align-middle">${spec.name}</td><td>充電樁</td><td><input type="text" class="modal-table-input cost-input" data-power="${power}" data-type="cost" value="${spec.cost.toLocaleString('en-US')}"></td><td class="text-right p-2">${this.formatCurrency(costTaxed, 0, false, true)}</td><td><input type="number" class="modal-table-input salvage-percent-input" value="${salvagePercentage}"></td><td class="text-right salvage-display p-2" data-power="${power}" data-type="salvage">${spec.salvage.toLocaleString('en-US')}</td></tr>`); }
+                if (spec.type === 'DC_360') { const createRow = (component, cost, salvage) => { const costTaxed = cost * (1 + taxRate); const salvagePercentage = cost > 0 ? (salvage / cost * 100).toFixed(1) : 10; return `<td>${component}</td><td><input type="text" class="modal-table-input cost-input" data-power="${power}" data-type="${component.toLowerCase()}Cost" value="${cost.toLocaleString('en-US')}"></td><td class="text-right p-2 cost-taxed-display">${this.formatCurrency(costTaxed, 0, false, true)}</td><td><input type="number" class="modal-table-input salvage-percent-input" value="${salvagePercentage}"></td><td class="text-right salvage-display p-2" data-power="${power}" data-type="${component.toLowerCase()}Salvage">${salvage.toLocaleString('en-US')}</td>`; }; tableBody.insertAdjacentHTML('beforeend', `<tr><td class="font-semibold align-middle" rowspan="2">${spec.name}</td>${createRow('Cabinet', spec.cabinetCost, spec.cabinetSalvage)}</tr><tr>${createRow('Terminal', spec.terminalCost, spec.terminalSalvage)}</tr>`); } else { const costTaxed = spec.cost * (1 + taxRate); const salvagePercentage = spec.cost > 0 ? (spec.salvage / spec.cost * 100).toFixed(1) : 10; tableBody.insertAdjacentHTML('beforeend', `<tr><td class="font-semibold align-middle">${spec.name}</td><td>充電樁</td><td><input type="text" class="modal-table-input cost-input" data-power="${power}" data-type="cost" value="${spec.cost.toLocaleString('en-US')}"></td><td class="text-right p-2 cost-taxed-display">${this.formatCurrency(costTaxed, 0, false, true)}</td><td><input type="number" class="modal-table-input salvage-percent-input" value="${salvagePercentage}"></td><td class="text-right salvage-display p-2" data-power="${power}" data-type="salvage">${spec.salvage.toLocaleString('en-US')}</td></tr>`); }
             });
             this.addSpecInputListeners(tableBody);
         },
@@ -1551,7 +1519,24 @@ document.addEventListener('DOMContentLoaded', function () {
             focusable.forEach((input, index) => {
                 input.addEventListener('focus', (e) => e.target.dataset.originalValue = e.target.value);
                 input.addEventListener('keydown', (e) => { switch (e.key) { case 'Enter': case 'ArrowDown': e.preventDefault(); if (e.key === 'Enter') e.target.blur(); focusable[(index + 1) % focusable.length].focus(); focusable[(index + 1) % focusable.length].select(); break; case 'ArrowUp': e.preventDefault(); focusable[(index - 1 + focusable.length) % focusable.length].focus(); focusable[(index - 1 + focusable.length) % focusable.length].select(); break; case 'Escape': e.preventDefault(); e.target.value = e.target.dataset.originalValue; e.target.blur(); break; } });
-                input.addEventListener('input', (e) => { const row = e.target.closest('tr'); const costInput = row.querySelector('.cost-input'); const percentInput = row.querySelector('.salvage-percent-input'); const salvageValueDisplay = row.querySelector('.salvage-display'); const cost = parseFloat(costInput.value.replace(/,/g,'')) || 0; const percent = parseFloat(percentInput.value) || 0; salvageValueDisplay.textContent = Math.round((cost * percent) / 100).toLocaleString('en-US'); });
+                input.addEventListener('input', (e) => {
+                    const row = e.target.closest('tr');
+                    const costInput = row.querySelector('.cost-input');
+                    const percentInput = row.querySelector('.salvage-percent-input');
+                    const salvageValueDisplay = row.querySelector('.salvage-display');
+                    const costTaxedDisplay = row.querySelector('.cost-taxed-display');
+                    
+                    if (costInput && percentInput && salvageValueDisplay && costTaxedDisplay) {
+                        const cost = parseFloat(costInput.value.replace(/,/g,'')) || 0;
+                        const percent = parseFloat(percentInput.value) || 0;
+                        
+                        salvageValueDisplay.textContent = Math.round((cost * percent) / 100).toLocaleString('en-US');
+
+                        const taxRate = Config.calculationParams.taxRate.enabled ? Config.calculationParams.taxRate.value : 0;
+                        const costTaxed = cost * (1 + taxRate);
+                        costTaxedDisplay.textContent = UI.formatCurrency(costTaxed, 0, false, true);
+                    }
+                });
                 input.addEventListener('blur', (e) => { const value = parseFloat(e.target.value.replace(/,/g, '')) || 0; e.target.value = value.toLocaleString('en-US'); });
             });
         },
