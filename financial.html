@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智慧充電站投資效益分析 (v12.9.7 - 顏色優化)</title>
+    <title>智慧充電站投資效益分析 (v12.9.9 - 介面優化)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -692,6 +692,10 @@
                                     <strong>總成本：</strong><span id="explainerTotalCost" class="font-semibold text-red-700"></span>
                                     <span class="text-gray-500 text-sm ml-2">{營運期間的所有開銷。}</span>
                                 </li>
+                                 <li id="explainerTotalManagementCostItem" data-target="management">
+                                    <strong>維運代管總成本：</strong><span id="explainerTotalManagementCost" class="font-semibold text-purple-700"></span>
+                                    <span class="text-gray-500 text-sm ml-2">{營運期間的維運代管總開銷。}</span>
+                                </li>
                                 <li>
                                     <strong>預計回收年限：</strong><span id="explainerPaybackPeriod" class="font-semibold text-gray-700"></span>
                                     <span class="text-gray-500 text-sm ml-2">{「累積稅前淨利」由負轉正的年度。}</span>
@@ -1070,7 +1074,7 @@ document.addEventListener('DOMContentLoaded', function () {
         elements: {},
         init() { this.cacheDOMElements(); this.updateUIVisibility(); this.elements.addEquipmentBtn.addEventListener('click', () => { this.addEquipmentRow(); App.update(); }); },
         cacheDOMElements() {
-            const ids = ['siteNameDisplay', 'saveBtn', 'recordsBtn', 'newAnalysisBtn', 'saveRecordModal', 'closeSaveModalBtn', 'cancelSaveBtn', 'recordNameInput', 'saveRecordMessage', 'confirmSaveBtn', 'recordsModal', 'closeRecordsModalBtn', 'recordsList', 'newAnalysisConfirmModal', 'cancelNewAnalysisBtn', 'confirmNewAnalysisBtn', 'equipmentListContainer', 'addEquipmentBtn', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'infrastructureCostMain', 'chargeFeePerKwhAC', 'chargeFeePerKwhDC', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'acSettingsBlock', 'dcSettingsBlock', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'fixedRateSectionDC', 'touRateSectionDC', 'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection', 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'pnlTable', 'cumulativePnlChart', 'touPieChart', 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'pnlChart', 'revenueCostChart', 'managementChart', 'operationPeriodSummary', 'totalRevenueSummary', 'totalNetProfitSummary', 'roiSummary', 'irrSummary', 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn', 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage', 'advancedContentSection', 'specsModalTableBody', 'formulaContainer', 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage', 'saveAdvancedBtn', 'touGridEditor', 'touGridContainer', 'touEditorMessage', 'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost', 'explainerPaybackPeriod', 'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn', 'profitShareByAmount', 'profitShareByPercentage', 'profitShareBySite', 'profitShareNone', 'profitShareByAmountSection', 'profitShareByPercentageSection', 'profitShareAmount', 'profitSharePercentage', 'profitShareBySiteSection', 'siteFeeMonthly', 'gunCountThreshold', 'siteFeePerGunMonthly', 'siteFeeValidationMessage', 'financingToggle', 'financingSection', 'loanPercentage', 'interestRate', 'loanTerm', 'peakPercentDisplay', 'offpeakPercentDisplay', 'holidayPercentDisplay', 'totalInterestSummary', 'roeSummary', 'explainerEquityItem', 'explainerLoanItem', 'explainerTotalInterestItem', 'explainerEquity', 'explainerLoan', 'explainerTotalInterest', 'pnlChartLegend', 'cumulativePnlChartLegend', 'revenueCostChartLegend', 'managementChartLegend'];
+            const ids = ['siteNameDisplay', 'saveBtn', 'recordsBtn', 'newAnalysisBtn', 'saveRecordModal', 'closeSaveModalBtn', 'cancelSaveBtn', 'recordNameInput', 'saveRecordMessage', 'confirmSaveBtn', 'recordsModal', 'closeRecordsModalBtn', 'recordsList', 'newAnalysisConfirmModal', 'cancelNewAnalysisBtn', 'confirmNewAnalysisBtn', 'equipmentListContainer', 'addEquipmentBtn', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'infrastructureCostMain', 'chargeFeePerKwhAC', 'chargeFeePerKwhDC', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'acSettingsBlock', 'dcSettingsBlock', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'fixedRateSectionDC', 'touRateSectionDC', 'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection', 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'pnlTable', 'cumulativePnlChart', 'touPieChart', 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'pnlChart', 'revenueCostChart', 'managementChart', 'operationPeriodSummary', 'totalRevenueSummary', 'totalNetProfitSummary', 'roiSummary', 'irrSummary', 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn', 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage', 'advancedContentSection', 'specsModalTableBody', 'formulaContainer', 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage', 'saveAdvancedBtn', 'touGridEditor', 'touGridContainer', 'touEditorMessage', 'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost', 'explainerPaybackPeriod', 'explainerTotalManagementCost', 'explainerTotalManagementCostItem', 'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn', 'profitShareByAmount', 'profitShareByPercentage', 'profitShareBySite', 'profitShareNone', 'profitShareByAmountSection', 'profitShareByPercentageSection', 'profitShareAmount', 'profitSharePercentage', 'profitShareBySiteSection', 'siteFeeMonthly', 'gunCountThreshold', 'siteFeePerGunMonthly', 'siteFeeValidationMessage', 'financingToggle', 'financingSection', 'loanPercentage', 'interestRate', 'loanTerm', 'peakPercentDisplay', 'offpeakPercentDisplay', 'holidayPercentDisplay', 'totalInterestSummary', 'roeSummary', 'explainerEquityItem', 'explainerLoanItem', 'explainerTotalInterestItem', 'explainerEquity', 'explainerLoan', 'explainerTotalInterest', 'pnlChartLegend', 'cumulativePnlChartLegend', 'revenueCostChartLegend', 'managementChartLegend'];
             ids.forEach(id => this.elements[id] = document.getElementById(id));
         },
         getNumericValue(element, defaultValue = 0) { if (!element) return defaultValue; const value = parseFloat(String(element.value).replace(/,/g, '')); return isNaN(value) ? defaultValue : value; },
@@ -1326,6 +1330,7 @@ document.addEventListener('DOMContentLoaded', function () {
             this.elements.explainerTotalRevenue.textContent = `${this.formatCurrency(totalRevenue)}`;
             this.elements.explainerTotalCost.textContent = `${this.formatCurrency(totalCost)}`;
             this.elements.explainerPaybackPeriod.textContent = results.paybackPeriod;
+            this.elements.explainerTotalManagementCost.textContent = this.formatCurrency(results.totalManagementCost);
             
             if(inputs.financingEnabled) {
                 this.elements.explainerEquityItem.classList.remove('hidden-section');
@@ -1338,6 +1343,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 this.elements.explainerEquityItem.classList.add('hidden-section');
                 this.elements.explainerLoanItem.classList.add('hidden-section');
                 this.elements.explainerTotalInterestItem.classList.add('hidden-section');
+            }
+
+            if (inputs.profitShareMethods.none) {
+                this.elements.explainerTotalManagementCostItem.classList.add('hidden-section');
+            } else {
+                this.elements.explainerTotalManagementCostItem.classList.remove('hidden-section');
             }
 
             const advancedDeviceCostInput = document.getElementById('input_deviceCost'); if(advancedDeviceCostInput) { advancedDeviceCostInput.value = this.formatCurrency(results.costBreakdown.totalDeviceCostUntaxed, 0, false, true); }
@@ -1642,6 +1653,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                     contentHtml = buildGrid(interestItems, results.totalInterestPaid, '利息總額');
                     break;
+                case 'management':
+                    title = '維運代管總成本 計算說明';
+                    const managementItems = Calculator.getOverallManagementCostBreakdown(results, inputs);
+                    contentHtml = buildGrid(managementItems, results.totalManagementCost);
+                    break;
             }
             this.elements.explanationModalTitle.textContent = title; body.innerHTML = contentHtml; this.openModal(this.elements.explanationModal);
         },
@@ -1732,7 +1748,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const Calculator = {
         lastResults: {},
         run(inputs, params, deviceSpecs) {
-            const results = { annualData: [], totalInvestment: 0, paybackPeriod: 'N/A', costBreakdown: {}, avgChargeFeeAC: 0, avgChargeFeeDC: 0, totalChargingRevenue: 0, totalNetProfit: 0, totalInterestPaid: 0, roi: NaN, roe: NaN, irr: NaN };
+            const results = { annualData: [], totalInvestment: 0, paybackPeriod: 'N/A', costBreakdown: {}, avgChargeFeeAC: 0, avgChargeFeeDC: 0, totalChargingRevenue: 0, totalNetProfit: 0, totalInterestPaid: 0, roi: NaN, roe: NaN, irr: NaN, totalManagementCost: 0 };
             const investmentBreakdown = this.getInvestmentBreakdown(inputs, params);
             results.totalInvestment = investmentBreakdown.reduce((sum, item) => sum + item.value, 0);
             const equipmentCostItem = investmentBreakdown.find(i => i.key === 'deviceCost');
@@ -1756,6 +1772,7 @@ document.addEventListener('DOMContentLoaded', function () {
             let paybackFound = false; 
             let totalChargingRevenue = 0; 
             let totalInterestPaid = 0;
+            let totalManagementCost = 0;
             const cashFlows = [-equity];
             
             const acGuns = inputs.equipmentList.reduce((sum, e) => e.spec.type === 'AC' ? sum + e.gunCount : sum, 0);
@@ -1817,6 +1834,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 const interestPayment = costBreakdown.find(item => item.key === 'interest') ?.value || 0;
                 remainingLoanPrincipal -= principalPayment;
                 totalInterestPaid += interestPayment;
+                
+                totalManagementCost += costBreakdown.filter(item => item.key && item.key.startsWith('management_')).reduce((sum, item) => sum + item.value, 0);
 
                 const cashOutExpenses = (finalAnnualCostForDisplay - depreciation) + principalPayment;
                 const cashFlow = revenue - cashOutExpenses;
@@ -1845,6 +1864,7 @@ document.addEventListener('DOMContentLoaded', function () {
             results.totalNetProfit = totalNetProfit;
             results.totalChargingRevenue = totalChargingRevenue; 
             results.totalInterestPaid = totalInterestPaid;
+            results.totalManagementCost = totalManagementCost;
             if (results.totalInvestment > 0) results.roi = ((totalNetProfit + totalInterestPaid) / results.totalInvestment) * 100; 
             if (equity > 0) results.roe = (totalNetProfit / equity) * 100;
             results.irr = this.calculateIRR(cashFlows) * 100; 
@@ -1999,7 +2019,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     case '租金':
                          data.formula = '營運期間總計';
                         break;
-                    case '維運代管費':
+                    case '站點計費':
                          data.formula = '營運期間總計';
                         break;
                     case '利息支出':
@@ -2019,6 +2039,34 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             return aggregatedItems;
+        },
+        getOverallManagementCostBreakdown(results, inputs) {
+            const items = [];
+            const totalKwh = results.annualData.reduce((sum, d) => sum + d.kwhPerYear, 0);
+            const totalRevenue = results.totalChargingRevenue;
+
+            if (inputs.profitShareMethods.byAmount) {
+                items.push({
+                    label: '度電分潤',
+                    value: results.annualData.reduce((sum, d) => sum + (d.details.costBreakdownItems.find(item => item.key === 'management_byAmount')?.value || 0), 0),
+                    formula: `${this.formatCurrencyForFormula(totalKwh, 0)} kWh x ${inputs.profitShareAmount} 元`
+                });
+            }
+            if (inputs.profitShareMethods.byPercentage) {
+                 items.push({
+                    label: '營收分潤',
+                    value: results.annualData.reduce((sum, d) => sum + (d.details.costBreakdownItems.find(item => item.key === 'management_byPercentage')?.value || 0), 0),
+                    formula: `${this.formatCurrencyForFormula(totalRevenue, 0)} x ${inputs.profitSharePercentage * 100}%`
+                });
+            }
+            if (inputs.profitShareMethods.bySite) {
+                 items.push({
+                    label: '站點計費',
+                    value: results.annualData.reduce((sum, d) => sum + (d.details.costBreakdownItems.find(item => item.key === 'management_bySite')?.value || 0), 0),
+                    formula: `各年度加總`
+                });
+            }
+            return items;
         },
         formatCurrencyForFormula(value, precision = 0) {
             if (isNaN(value) || value === null) return 'N/A';
