@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智慧充電站投資效益分析 (v12.9.5 - 介面優化)</title>
+    <title>智慧充電站投資效益分析 (v12.9.7 - 顏色優化)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -1424,10 +1424,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const buildGrid = (items, total) => {
                 let gridHtml = '<div class="explainer-grid">';
                 items.forEach(item => {
-                    gridHtml += `<span>${item.label}</span><span>${item.formula}</span><span class="font-semibold">${this.formatCurrency(item.value, 0, false, true)}</span>`;
+                    gridHtml += `<span>${item.label}</span><span>${item.formula}</span><span class="font-semibold ${item.value < 0 ? 'text-red-600' : 'text-gray-800'}">${this.formatCurrency(item.value, 0, false, true)}</span>`;
                 });
                 gridHtml += '</div>';
-                gridHtml += `<div class="explainer-total-row"><span>總計</span><span>${this.formatCurrency(total, 0, false, true)}</span></div>`;
+                gridHtml += `<div class="explainer-total-row"><span>總計</span><span class="${total < 0 ? 'text-red-600' : 'text-gray-800'}">${this.formatCurrency(total, 0, false, true)}</span></div>`;
                 return gridHtml;
             };
 
@@ -1442,7 +1442,7 @@ document.addEventListener('DOMContentLoaded', function () {
             
             const pnlDisplayWithSign = (value) => {
                 const formatted = this.formatCurrency(Math.abs(value), 0, false, true);
-                return value >= 0 ? `+ ${formatted}` : `- ${formatted}`;
+                return value >= 0 ? `${formatted}` : `- ${formatted}`;
             };
 
             const pnlHtml = `
@@ -1451,15 +1451,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="explainer-grid">
                     <span>總營收</span>
                     <span></span>
-                    <span>${this.formatCurrency(yearData.revenue, 0, false, true)}</span>
+                    <span class="text-gray-800">${this.formatCurrency(yearData.revenue, 0, false, true)}</span>
                     
                     <span>總成本</span>
                     <span></span>
-                    <span>- ${this.formatCurrency(yearData.cost, 0, false, true)}</span>
+                    <span class="text-red-600">- ${this.formatCurrency(yearData.cost, 0, false, true)}</span>
                 </div>
                 <div class="explainer-total-row">
                     <span>年度淨利</span>
-                    <span class="${yearData.pnl >= 0 ? 'text-green-600' : 'text-red-600'}">${this.formatCurrency(yearData.pnl, 0, false, true)}</span>
+                    <span class="${yearData.pnl >= 0 ? 'text-gray-800' : 'text-red-600'}">${this.formatCurrency(yearData.pnl, 0, false, true)}</span>
                 </div>
             </div>`;
 
@@ -1488,15 +1488,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="explainer-grid">
                     <span>上年度累積</span>
                     <span>${prevCumulativePnlLabel}</span>
-                    <span class="${prevCumulativePnl >= 0 ? '' : 'text-red-600'}">${this.formatCurrency(prevCumulativePnl, 0, false, true)}</span>
+                    <span class="${prevCumulativePnl >= 0 ? 'text-gray-800' : 'text-red-600'}">${this.formatCurrency(prevCumulativePnl, 0, false, true)}</span>
                     
                     <span>本年度淨利</span>
                     <span>(總營收 - 總成本)</span>
-                    <span class="${yearData.pnl >= 0 ? 'text-green-600' : 'text-red-600'}">${pnlDisplayWithSign(yearData.pnl)}</span>
+                    <span class="${yearData.pnl >= 0 ? 'text-gray-800' : 'text-red-600'}">${pnlDisplayWithSign(yearData.pnl)}</span>
                 </div>
                 <div class="explainer-total-row">
                     <span>本年度累積</span>
-                    <span class="font-semibold ${yearData.cumulativePnl >= 0 ? 'text-blue-600' : 'text-red-600'}">${this.formatCurrency(yearData.cumulativePnl, 0, false, true)}</span>
+                    <span class="font-semibold ${yearData.cumulativePnl >= 0 ? 'text-gray-800' : 'text-red-600'}">${this.formatCurrency(yearData.cumulativePnl, 0, false, true)}</span>
                 </div>
             </div>`;
 
