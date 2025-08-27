@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智慧充電站投資效益分析 (v12.9.10 - 介面優化)</title>
+    <title>智慧充電站投資效益分析 (v12.9.13 - 圖表優化)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -2202,31 +2202,36 @@ document.addEventListener('DOMContentLoaded', function () {
         generateLegend(chart, container) {
             if (!chart || !container) return;
             container.innerHTML = '';
-            const legendItems = chart.legend.legendItems;
-            if (!legendItems) return;
-
-            legendItems.forEach(item => {
+            
+            chart.data.datasets.forEach((dataset, index) => {
                 const li = document.createElement('div');
                 li.className = 'flex items-center cursor-pointer';
                 
                 const box = document.createElement('span');
                 box.className = 'h-3 w-3 rounded-full mr-2';
-                if (typeof item.fillStyle === 'string') {
-                    box.style.backgroundColor = item.fillStyle;
-                } else {
-                    box.style.backgroundColor = item.strokeStyle;
+
+                let color = dataset.backgroundColor;
+                if (Array.isArray(color)) color = color[0];
+                if (typeof color !== 'string') {
+                    color = dataset.borderColor;
+                    if (Array.isArray(color)) color = color[0];
                 }
+                box.style.backgroundColor = color || 'grey';
 
                 const text = document.createElement('span');
                 text.className = 'text-gray-700';
-                text.style.textDecoration = item.hidden ? 'line-through' : '';
-                text.innerText = item.text;
+                
+                const isVisible = chart.isDatasetVisible(index);
+                text.style.textDecoration = isVisible ? '' : 'line-through';
+                text.innerText = dataset.label;
 
                 li.appendChild(box);
                 li.appendChild(text);
 
                 li.onclick = () => {
-                    chart.toggleDataVisibility(item.datasetIndex);
+                    const currentlyVisible = chart.isDatasetVisible(index);
+                    chart.setDatasetVisibility(index, !currentlyVisible);
+                    text.style.textDecoration = !currentlyVisible ? '' : 'line-through';
                     chart.update();
                 };
 
@@ -2236,7 +2241,24 @@ document.addEventListener('DOMContentLoaded', function () {
         update(inputs, results) {
             if (!this.instances.pnl) this.init();
             const labels = results.annualData.map(d => `第 ${d.year} 年`);
+
+            const preserveVisibility = (chart, newDatasets) => {
+                const oldVisibility = new Map();
+                if (chart.data.datasets.length) {
+                    chart.data.datasets.forEach((ds, index) => {
+                        oldVisibility.set(ds.label, chart.isDatasetVisible(index));
+                    });
+                }
+                
+                newDatasets.forEach(ds => {
+                    if (oldVisibility.has(ds.label) && !oldVisibility.get(ds.label)) {
+                        ds.hidden = true;
+                    }
+                });
+                return newDatasets;
+            };
             
+            // PNL Chart
             const pnlCtx = UI.elements.pnlChart.getContext('2d');
             const profitGradient = pnlCtx.createLinearGradient(0, 0, 0, 300);
             profitGradient.addColorStop(0, 'rgba(16, 185, 129, 0.7)');
@@ -2245,20 +2267,29 @@ document.addEventListener('DOMContentLoaded', function () {
             lossGradient.addColorStop(0, 'rgba(239, 68, 68, 0.7)');
             lossGradient.addColorStop(1, 'rgba(249, 115, 22, 0.7)');
 
-            this.instances.pnl.data.labels = labels; 
-            this.instances.pnl.data.datasets = [{ 
+            const pnlDatasets = [{ 
                 label: '充電淨利', 
                 data: results.annualData.map(d => d.pnl), 
                 backgroundColor: results.annualData.map(d => d.pnl >= 0 ? profitGradient : lossGradient), 
                 borderColor: results.annualData.map(d => d.pnl >= 0 ? 'rgba(16, 185, 129, 1)' : 'rgba(239, 68, 68, 1)'), 
                 borderWidth: 0
             }]; 
+            this.instances.pnl.data.labels = labels; 
+            this.instances.pnl.data.datasets = preserveVisibility(this.instances.pnl, pnlDatasets);
             this.instances.pnl.update();
             this.generateLegend(this.instances.pnl, UI.elements.pnlChartLegend);
 
-            this.instances.revenueCost.data.labels = labels; this.instances.revenueCost.data.datasets = [{ label: '總營收', data: results.annualData.map(d => d.revenue), backgroundColor: 'rgba(75, 192, 192, 0.6)' }, { label: '總成本', data: results.annualData.map(d => d.cost), backgroundColor: 'rgba(255, 159, 64, 0.6)' }]; this.instances.revenueCost.update();
+            // Revenue Cost Chart
+            const revenueCostDatasets = [
+                { label: '總營收', data: results.annualData.map(d => d.revenue), backgroundColor: 'rgba(75, 192, 192, 0.6)' }, 
+                { label: '總成本', data: results.annualData.map(d => d.cost), backgroundColor: 'rgba(255, 159, 64, 0.6)' }
+            ];
+            this.instances.revenueCost.data.labels = labels; 
+            this.instances.revenueCost.data.datasets = preserveVisibility(this.instances.revenueCost, revenueCostDatasets);
+            this.instances.revenueCost.update();
             this.generateLegend(this.instances.revenueCost, UI.elements.revenueCostChartLegend);
             
+            // Management Chart
             const managementDatasets = [];
             const managementColors = {
                 byAmount: 'rgba(168, 85, 247, 0.7)', // Purple
@@ -2300,14 +2331,14 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             this.instances.management.data.labels = labels;
-            this.instances.management.data.datasets = managementDatasets;
+            this.instances.management.data.datasets = preserveVisibility(this.instances.management, managementDatasets);
             this.instances.management.options.scales.x.stacked = false;
             this.instances.management.options.scales.y.stacked = false;
             this.instances.management.update();
             this.generateLegend(this.instances.management, UI.elements.managementChartLegend);
 
-            this.instances.cumulative.data.labels = ['投資額', ...labels];
-            this.instances.cumulative.data.datasets = [{
+            // Cumulative PNL Chart
+            const cumulativeDatasets = [{
                 label: '累積稅前淨利',
                 data: [-results.totalInvestment, ...results.annualData.map(d => d.cumulativePnl)],
                 borderColor: 'rgba(54, 162, 235, 1)',
@@ -2315,6 +2346,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 fill: true,
                 backgroundColor: (c) => { const { ctx, chartArea, scales } = c.chart; if (!chartArea) return null; const g = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom); const z = scales.y.getPixelForValue(0); const zp = (z - chartArea.top) / chartArea.height; if (!isFinite(zp)) return 'rgba(219, 234, 254, 0.6)'; const cz = Math.max(0, Math.min(1, zp)); g.addColorStop(0, 'rgba(219, 234, 254, 0.6)'); g.addColorStop(cz, 'rgba(219, 234, 254, 0.6)'); g.addColorStop(cz, 'rgba(254, 226, 226, 0.6)'); g.addColorStop(1, 'rgba(254, 226, 226, 0.6)'); return g; }
             }];
+            this.instances.cumulative.data.labels = ['投資額', ...labels];
+            this.instances.cumulative.data.datasets = preserveVisibility(this.instances.cumulative, cumulativeDatasets);
             this.instances.cumulative.update();
             this.generateLegend(this.instances.cumulative, UI.elements.cumulativePnlChartLegend);
 
