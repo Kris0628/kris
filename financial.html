@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智慧充電站投資效益分析 (v12.9.17 - 細項說明優化)</title>
+    <title>智慧充電站投資效益分析 (v12.9.18 - 修正能源櫃計算)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -1220,14 +1220,19 @@ document.addEventListener('DOMContentLoaded', function () {
             
             const spec = Config.deviceSpecs[powerSelect.value];
             
+            // Change the label from "數量" to "終端機數" for the 360kW model
             countLabel.textContent = spec.type === 'DC_360' ? '終端機數' : '充電樁數';
             
+            // Logic for the DC 360kW energy cabinet
             if (spec.type === 'DC_360') {
+                // Show the energy cabinet row
                 cabinetRow.style.display = 'grid';
                 const terminalCount = this.getNumericValue(countInput, 1);
+                // Calculate cabinet count: 1 cabinet for every 6 terminals (rounding up)
                 const cabinetCount = Math.ceil(terminalCount / 6);
                 cabinetCountDisplay.value = cabinetCount;
             } else {
+                // Hide the energy cabinet row for all other models
                 cabinetRow.style.display = 'none';
             }
         },
@@ -2355,7 +2360,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (inputs.profitShareMethods.byAmount) {
                 managementDatasets.push({
-                    label: '度電分潤',
+                    label: '維運代管 (依度電)',
                     data: results.annualData.map(d => d.details.costBreakdownItems.find(item => item.key === 'management_byAmount')?.value || 0),
                     backgroundColor: managementColors.byAmount,
                     borderRadius: 5,
@@ -2363,7 +2368,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             if (inputs.profitShareMethods.byPercentage) {
                 managementDatasets.push({
-                    label: '營收分潤',
+                    label: '維運代管 (依營收%)',
                     data: results.annualData.map(d => d.details.costBreakdownItems.find(item => item.key === 'management_byPercentage')?.value || 0),
                     backgroundColor: managementColors.byPercentage,
                     borderRadius: 5,
@@ -2371,7 +2376,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             if (inputs.profitShareMethods.bySite) {
                 managementDatasets.push({
-                    label: '站點計費',
+                    label: '維運代管 (站點計費)',
                     data: results.annualData.map(d => d.details.costBreakdownItems.find(item => item.key === 'management_bySite')?.value || 0),
                     backgroundColor: managementColors.bySite,
                     borderRadius: 5,
