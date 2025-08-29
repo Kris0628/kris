@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智慧充電站投資效益分析 (v12.9.18 - 修正能源櫃計算)</title>
+    <title>智慧充電站投資效益分析 (v12.9.20 - 圖表優化)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -322,7 +322,7 @@
         <header class="mb-10">
             <div class="text-center">
                  <h1 class="text-3xl md:text-5xl font-extrabold text-gray-800 leading-tight">智慧充電站投資效益分析</h1>
-                 <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v12.9 - 介面優化)</p>
+                 <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v12.9.20 - 圖表優化)</p>
             </div>
             <div class="flex flex-col sm:flex-row justify-between items-center mt-6 bg-gray-100 p-3 rounded-xl shadow-sm gap-4">
                 <div>
@@ -532,7 +532,7 @@
                         <!-- Rent Section -->
                         <div class="input-section bg-slate-50 space-y-4">
                             <div>
-                                <span class="label-text mb-3 block">租金成本</span>
+                                <span class="label-text mb-3 block">租金&分潤</span>
                                 <div class="flex flex-wrap gap-3 mb-3">
                                     <label class="choice-label"><input type="radio" name="rentMethod" value="bySpace" checked><span>依車格</span></label>
                                     <label class="choice-label"><input type="radio" name="rentMethod" value="byLand"><span>依土地</span></label>
@@ -609,14 +609,6 @@
                 </div>
                 <div class="card bg-sky-50">
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-2">
-                        <h2 class="text-xl md:text-2xl font-bold text-gray-800">年度充電淨利</h2>
-                        <span class="text-sm font-medium text-gray-500 mt-1 sm:mt-0">單位：元</span>
-                    </div>
-                    <div id="pnlChartLegend" class="flex flex-wrap gap-x-4 gap-y-1 justify-center mb-3"></div>
-                    <div class="flex-grow h-80"><canvas id="pnlChart"></canvas></div>
-                </div>
-                <div class="card bg-sky-50">
-                    <div class="flex flex-col sm:flex-row justify-between items-center mb-2">
                         <h2 class="text-xl md:text-2xl font-bold text-gray-800">累積損益趨勢</h2>
                         <span class="text-sm font-medium text-gray-500 mt-1 sm:mt-0">單位：元</span>
                     </div>
@@ -625,11 +617,19 @@
                 </div>
                 <div class="card bg-sky-50">
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-2">
-                        <h2 class="text-xl md:text-2xl font-bold text-gray-800">年度營收與成本圖表</h2>
+                        <h2 class="text-xl md:text-2xl font-bold text-gray-800">年度營收、成本與淨利</h2>
                         <span class="text-sm font-medium text-gray-500 mt-1 sm:mt-0">單位：元</span>
                     </div>
                     <div id="revenueCostChartLegend" class="flex flex-wrap gap-x-4 gap-y-1 justify-center mb-3"></div>
                     <div class="flex-grow h-80"><canvas id="revenueCostChart"></canvas></div>
+                </div>
+                <div class="card bg-sky-50">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-2">
+                        <h2 class="text-xl md:text-2xl font-bold text-gray-800">租金&分潤 圖表</h2>
+                        <span class="text-sm font-medium text-gray-500 mt-1 sm:mt-0">單位：元</span>
+                    </div>
+                    <div id="rentChartLegend" class="flex flex-wrap gap-x-4 gap-y-1 justify-center mb-3"></div>
+                    <div class="flex-grow h-80"><canvas id="rentChart"></canvas></div>
                 </div>
                 <div class="card bg-sky-50">
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-2">
@@ -824,7 +824,7 @@
         </div>
     </div>
 
-<script>
+        <script>
 document.addEventListener('DOMContentLoaded', function () {
     /**
      * =================================================================
@@ -1082,7 +1082,7 @@ document.addEventListener('DOMContentLoaded', function () {
         elements: {},
         init() { this.cacheDOMElements(); this.updateUIVisibility(); this.elements.addEquipmentBtn.addEventListener('click', () => { this.addEquipmentRow(); App.update(); }); },
         cacheDOMElements() {
-            const ids = ['siteNameDisplay', 'saveBtn', 'recordsBtn', 'newAnalysisBtn', 'saveRecordModal', 'closeSaveModalBtn', 'cancelSaveBtn', 'recordNameInput', 'saveRecordMessage', 'confirmSaveBtn', 'recordsModal', 'closeRecordsModalBtn', 'recordsList', 'newAnalysisConfirmModal', 'cancelNewAnalysisBtn', 'confirmNewAnalysisBtn', 'equipmentListContainer', 'addEquipmentBtn', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'infrastructureCostMain', 'chargeFeePerKwhAC', 'chargeFeePerKwhDC', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'acSettingsBlock', 'dcSettingsBlock', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'fixedRateSectionDC', 'touRateSectionDC', 'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection', 'rentPerKwh', 'rentPercentage', 'rentByKwhShareSection', 'rentByRevenueShareSection', 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'pnlTable', 'cumulativePnlChart', 'touPieChart', 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'pnlChart', 'revenueCostChart', 'managementChart', 'operationPeriodSummary', 'totalRevenueSummary', 'totalNetProfitSummary', 'roiSummary', 'irrSummary', 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn', 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage', 'advancedContentSection', 'specsModalTableBody', 'formulaContainer', 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage', 'saveAdvancedBtn', 'touGridEditor', 'touGridContainer', 'touEditorMessage', 'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost', 'explainerPaybackPeriod', 'explainerTotalManagementCost', 'explainerTotalManagementCostItem', 'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn', 'profitShareByAmount', 'profitShareByPercentage', 'profitShareBySite', 'profitShareNone', 'profitShareByAmountSection', 'profitShareByPercentageSection', 'profitShareAmount', 'profitSharePercentage', 'profitShareBySiteSection', 'siteFeeMonthly', 'gunCountThreshold', 'siteFeePerGunMonthly', 'siteFeeValidationMessage', 'financingToggle', 'financingSection', 'loanPercentage', 'interestRate', 'loanTerm', 'peakPercentDisplay', 'offpeakPercentDisplay', 'holidayPercentDisplay', 'totalInterestSummary', 'roeSummary', 'explainerEquityItem', 'explainerLoanItem', 'explainerTotalInterestItem', 'explainerEquity', 'explainerLoan', 'explainerTotalInterest', 'pnlChartLegend', 'cumulativePnlChartLegend', 'revenueCostChartLegend', 'managementChartLegend'];
+            const ids = ['siteNameDisplay', 'saveBtn', 'recordsBtn', 'newAnalysisBtn', 'saveRecordModal', 'closeSaveModalBtn', 'cancelSaveBtn', 'recordNameInput', 'saveRecordMessage', 'confirmSaveBtn', 'recordsModal', 'closeRecordsModalBtn', 'recordsList', 'newAnalysisConfirmModal', 'cancelNewAnalysisBtn', 'confirmNewAnalysisBtn', 'equipmentListContainer', 'addEquipmentBtn', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'infrastructureCostMain', 'chargeFeePerKwhAC', 'chargeFeePerKwhDC', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'acSettingsBlock', 'dcSettingsBlock', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'fixedRateSectionDC', 'touRateSectionDC', 'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection', 'rentPerKwh', 'rentPercentage', 'rentByKwhShareSection', 'rentByRevenueShareSection', 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'pnlTable', 'cumulativePnlChart', 'touPieChart', 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'revenueCostChart', 'managementChart', 'rentChart', 'operationPeriodSummary', 'totalRevenueSummary', 'totalNetProfitSummary', 'roiSummary', 'irrSummary', 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn', 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage', 'advancedContentSection', 'specsModalTableBody', 'formulaContainer', 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage', 'saveAdvancedBtn', 'touGridEditor', 'touGridContainer', 'touEditorMessage', 'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost', 'explainerPaybackPeriod', 'explainerTotalManagementCost', 'explainerTotalManagementCostItem', 'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn', 'profitShareByAmount', 'profitShareByPercentage', 'profitShareBySite', 'profitShareNone', 'profitShareByAmountSection', 'profitShareByPercentageSection', 'profitShareAmount', 'profitSharePercentage', 'profitShareBySiteSection', 'siteFeeMonthly', 'gunCountThreshold', 'siteFeePerGunMonthly', 'siteFeeValidationMessage', 'financingToggle', 'financingSection', 'loanPercentage', 'interestRate', 'loanTerm', 'peakPercentDisplay', 'offpeakPercentDisplay', 'holidayPercentDisplay', 'totalInterestSummary', 'roeSummary', 'explainerEquityItem', 'explainerLoanItem', 'explainerTotalInterestItem', 'explainerEquity', 'explainerLoan', 'explainerTotalInterest', 'cumulativePnlChartLegend', 'revenueCostChartLegend', 'managementChartLegend', 'rentChartLegend'];
             ids.forEach(id => this.elements[id] = document.getElementById(id));
         },
         getNumericValue(element, defaultValue = 0) { if (!element) return defaultValue; const value = parseFloat(String(element.value).replace(/,/g, '')); return isNaN(value) ? defaultValue : value; },
@@ -2257,9 +2257,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             };
             
-            this.instances.pnl = new Chart(UI.elements.pnlChart, { type: 'bar', data: { labels: [], datasets: [] }, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter }, grid: { color: '#e5e7eb' } } } } });
             this.instances.revenueCost = new Chart(UI.elements.revenueCostChart, { type: 'bar', data: { labels: [], datasets: [] }, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
             this.instances.management = new Chart(UI.elements.managementChart, { type: 'bar', data: { labels: [], datasets: [] }, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
+            this.instances.rent = new Chart(UI.elements.rentChart, { type: 'bar', data: { labels: [], datasets: [] }, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
             this.instances.cumulative = new Chart(UI.elements.cumulativePnlChart, { type: 'line', data: { labels: [], datasets: [] }, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
             this.instances.tou = new Chart(UI.elements.touPieChart, { type: 'doughnut', data: { labels: [], datasets: [] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.label}: ${c.raw}%` } } } } });
         },
@@ -2300,7 +2300,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         },
         update(inputs, results) {
-            if (!this.instances.pnl) this.init();
+            if (!this.instances.revenueCost) this.init();
             const labels = results.annualData.map(d => `第 ${d.year} 年`);
 
             const preserveVisibility = (chart, newDatasets) => {
@@ -2319,31 +2319,31 @@ document.addEventListener('DOMContentLoaded', function () {
                 return newDatasets;
             };
             
-            // PNL Chart
-            const pnlCtx = UI.elements.pnlChart.getContext('2d');
-            const profitGradient = pnlCtx.createLinearGradient(0, 0, 0, 300);
-            profitGradient.addColorStop(0, 'rgba(16, 185, 129, 0.7)');
-            profitGradient.addColorStop(1, 'rgba(6, 182, 212, 0.7)');
-            const lossGradient = pnlCtx.createLinearGradient(0, 0, 0, 300);
-            lossGradient.addColorStop(0, 'rgba(239, 68, 68, 0.7)');
-            lossGradient.addColorStop(1, 'rgba(249, 115, 22, 0.7)');
+            // Revenue Cost & PNL Chart
+            const pnlData = results.annualData.map(d => d.pnl);
 
-            const pnlDatasets = [{ 
-                label: '充電淨利', 
-                data: results.annualData.map(d => d.pnl), 
-                backgroundColor: results.annualData.map(d => d.pnl >= 0 ? profitGradient : lossGradient), 
-                borderColor: results.annualData.map(d => d.pnl >= 0 ? 'rgba(16, 185, 129, 1)' : 'rgba(239, 68, 68, 1)'), 
-                borderWidth: 0
-            }]; 
-            this.instances.pnl.data.labels = labels; 
-            this.instances.pnl.data.datasets = preserveVisibility(this.instances.pnl, pnlDatasets);
-            this.instances.pnl.update();
-            this.generateLegend(this.instances.pnl, UI.elements.pnlChartLegend);
-
-            // Revenue Cost Chart
             const revenueCostDatasets = [
-                { label: '總營收', data: results.annualData.map(d => d.revenue), backgroundColor: 'rgba(75, 192, 192, 0.6)' }, 
-                { label: '總成本', data: results.annualData.map(d => d.cost), backgroundColor: 'rgba(255, 159, 64, 0.6)' }
+                {
+                    type: 'bar',
+                    label: '總營收',
+                    data: results.annualData.map(d => d.revenue),
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    borderRadius: 5,
+                },
+                {
+                    type: 'bar',
+                    label: '總成本',
+                    data: results.annualData.map(d => d.cost),
+                    backgroundColor: 'rgba(255, 159, 64, 0.6)',
+                    borderRadius: 5,
+                },
+                {
+                    type: 'bar',
+                    label: '充電淨利',
+                    data: pnlData,
+                    backgroundColor: 'rgba(239, 68, 68, 0.6)', // Light Red
+                    borderRadius: 5,
+                }
             ];
             this.instances.revenueCost.data.labels = labels; 
             this.instances.revenueCost.data.datasets = preserveVisibility(this.instances.revenueCost, revenueCostDatasets);
@@ -2397,6 +2397,30 @@ document.addEventListener('DOMContentLoaded', function () {
             this.instances.management.options.scales.y.stacked = false;
             this.instances.management.update();
             this.generateLegend(this.instances.management, UI.elements.managementChartLegend);
+
+            // Rent & Profit Share Chart
+            const rentData = results.annualData.map(d => {
+                const rentItem = d.details.costBreakdownItems.find(item => item.key === 'rent');
+                return rentItem ? rentItem.value : 0;
+            });
+            let rentLabel = '租金&分潤'; 
+            const firstYearWithRent = results.annualData.find(d => d.details.costBreakdownItems.some(item => item.key === 'rent'));
+            if (firstYearWithRent) {
+                const rentItem = firstYearWithRent.details.costBreakdownItems.find(item => item.key === 'rent');
+                if (rentItem) rentLabel = rentItem.label;
+            }
+            const hasRentData = rentData.some(d => d > 0);
+            UI.elements.rentChart.closest('.card').style.display = hasRentData ? 'flex' : 'none';
+            const rentDatasets = [{
+                label: rentLabel,
+                data: rentData,
+                backgroundColor: 'rgba(251, 146, 60, 0.7)', // Orange
+                borderRadius: 5,
+            }];
+            this.instances.rent.data.labels = labels;
+            this.instances.rent.data.datasets = preserveVisibility(this.instances.rent, rentDatasets);
+            this.instances.rent.update();
+            this.generateLegend(this.instances.rent, UI.elements.rentChartLegend);
 
             // Cumulative PNL Chart
             const cumulativeDatasets = [{
@@ -2687,3 +2711,9 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 </body>
 </html>
+
+
+
+
+
+
