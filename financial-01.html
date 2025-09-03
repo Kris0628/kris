@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>充電站(樁)投資效益分析 (v12.9.20 - 圖表優化)</title>
+    <title>充電站(樁)投資效益分析 (v12.9.25 - 介面優化)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -47,6 +47,9 @@
             padding: 1.5rem; /* Adjusted padding for mobile */
             display: flex;
             flex-direction: column;
+        }
+        .card:not(.fixed-height) {
+            height: 100%;
         }
         @media (min-width: 768px) {
             .card {
@@ -314,6 +317,7 @@
         #pnlTable.hide-cumulative .cumulative-col {
             display: none;
         }
+        .center-text-input { text-align: center !important; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -570,20 +574,20 @@
                             </div>
                             <div class="space-y-3">
                                 <div id="profitShareByAmountSection" class="hidden-section grid grid-cols-2 items-center gap-4">
-                                    <span class="label-text">每度電分潤 (元)</span><input type="number" id="profitShareAmount" class="input-field" value="1" step="0.1">
+                                    <span class="label-text">每度電分潤 (元)</span><input type="number" id="profitShareAmount" class="input-field center-text-input" value="1" step="0.1">
                                 </div>
                                 <div id="profitShareByPercentageSection" class="hidden-section grid grid-cols-2 items-center gap-4">
-                                    <span class="label-text">營收分潤 (%)</span><input type="number" id="profitSharePercentage" class="input-field" value="10" step="1">
+                                    <span class="label-text">營收分潤 (%)</span><input type="number" id="profitSharePercentage" class="input-field center-text-input" value="10" step="1">
                                 </div>
                                 <div id="profitShareBySiteSection" class="hidden-section space-y-3">
                                      <div class="grid grid-cols-2 items-center gap-4">
-                                        <span class="label-text">每站收費(月)</span><input type="text" id="siteFeeMonthly" class="input-field" value="3,000">
+                                        <span class="label-text">每站收費(月)</span><input type="number" id="siteFeeMonthly" class="input-field center-text-input" value="3000">
                                     </div>
                                      <div class="grid grid-cols-2 items-center gap-4">
-                                        <span class="label-text">槍數基準</span><input type="number" id="gunCountThreshold" class="input-field" value="5">
+                                        <span class="label-text">槍數基準</span><input type="number" id="gunCountThreshold" class="input-field center-text-input" value="5">
                                     </div>
                                      <div class="grid grid-cols-2 items-center gap-4">
-                                        <span class="label-text">每槍計費(月)</span><input type="text" id="siteFeePerGunMonthly" class="input-field" value="600">
+                                        <span class="label-text">每槍計費(月)</span><input type="number" id="siteFeePerGunMonthly" class="input-field center-text-input" value="600">
                                     </div>
                                     <div id="siteFeeValidationMessage" class="text-xs text-red-600 mt-2"></div>
                                 </div>
@@ -594,7 +598,7 @@
             </div>
 
             <!-- Right Column -->
-            <div class="lg:col-span-2 flex flex-col gap-6">
+            <div class="lg:col-span-2 grid grid-cols-1 gap-6 auto-rows-min">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                     <div class="summary-card"><div class="summary-label">總投資額</div><div id="totalInvestment" class="summary-value"></div></div>
                     <div class="summary-card"><div class="summary-label">總充電營收</div><div id="totalRevenueSummary" class="summary-value"></div></div>
@@ -606,7 +610,7 @@
                     <div class="summary-card"><div class="summary-label">ROE (股東權益報酬率)</div><div id="roeSummary" class="summary-value"></div></div>
                     <div class="summary-card"><div class="summary-label">IRR (內部報酬率)</div><div id="irrSummary" class="summary-value"></div></div>
                 </div>
-                <div class="card bg-sky-50">
+                <div class="card bg-sky-50 fixed-height">
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-2">
                         <h2 class="text-xl md:text-2xl font-bold text-gray-800">累積損益趨勢</h2>
                         <span class="text-sm font-medium text-gray-500 mt-1 sm:mt-0">單位：元</span>
@@ -614,7 +618,7 @@
                     <div id="cumulativePnlChartLegend" class="flex flex-wrap gap-x-4 gap-y-1 justify-center mb-3"></div>
                     <div class="flex-grow h-80"><canvas id="cumulativePnlChart"></canvas></div>
                 </div>
-                <div class="card bg-sky-50">
+                <div class="card bg-sky-50 fixed-height">
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-2">
                         <h2 class="text-xl md:text-2xl font-bold text-gray-800">年度營收、成本與淨利</h2>
                         <span class="text-sm font-medium text-gray-500 mt-1 sm:mt-0">單位：元</span>
@@ -622,7 +626,7 @@
                     <div id="revenueCostChartLegend" class="flex flex-wrap gap-x-4 gap-y-1 justify-center mb-3"></div>
                     <div class="flex-grow h-80"><canvas id="revenueCostChart"></canvas></div>
                 </div>
-                <div class="card bg-sky-50">
+                <div class="card bg-sky-50 fixed-height">
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-2">
                         <h2 class="text-xl md:text-2xl font-bold text-gray-800">租金&分潤 圖表</h2>
                         <span class="text-sm font-medium text-gray-500 mt-1 sm:mt-0">單位：元</span>
@@ -630,7 +634,7 @@
                     <div id="rentChartLegend" class="flex flex-wrap gap-x-4 gap-y-1 justify-center mb-3"></div>
                     <div class="flex-grow h-80"><canvas id="rentChart"></canvas></div>
                 </div>
-                <div class="card bg-sky-50">
+                <div class="card bg-sky-50 fixed-height">
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-2">
                         <h2 class="text-xl md:text-2xl font-bold text-gray-800">維運代管圖表</h2>
                         <span class="text-sm font-medium text-gray-500 mt-1 sm:mt-0">單位：元</span>
@@ -918,7 +922,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             // --- Formatting Listeners ---
-            ['infrastructureCostMain', 'rentPerSpace', 'rentPerLand', 'kwhPerGunPerMonthDC', 'siteFeeMonthly', 'siteFeePerGunMonthly'].forEach(id => { 
+            ['infrastructureCostMain', 'rentPerSpace', 'rentPerLand', 'kwhPerGunPerMonthDC'].forEach(id => { 
                 UI.elements[id]?.addEventListener('input', (e) => UI.formatNumericInput(e.target)); 
             });
         },
@@ -1472,7 +1476,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (inputs.financingEnabled && inputs.depreciationMethod !== 'none') {
                 costItems = costItems.filter(item => item.key !== 'principal');
             }
-            const costsHtml = `<div class="details-section"><h4>總成本細項</h4>${buildGrid(costItems, yearData.cost)}</div>`;
+            const costsHtml = `<div class="details-section"><h4>總成本細項</h4>${buildGrid(costItems.map(item => ({...item, value: -item.value})), -yearData.cost)}</div>`;
             
             const pnlDisplayWithSign = (value) => {
                 const formatted = this.formatCurrency(Math.abs(value), 0, false, true);
@@ -1752,9 +1756,9 @@ document.addEventListener('DOMContentLoaded', function () {
             
             this.elements.profitShareAmount.value = 1;
             this.elements.profitSharePercentage.value = 10;
-            this.elements.siteFeeMonthly.value = '3,000';
+            this.elements.siteFeeMonthly.value = 3000;
             this.elements.gunCountThreshold.value = 5;
-            this.elements.siteFeePerGunMonthly.value = '600';
+            this.elements.siteFeePerGunMonthly.value = 600;
             
             this.elements.financingToggle.checked = false;
             this.elements.loanPercentage.value = 70;
@@ -2110,15 +2114,15 @@ document.addEventListener('DOMContentLoaded', function () {
             const hasDC = inputs.equipmentList.some(item => item.spec.type !== 'AC');
             if (p.taipowerFee.enabled) { const val = totalKwhSold * p.taipowerFee.value * (1 + (p.powerLossRate.enabled ? p.powerLossRate.value : 0)); items.push({ key: 'taipowerFee', label: p.taipowerFee.label, value: val, formula: `${this.formatCurrencyForFormula(totalKwhSold,0)} kWh x ${p.taipowerFee.value}元 x (1 + ${p.powerLossRate.value*100}%)` }); }
             
+            const rentMethodLabels = {
+                bySpace: '租金 (依車格)',
+                byLand: '租金 (依土地)',
+                byKwhShare: '租金 (度電分潤)',
+                byRevenueShare: '租金 (營收%分潤)'
+            };
             if (inputs.rentMethod !== 'none') {
                 let rentCost = 0;
                 let formula = '';
-                const rentMethodLabels = {
-                    bySpace: '租金 (依車格)',
-                    byLand: '租金 (依土地)',
-                    byKwhShare: '租金 (度電分潤)',
-                    byRevenueShare: '租金 (營收%分潤)'
-                };
                 const rentLabel = rentMethodLabels[inputs.rentMethod] || '租金';
 
                 switch(inputs.rentMethod) {
@@ -2257,7 +2261,7 @@ document.addEventListener('DOMContentLoaded', function () {
             };
             
             this.instances.revenueCost = new Chart(UI.elements.revenueCostChart, { type: 'bar', data: { labels: [], datasets: [] }, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
-            this.instances.management = new Chart(UI.elements.managementChart, { type: 'bar', data: { labels: [], datasets: [] }, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
+            this.instances.management = new Chart(UI.elements.managementChart, { type: 'bar', data: { labels: [], datasets: [] }, options: { ...commonOptions, scales: { x: { grid: { display: false }, stacked: true }, y: { ticks: { callback: yAxisTickFormatter }, stacked: true } } } });
             this.instances.rent = new Chart(UI.elements.rentChart, { type: 'bar', data: { labels: [], datasets: [] }, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
             this.instances.cumulative = new Chart(UI.elements.cumulativePnlChart, { type: 'line', data: { labels: [], datasets: [] }, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
             this.instances.tou = new Chart(UI.elements.touPieChart, { type: 'doughnut', data: { labels: [], datasets: [] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.label}: ${c.raw}%` } } } } });
@@ -2274,14 +2278,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 li.className = 'flex items-center cursor-pointer';
                 
                 const box = document.createElement('span');
-                box.className = 'h-3 w-3 rounded-full mr-2';
+                box.className = 'h-3 w-3 rounded-sm mr-2';
 
                 let color = item.fillStyle;
                 if(typeof color !== 'string') color = item.strokeStyle;
                 box.style.backgroundColor = color;
+                box.style.borderColor = item.strokeStyle;
+                box.style.borderWidth = item.lineWidth + 'px';
+
 
                 const text = document.createElement('span');
-                text.className = 'text-gray-700';
+                text.className = 'text-gray-700 text-sm';
                 text.style.textDecoration = item.hidden ? 'line-through' : '';
                 text.innerText = item.text;
 
@@ -2289,9 +2296,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 li.appendChild(text);
 
                 li.onclick = () => {
-                    const isVisible = chart.isDatasetVisible(index);
-                    chart.setDatasetVisibility(index, !isVisible);
-                    text.style.textDecoration = !isVisible ? '' : 'line-through';
+                    chart.toggleDataVisibility(index);
                     chart.update();
                 };
 
@@ -2301,22 +2306,6 @@ document.addEventListener('DOMContentLoaded', function () {
         update(inputs, results) {
             if (!this.instances.revenueCost) this.init();
             const labels = results.annualData.map(d => `第 ${d.year} 年`);
-
-            const preserveVisibility = (chart, newDatasets) => {
-                const oldVisibility = new Map();
-                if (chart.data.datasets.length) {
-                    chart.data.datasets.forEach((ds, index) => {
-                        oldVisibility.set(ds.label, chart.isDatasetVisible(index));
-                    });
-                }
-                
-                newDatasets.forEach(ds => {
-                    if (oldVisibility.has(ds.label) && !oldVisibility.get(ds.label)) {
-                        ds.hidden = true;
-                    }
-                });
-                return newDatasets;
-            };
             
             // Revenue Cost & PNL Chart
             const pnlData = results.annualData.map(d => d.pnl);
@@ -2326,26 +2315,32 @@ document.addEventListener('DOMContentLoaded', function () {
                     type: 'bar',
                     label: '總營收',
                     data: results.annualData.map(d => d.revenue),
-                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.6)', // Blue
                     borderRadius: 5,
                 },
                 {
                     type: 'bar',
                     label: '總成本',
                     data: results.annualData.map(d => d.cost),
-                    backgroundColor: 'rgba(255, 159, 64, 0.6)',
+                    backgroundColor: 'rgba(255, 159, 64, 0.6)', // Orange
                     borderRadius: 5,
                 },
                 {
                     type: 'bar',
                     label: '充電淨利',
                     data: pnlData,
-                    backgroundColor: 'rgba(239, 68, 68, 0.6)', // Light Red
+                    backgroundColor: 'rgba(239, 68, 68, 0.5)', // Light Red
                     borderRadius: 5,
                 }
             ];
             this.instances.revenueCost.data.labels = labels; 
-            this.instances.revenueCost.data.datasets = preserveVisibility(this.instances.revenueCost, revenueCostDatasets);
+            this.instances.revenueCost.data.datasets = revenueCostDatasets;
+            this.instances.revenueCost.options.plugins.legend.onClick = (e, legendItem, legend) => {
+                const index = legendItem.datasetIndex;
+                const ci = legend.chart;
+                ci.toggleDataVisibility(index);
+                ci.update();
+            };
             this.instances.revenueCost.update();
             this.generateLegend(this.instances.revenueCost, UI.elements.revenueCostChartLegend);
             
@@ -2382,16 +2377,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             }
 
-            if (managementDatasets.length === 0) {
-                 managementDatasets.push({
-                    label: '維運代管費',
-                    data: [], // Empty data
-                    backgroundColor: 'rgba(168, 85, 247, 0.6)'
-                });
-            }
-
             this.instances.management.data.labels = labels;
-            this.instances.management.data.datasets = preserveVisibility(this.instances.management, managementDatasets);
+            this.instances.management.data.datasets = managementDatasets;
             this.instances.management.options.scales.x.stacked = false;
             this.instances.management.options.scales.y.stacked = false;
             this.instances.management.update();
@@ -2421,7 +2408,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 borderRadius: 5,
             }];
             this.instances.rent.data.labels = labels;
-            this.instances.rent.data.datasets = preserveVisibility(this.instances.rent, rentDatasets);
+            this.instances.rent.data.datasets = rentDatasets;
             this.instances.rent.update();
             this.generateLegend(this.instances.rent, UI.elements.rentChartLegend);
 
@@ -2435,7 +2422,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 backgroundColor: (c) => { const { ctx, chartArea, scales } = c.chart; if (!chartArea) return null; const g = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom); const z = scales.y.getPixelForValue(0); const zp = (z - chartArea.top) / chartArea.height; if (!isFinite(zp)) return 'rgba(219, 234, 254, 0.6)'; const cz = Math.max(0, Math.min(1, zp)); g.addColorStop(0, 'rgba(219, 234, 254, 0.6)'); g.addColorStop(cz, 'rgba(219, 234, 254, 0.6)'); g.addColorStop(cz, 'rgba(254, 226, 226, 0.6)'); g.addColorStop(1, 'rgba(254, 226, 226, 0.6)'); return g; }
             }];
             this.instances.cumulative.data.labels = ['投資額', ...labels];
-            this.instances.cumulative.data.datasets = preserveVisibility(this.instances.cumulative, cumulativeDatasets);
+            this.instances.cumulative.data.datasets = cumulativeDatasets;
             this.instances.cumulative.update();
             this.generateLegend(this.instances.cumulative, UI.elements.cumulativePnlChartLegend);
 
@@ -2687,7 +2674,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (el && typeof inputs[key] !== 'object' && typeof inputs[key] !== 'undefined') {
                         if (key === 'demandGrowthRate' || key.includes('Percentage') || key === 'loanPercentage' || key === 'interestRate') {
                             el.value = inputs[key] * 100;
-                        } else if (!['billingMethod', 'chargeFeePerKwh', 'profitShareMethod', 'profitShareMethods'].includes(key)) { 
+                        } else if (!['billingMethod', 'chargeFeePerKwh', 'profitShareMethod', 'profitShareMethods', 'rentMethod'].includes(key)) { 
                             el.value = inputs[key];
                         }
                     }
@@ -2714,7 +2701,4 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 </body>
 </html>
-
-
-
 
