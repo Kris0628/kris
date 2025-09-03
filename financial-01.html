@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智慧充電站投資效益分析 (v12.9.20 - 圖表優化)</title>
+    <title>充電站(樁)投資效益分析 (v12.9.20 - 圖表優化)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -320,10 +320,10 @@
     <div class="max-w-7xl mx-auto">
         <header class="mb-10">
             <div class="text-center">
-                 <h1 class="text-3xl md:text-5xl font-extrabold text-gray-800 leading-tight">智慧充電站投資效益分析</h1>
+                 <h1 class="text-3xl md:text-5xl font-extrabold text-gray-800 leading-tight">充電站(樁)投資效益分析</h1>
                  <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v12.9.20 - 圖表優化)</p>
             </div>
-            <div class="flex flex-col sm:flex-row justify-between items-center mt-6 bg-gray-100 p-3 rounded-xl shadow-sm gap-4">
+            <div class="flex flex-col sm:flex-row justify-between items-center mt-6 bg-amber-100 p-3 rounded-xl shadow-sm gap-4">
                 <div>
                     <h2 id="siteNameDisplay" class="text-lg sm:text-xl font-bold text-gray-700">未命名站點</h2>
                 </div>
@@ -601,8 +601,8 @@
                     <div class="summary-card"><div class="summary-label">總充電淨利</div><div id="totalNetProfitSummary" class="summary-value"></div></div>
                     <div class="summary-card"><div class="summary-label">營運年期</div><div id="operationPeriodSummary" class="summary-value"></div></div>
                     <div class="summary-card"><div class="summary-label">預計回收年限</div><div id="paybackPeriod" class="summary-value"></div></div>
-                    <div class="summary-card"><div class="summary-label">融資總利息</div><div id="totalInterestSummary" class="summary-value"></div></div>
                     <div class="summary-card"><div class="summary-label">ROI (投資報酬率)</div><div id="roiSummary" class="summary-value"></div></div>
+                    <div class="summary-card"><div class="summary-label">融資總利息</div><div id="totalInterestSummary" class="summary-value"></div></div>
                     <div class="summary-card"><div class="summary-label">ROE (股東權益報酬率)</div><div id="roeSummary" class="summary-value"></div></div>
                     <div class="summary-card"><div class="summary-label">IRR (內部報酬率)</div><div id="irrSummary" class="summary-value"></div></div>
                 </div>
@@ -2714,4 +2714,7 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 </body>
 </html>
+
+
+
 
