@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>充電站(樁)投資效益分析 (v12.9.28 - 介面優化)</title>
+    <title>充電站(樁)投資效益分析 (v12.9.30 - 文字修正)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -336,7 +336,7 @@
         <header class="mb-10">
             <div class="text-center">
                  <h1 class="text-3xl md:text-5xl font-extrabold text-gray-800 leading-tight">充電站(樁)投資效益分析</h1>
-                 <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v12.9.20 - 圖表優化)</p>
+                 <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v12.9.27 - 介面還原)</p>
             </div>
             <div class="flex flex-col sm:flex-row justify-between items-center mt-6 bg-amber-100 p-3 rounded-xl shadow-sm gap-4">
                 <div>
@@ -402,7 +402,7 @@
                 </div>
 
                 <div class="card bg-white">
-                    <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-5 pb-3 border-b border-gray-200">營運與成本假設</h2>
+                    <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-5 pb-3 border-b border-gray-200">營運&成本設定</h2>
                     <div class="space-y-4">
                         <!-- AC Settings Block -->
                         <div id="acSettingsBlock" class="input-section bg-blue-50 space-y-4 hidden-section">
@@ -585,20 +585,20 @@
                             </div>
                             <div class="space-y-3">
                                 <div id="profitShareByAmountSection" class="hidden-section grid grid-cols-2 items-center gap-4">
-                                    <span class="label-text">每度電分潤 (元)</span><input type="number" id="profitShareAmount" class="input-field center-text-input" value="1" step="0.1">
+                                    <span class="label-text">每度電分潤 (元)</span><input type="number" id="profitShareAmount" class="input-field" value="1" step="0.1">
                                 </div>
                                 <div id="profitShareByPercentageSection" class="hidden-section grid grid-cols-2 items-center gap-4">
-                                    <span class="label-text">營收分潤 (%)</span><input type="number" id="profitSharePercentage" class="input-field center-text-input" value="10" step="1">
+                                    <span class="label-text">營收分潤 (%)</span><input type="number" id="profitSharePercentage" class="input-field" value="10" step="1">
                                 </div>
                                 <div id="profitShareBySiteSection" class="hidden-section space-y-3">
                                      <div class="grid grid-cols-2 items-center gap-4">
-                                        <span class="label-text">每站收費(月)</span><input type="number" id="siteFeeMonthly" class="input-field center-text-input" value="3000">
+                                        <span class="label-text">每站收費(月)</span><input type="number" id="siteFeeMonthly" class="input-field" value="3000">
                                     </div>
                                      <div class="grid grid-cols-2 items-center gap-4">
-                                        <span class="label-text">槍數基準</span><input type="number" id="gunCountThreshold" class="input-field center-text-input" value="5">
+                                        <span class="label-text">槍數基準</span><input type="number" id="gunCountThreshold" class="input-field" value="5">
                                     </div>
                                      <div class="grid grid-cols-2 items-center gap-4">
-                                        <span class="label-text">每槍計費(月)</span><input type="number" id="siteFeePerGunMonthly" class="input-field center-text-input" value="600">
+                                        <span class="label-text">每槍計費(月)</span><input type="number" id="siteFeePerGunMonthly" class="input-field" value="600">
                                     </div>
                                     <div id="siteFeeValidationMessage" class="text-xs text-red-600 mt-2"></div>
                                 </div>
@@ -1070,20 +1070,20 @@ document.addEventListener('DOMContentLoaded', function () {
             distributionPanelFee: { value: 300000, label: '高/低壓配電盤', unit: '元', description: '高壓或低壓配電盤費用(一次性)。', enabled: true, category: 'investment' },
             constructionFee: { value: 500000, label: '基礎設施工程', unit: '元', description: '場地土木、基礎、裝修等工程費用(一次性)。', enabled: true, category: 'investment', readonly: true },
             meterFeeBase: { value: 12000, label: '電錶費用(基本)', unit: '元', description: '台電電表基本費用(僅DC樁, 一次性)。', enabled: true, category: 'investment' },
-            meterFeePerGun: { value: 700, label: '電錶費用/槍', unit: '元', description: '每增加一槍的電表費用(僅DC樁, 一次性)。', enabled: true, category: 'investment' },
-            taxRate: { value: 0.05, label: '營業稅率', unit: '%', description: '設備購買及相關服務的營業稅率。', enabled: true, category: 'investment' },
-            taipowerFee: { value: 4, label: '台電平均電費', unit: '元', description: '向台電購電的每度平均成本。', enabled: true, category: 'annual' },
+            meterFeePerGun: { value: 700, label: '電錶費用/槍', unit: '元', description: '每增加一槍の電表費用(僅DC樁, 一次性)。', enabled: true, category: 'investment' },
+            taxRate: { value: 0.05, label: '營業稅率', unit: '%', description: '設備購買及相關服務の營業稅率。', enabled: true, category: 'investment' },
+            taipowerFee: { value: 4, label: '台電平均電費', unit: '元', description: '向台電購電の每度平均成本。', enabled: true, category: 'annual' },
             electricalTechnicianFee: { value: 15000, label: '高壓用電技術人員/年', unit: '元', description: '每年收取一次技師檢定費。', enabled: true, category: 'annual' },
             maintenanceFee: { value: 37000, label: '維運&客服/年', unit: '元', description: '年度場域維護與線上客服費用。', enabled: false, category: 'annual' },
-            transactionFeeRate: { value: 0.03, label: '金流手續費', unit: '%', description: '支付給金流服務商的每筆交易手續費率。', enabled: true, category: 'annual' },
+            transactionFeeRate: { value: 0.03, label: '金流手續費', unit: '%', description: '支付給金流服務商の每筆交易手續費率。', enabled: true, category: 'annual' },
             insuranceFee: { value: 8500, label: '意外保險費/年', unit: '元', description: '場域年度意外險費用。', enabled: true, category: 'annual' },
-            electronicInvoiceFeePerTransaction: { value: 1.2, label: '電子發票/張', unit: '元', description: '每筆交易的電子發票成本。', enabled: true, category: 'annual' },
-            repairPartsRate: { value: 0.01, label: '設備維護備品', unit: '%', description: '年度維修備品費用，為設備含稅總成本的百分比。', enabled: true, category: 'annual' },
-            extendedWarrantyPerPile: { value: 1000, label: '保固延保(樁)/年', unit: '元', description: '每支充電樁的年度延長保固費用。', enabled: true, category: 'annual' },
+            electronicInvoiceFeePerTransaction: { value: 1.2, label: '電子發票/張', unit: '元', description: '每筆交易の電子發票成本。', enabled: true, category: 'annual' },
+            repairPartsRate: { value: 0.01, label: '設備維護備品', unit: '%', description: '年度維修備品費用，為設備含稅總成本の百分比。', enabled: true, category: 'annual' },
+            extendedWarrantyPerPile: { value: 1000, label: '保固延保(樁)/年', unit: '元', description: '每支充電樁の年度延長保固費用。', enabled: true, category: 'annual' },
             laborCost: { value: 60000, label: '勞務成本/年', unit: '元', description: '年度人力、巡檢等相關勞務成本。', enabled: false, category: 'annual' },
-            internetFee: { value: 500, label: '網路費/月', unit: '元', description: '場域每月的網路通訊費用。', enabled: true, category: 'annual' },
-            tdxUploadFee: { value: 299, label: 'TDX上傳費(槍/月)', unit: '元', description: '每支槍每月上傳資料至交通部TDX平台的費用。', enabled: false, category: 'annual' },
-            powerLossRate: { value: 0.05, label: '充電電損率', unit: '%', description: '電力在傳輸和轉換過程中的損耗率。', enabled: true, category: 'annual' },
+            internetFee: { value: 500, label: '網路費/月', unit: '元', description: '場域每月の網路通訊費用。', enabled: true, category: 'annual' },
+            tdxUploadFee: { value: 299, label: 'TDX上傳費(槍/月)', unit: '元', description: '每支槍每月上傳資料至交通部TDX平台の費用。', enabled: false, category: 'annual' },
+            powerLossRate: { value: 0.05, label: '充電電損率', unit: '%', description: '電力在傳輸和轉換過程中の損耗率。', enabled: true, category: 'annual' },
         }
     };
 
@@ -2338,15 +2338,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 li.onclick = () => {
                     const ci = chart;
-                    const index = item.datasetIndex ?? item.index;
+                    const index = item.datasetIndex;
 
                     if (ci.isDatasetVisible(index)) {
                         ci.hide(index);
                     } else {
                         ci.show(index);
                     }
-                    // No need to call update, hide/show does it.
-                    // But we need to regenerate the legend to update styles
                     this.generateLegend(ci, container);
                 };
 
@@ -2745,5 +2743,4 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 </body>
 </html>
-
 
