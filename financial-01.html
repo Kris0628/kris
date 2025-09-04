@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>充電站(樁)投資效益分析 (v12.9.25 - 介面優化)</title>
+    <title>充電站(樁)投資效益分析 (v12.9.28 - 介面優化)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -301,12 +301,23 @@
         /* Records List */
         .record-list-item {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 0.75rem 1rem; border-radius: 0.5rem; transition: background-color 0.2s;
+            padding: 0.75rem 1rem; border-radius: 0.5rem; transition: background-color 0.2s, box-shadow 0.2s;
+            cursor: pointer;
         }
         .record-list-item:nth-child(odd) { background-color: #f9fafb; }
         .record-list-item:hover { background-color: #eff6ff; }
-        .record-name { font-weight: 600; cursor: pointer; color: #374151; }
-        .record-name:hover { color: #4f46e5; }
+        .record-list-item.selected {
+            background-color: #e0e7ff; /* indigo-200 */
+            box-shadow: inset 4px 0 0 0 #4f46e5; /* indigo-600 */
+        }
+        .record-name { font-weight: 600; color: #374151; pointer-events: none; }
+        .load-btn {
+            padding: 0.25rem 1rem !important;
+            font-size: 0.875rem !important;
+            font-weight: 600 !important;
+            line-height: 1.25rem !important;
+        }
+
 
         /* Animations */
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -1699,20 +1710,50 @@ document.addEventListener('DOMContentLoaded', function () {
             records.forEach(name => {
                 const item = document.createElement('div');
                 item.className = 'record-list-item';
+                item.dataset.name = name;
                 item.innerHTML = `
                     <span class="record-name">${name}</span>
-                    <button class="remove-equip-btn" data-name="${name}">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
-                    </button>
+                    <div class="record-actions flex items-center gap-2">
+                        <button class="remove-equip-btn" data-name="${name}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                        </button>
+                    </div>
                 `;
-                item.querySelector('.record-name').addEventListener('click', () => {
-                    Persistence.loadRecord(name);
-                    UI.closeModal(UI.elements.recordsModal);
+
+                item.addEventListener('click', (e) => {
+                    if (e.target.closest('.remove-equip-btn')) return;
+
+                    const isAlreadySelected = e.currentTarget.classList.contains('selected');
+
+                    // Clear all previous selections
+                    container.querySelectorAll('.record-list-item').forEach(el => {
+                        el.classList.remove('selected');
+                        el.querySelector('.load-btn')?.remove();
+                    });
+
+                    // If it wasn't already selected, select it now and add button
+                    if (!isAlreadySelected) {
+                        e.currentTarget.classList.add('selected');
+                        const loadBtn = document.createElement('button');
+                        loadBtn.textContent = '載入';
+                        loadBtn.className = 'load-btn modal-action-button';
+
+                        loadBtn.onclick = () => {
+                            Persistence.loadRecord(name);
+                            UI.closeModal(UI.elements.recordsModal);
+                        };
+                        
+                        const actionsContainer = e.currentTarget.querySelector('.record-actions');
+                        if (actionsContainer) actionsContainer.prepend(loadBtn);
+                    }
                 });
-                item.querySelector('button').addEventListener('click', (e) => {
-                    Persistence.deleteRecord(e.target.dataset.name);
+
+                item.querySelector('.remove-equip-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    Persistence.deleteRecord(e.target.closest('.remove-equip-btn').dataset.name);
                     this.renderRecordsList();
                 });
+
                 container.appendChild(item);
             });
         },
@@ -2273,7 +2314,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const legendItems = chart.legend.legendItems;
             if (!legendItems) return;
 
-            legendItems.forEach((item, index) => {
+            legendItems.forEach((item) => {
                 const li = document.createElement('div');
                 li.className = 'flex items-center cursor-pointer';
                 
@@ -2296,8 +2337,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 li.appendChild(text);
 
                 li.onclick = () => {
-                    chart.toggleDataVisibility(index);
-                    chart.update();
+                    const ci = chart;
+                    const index = item.datasetIndex ?? item.index;
+
+                    if (ci.isDatasetVisible(index)) {
+                        ci.hide(index);
+                    } else {
+                        ci.show(index);
+                    }
+                    // No need to call update, hide/show does it.
+                    // But we need to regenerate the legend to update styles
+                    this.generateLegend(ci, container);
                 };
 
                 container.appendChild(li);
@@ -2335,12 +2385,6 @@ document.addEventListener('DOMContentLoaded', function () {
             ];
             this.instances.revenueCost.data.labels = labels; 
             this.instances.revenueCost.data.datasets = revenueCostDatasets;
-            this.instances.revenueCost.options.plugins.legend.onClick = (e, legendItem, legend) => {
-                const index = legendItem.datasetIndex;
-                const ci = legend.chart;
-                ci.toggleDataVisibility(index);
-                ci.update();
-            };
             this.instances.revenueCost.update();
             this.generateLegend(this.instances.revenueCost, UI.elements.revenueCostChartLegend);
             
@@ -2701,4 +2745,5 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 </body>
 </html>
+
 
