@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>充電站(樁)投資效益分析 (v12.9.30 - 文字修正)</title>
+    <title>充電站(樁)投資效益分析 (v12.9.33 - 介面優化)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -336,7 +336,7 @@
         <header class="mb-10">
             <div class="text-center">
                  <h1 class="text-3xl md:text-5xl font-extrabold text-gray-800 leading-tight">充電站(樁)投資效益分析</h1>
-                 <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v12.9.27 - 介面還原)</p>
+                 <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v12.9.33 - 介面優化)</p>
             </div>
             <div class="flex flex-col sm:flex-row justify-between items-center mt-6 bg-amber-100 p-3 rounded-xl shadow-sm gap-4">
                 <div>
@@ -610,7 +610,7 @@
 
             <!-- Right Column -->
             <div class="lg:col-span-2 grid grid-cols-1 gap-6 auto-rows-min">
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 grid-auto-rows-fr">
                     <div class="summary-card"><div class="summary-label">總投資額</div><div id="totalInvestment" class="summary-value"></div></div>
                     <div class="summary-card"><div class="summary-label">總充電營收</div><div id="totalRevenueSummary" class="summary-value"></div></div>
                     <div class="summary-card"><div class="summary-label">總充電淨利</div><div id="totalNetProfitSummary" class="summary-value"></div></div>
@@ -631,7 +631,7 @@
                 </div>
                 <div class="card bg-sky-50 fixed-height">
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-2">
-                        <h2 class="text-xl md:text-2xl font-bold text-gray-800">年度營收、成本與淨利</h2>
+                        <h2 class="text-xl md:text-2xl font-bold text-gray-800">營收、成本、淨利(年)</h2>
                         <span class="text-sm font-medium text-gray-500 mt-1 sm:mt-0">單位：元</span>
                     </div>
                     <div id="revenueCostChartLegend" class="flex flex-wrap gap-x-4 gap-y-1 justify-center mb-3"></div>
@@ -639,7 +639,7 @@
                 </div>
                 <div class="card bg-sky-50 fixed-height">
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-2">
-                        <h2 class="text-xl md:text-2xl font-bold text-gray-800">租金&分潤 圖表</h2>
+                        <h2 class="text-xl md:text-2xl font-bold text-gray-800">租金&分潤</h2>
                         <span class="text-sm font-medium text-gray-500 mt-1 sm:mt-0">單位：元</span>
                     </div>
                     <div id="rentChartLegend" class="flex flex-wrap gap-x-4 gap-y-1 justify-center mb-3"></div>
@@ -2314,7 +2314,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const legendItems = chart.legend.legendItems;
             if (!legendItems) return;
 
-            legendItems.forEach((item) => {
+            legendItems.forEach((item, index) => {
                 const li = document.createElement('div');
                 li.className = 'flex items-center cursor-pointer';
                 
@@ -2443,10 +2443,16 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             const hasRentData = rentData.some(d => d > 0);
             UI.elements.rentChart.closest('.card').style.display = hasRentData ? 'flex' : 'none';
+
+            const rentCtx = UI.elements.rentChart.getContext('2d');
+            const rentGradient = rentCtx.createLinearGradient(0, 0, 0, 300);
+            rentGradient.addColorStop(0, 'rgba(34, 197, 94, 0.7)'); // green-500
+            rentGradient.addColorStop(1, 'rgba(134, 239, 172, 0.7)'); // green-300
+
             const rentDatasets = [{
                 label: rentLabel,
                 data: rentData,
-                backgroundColor: 'rgba(251, 146, 60, 0.7)', // Orange
+                backgroundColor: rentGradient,
                 borderRadius: 5,
             }];
             this.instances.rent.data.labels = labels;
@@ -2743,4 +2749,7 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 </body>
 </html>
+
+
+
 
