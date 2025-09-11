@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>充電站(樁)投資效益分析 (v12.9.35 - 視窗互動優化)</title>
+    <title>充電站(樁)投資效益分析 (v12.9.36 - 浮點數錯誤修正)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -336,7 +336,7 @@
         <header class="mb-10">
             <div class="text-center">
                  <h1 class="text-3xl md:text-5xl font-extrabold text-gray-800 leading-tight">充電站(樁)投資效益分析</h1>
-                 <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v12.9.35 - 視窗互動優化)</p>
+                 <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v12.9.36 - 浮點數錯誤修正)</p>
             </div>
             <div class="flex flex-col sm:flex-row justify-between items-center mt-6 bg-amber-100 p-3 rounded-xl shadow-sm gap-4">
                 <div>
@@ -858,6 +858,12 @@ document.addEventListener('DOMContentLoaded', function () {
         setupEventListeners() {
             const inputsToWatch = ['chargeFeePerKwhAC', 'chargeFeePerKwhDC', 'peakRate', 'offPeakRate', 'holidayRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'rentPerSpace', 'rentPerLand', 'rentPerKwh', 'rentPercentage', 'infrastructureCostMain', 'profitShareAmount', 'profitSharePercentage', 'siteFeeMonthly', 'gunCountThreshold', 'siteFeePerGunMonthly', 'loanPercentage', 'interestRate', 'loanTerm'];
             inputsToWatch.forEach(id => UI.elements[id]?.addEventListener('input', () => this.update()));
+            
+            UI.elements.interestRate.addEventListener('blur', (e) => {
+                const value = UI.getNumericValue(e.target, 3.5);
+                e.target.value = value.toFixed(2);
+            });
+
             UI.elements.financingToggle.addEventListener('change', () => this.update());
             UI.elements.equipmentListContainer.addEventListener('change', () => this.update());
             UI.elements.equipmentListContainer.addEventListener('input', () => this.update());
@@ -2761,6 +2767,7 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 </body>
 </html>
+
 
 
 
