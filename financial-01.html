@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>充電站(樁)投資效益分析 (v12.9.33 - 介面優化)</title>
+    <title>充電站(樁)投資效益分析 (v12.9.35 - 視窗互動優化)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -336,7 +336,7 @@
         <header class="mb-10">
             <div class="text-center">
                  <h1 class="text-3xl md:text-5xl font-extrabold text-gray-800 leading-tight">充電站(樁)投資效益分析</h1>
-                 <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v12.9.33 - 介面優化)</p>
+                 <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v12.9.35 - 視窗互動優化)</p>
             </div>
             <div class="flex flex-col sm:flex-row justify-between items-center mt-6 bg-amber-100 p-3 rounded-xl shadow-sm gap-4">
                 <div>
@@ -921,7 +921,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
             // --- Enhanced Modal Closing ---
-            [UI.elements.advancedModal, UI.elements.explanationModal, UI.elements.saveRecordModal, UI.elements.recordsModal, UI.elements.newAnalysisConfirmModal].forEach(modal => {
+            [UI.elements.explanationModal, UI.elements.saveRecordModal, UI.elements.recordsModal, UI.elements.newAnalysisConfirmModal].forEach(modal => {
                 modal.addEventListener('click', (e) => { if (e.target === modal) UI.closeModal(modal); });
             });
             document.addEventListener('keydown', (e) => {
@@ -1078,8 +1078,9 @@ document.addEventListener('DOMContentLoaded', function () {
             transactionFeeRate: { value: 0.03, label: '金流手續費', unit: '%', description: '支付給金流服務商の每筆交易手續費率。', enabled: true, category: 'annual' },
             insuranceFee: { value: 8500, label: '意外保險費/年', unit: '元', description: '場域年度意外險費用。', enabled: true, category: 'annual' },
             electronicInvoiceFeePerTransaction: { value: 1.2, label: '電子發票/張', unit: '元', description: '每筆交易の電子發票成本。', enabled: true, category: 'annual' },
-            repairPartsRate: { value: 0.01, label: '設備維護備品', unit: '%', description: '年度維修備品費用，為設備含稅總成本の百分比。', enabled: true, category: 'annual' },
-            extendedWarrantyPerPile: { value: 1000, label: '保固延保(樁)/年', unit: '元', description: '每支充電樁の年度延長保固費用。', enabled: true, category: 'annual' },
+            repairPartsRate: { value: 0.01, label: '設備維護備品', unit: '%', description: '年度維修備品費用，為設備含稅總成本的百分比。', enabled: true, category: 'annual' },
+            extendedWarrantyPerPile: { value: 0.02, label: '保固延保', unit: '%', description: '年度延長保固費用，為設備含稅總成本的百分比。', enabled: true, category: 'annual' },
+            extendedWarrantyStartYear: { value: 2, label: '保固起始年', unit: '年', description: '延長保固費用從第幾年開始計算。', enabled: true, category: 'annual' },
             laborCost: { value: 60000, label: '勞務成本/年', unit: '元', description: '年度人力、巡檢等相關勞務成本。', enabled: false, category: 'annual' },
             internetFee: { value: 500, label: '網路費/月', unit: '元', description: '場域每月の網路通訊費用。', enabled: true, category: 'annual' },
             tdxUploadFee: { value: 299, label: 'TDX上傳費(槍/月)', unit: '元', description: '每支槍每月上傳資料至交通部TDX平台の費用。', enabled: false, category: 'annual' },
@@ -2087,7 +2088,9 @@ document.addEventListener('DOMContentLoaded', function () {
                          data.formula = `${this.formatCurrencyForFormula(p.insuranceFee.value)} x ${inputs.operationYears}年`;
                         break;
                     case p.extendedWarrantyPerPile.label:
-                         data.formula = `${this.formatCurrencyForFormula(p.extendedWarrantyPerPile.value)} x ${totalPileCount}樁 x ${inputs.operationYears}年`;
+                        const startYear = p.extendedWarrantyStartYear.value;
+                        const applicableYears = Math.max(0, inputs.operationYears - (startYear - 1));
+                        data.formula = `${this.formatCurrencyForFormula(results.costBreakdown.equipmentCost)} x ${p.extendedWarrantyPerPile.value*100}% x ${applicableYears}年`;
                         break;
                     case p.laborCost.label:
                          data.formula = `${this.formatCurrencyForFormula(p.laborCost.value)} x ${inputs.operationYears}年`;
@@ -2216,11 +2219,20 @@ document.addEventListener('DOMContentLoaded', function () {
             if (p.transactionFeeRate.enabled) items.push({ key: 'transactionFee', label: p.transactionFeeRate.label, value: revenue * p.transactionFeeRate.value, formula: `${this.formatCurrencyForFormula(revenue)} x ${p.transactionFeeRate.value*100}%` });
             if (p.electronicInvoiceFeePerTransaction.enabled) items.push({ key: 'invoiceFee', label: p.electronicInvoiceFeePerTransaction.label, value: numberOfTransactions * p.electronicInvoiceFeePerTransaction.value, formula: `${this.formatCurrencyForFormula(numberOfTransactions,0)} 張 x ${p.electronicInvoiceFeePerTransaction.value} 元` });
             if (p.repairPartsRate.enabled) items.push({ key: 'repairFee', label: p.repairPartsRate.label, value: results.costBreakdown.equipmentCost * p.repairPartsRate.value, formula: `${this.formatCurrencyForFormula(results.costBreakdown.equipmentCost)} x ${p.repairPartsRate.value*100}%` });
-            if (p.electricalTechnicianFee.enabled && hasDC) items.push({ key: 'electricalTechFee', label: p.electricalTechnicianFee.label, value: p.electricalTechnicianFee.value, formula: '固定年費' });
-            if (p.maintenanceFee.enabled) items.push({ key: 'maintenanceFee', label: p.maintenanceFee.label, value: p.maintenanceFee.value, formula: '固定年費' });
-            if (p.insuranceFee.enabled) items.push({ key: 'insuranceFee', label: p.insuranceFee.label, value: p.insuranceFee.value, formula: '固定年費' });
-            if (p.extendedWarrantyPerPile.enabled) items.push({ key: 'warrantyFee', label: p.extendedWarrantyPerPile.label, value: totalPileCount * p.extendedWarrantyPerPile.value, formula: `${this.formatCurrencyForFormula(p.extendedWarrantyPerPile.value,0)} x ${totalPileCount} 樁` });
-            if (p.laborCost.enabled) items.push({ key: 'laborCost', label: p.laborCost.label, value: p.laborCost.value, formula: '固定年費' });
+            if (p.electricalTechnicianFee.enabled && hasDC) items.push({ key: 'electricalTechFee', label: p.electricalTechnicianFee.label, value: p.electricalTechnicianFee.value, formula: p.electricalTechnicianFee.description });
+            if (p.maintenanceFee.enabled) items.push({ key: 'maintenanceFee', label: p.maintenanceFee.label, value: p.maintenanceFee.value, formula: p.maintenanceFee.description });
+            if (p.insuranceFee.enabled) items.push({ key: 'insuranceFee', label: p.insuranceFee.label, value: p.insuranceFee.value, formula: p.insuranceFee.description });
+            if (p.extendedWarrantyPerPile.enabled && year >= p.extendedWarrantyStartYear.value) { 
+                const val = results.costBreakdown.equipmentCost * p.extendedWarrantyPerPile.value;
+                const formula = `${this.formatCurrencyForFormula(results.costBreakdown.equipmentCost)} x ${p.extendedWarrantyPerPile.value * 100}%`;
+                items.push({ 
+                    key: 'warrantyFee', 
+                    label: p.extendedWarrantyPerPile.label, 
+                    value: val, 
+                    formula: formula 
+                }); 
+            }
+            if (p.laborCost.enabled) items.push({ key: 'laborCost', label: p.laborCost.label, value: p.laborCost.value, formula: p.laborCost.description });
             if (p.internetFee.enabled) items.push({ key: 'internetFee', label: '網路費', value: p.internetFee.value * 12, formula: `${this.formatCurrencyForFormula(p.internetFee.value,0)} x 12 個月` });
             if (p.tdxUploadFee.enabled) items.push({ key: 'tdxFee', label: 'TDX上傳費', value: p.tdxUploadFee.value * totalGunCount * 12, formula: `${this.formatCurrencyForFormula(p.tdxUploadFee.value,0)} x ${totalGunCount} 槍 x 12 個月` });
             
@@ -2749,6 +2761,8 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 </body>
 </html>
+
+
 
 
 
