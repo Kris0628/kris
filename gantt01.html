@@ -152,7 +152,7 @@
                 <h1 class="text-3xl font-bold text-white text-center tracking-wider">建置期程規劃</h1>
             </header>
             <main class="p-4 md:p-6">
-                <div id="gantt-chart-container" class="overflow-x-auto rounded-lg border border-slate-200">
+                <div id="gantt-chart-container" class="rounded-lg border border-slate-200">
                     <!-- Gantt chart is dynamically generated here -->
                 </div>
                 <div id="deadline-container" class="text-right mt-2 mr-1 text-red-600 font-semibold text-base">
@@ -250,19 +250,35 @@
                 months += d2.getMonth();
                 return months <= 0 ? 0 : months;
             };
+            
+            function checkOverflow() {
+                // A small delay ensures the browser has calculated the new widths
+                setTimeout(() => {
+                    if (chartContainer.scrollWidth > chartContainer.clientWidth) {
+                        chartContainer.style.overflowX = 'auto';
+                    } else {
+                        chartContainer.style.overflowX = 'hidden';
+                    }
+                }, 0);
+            }
 
             function renderGanttChart() {
                 if (tasks.length === 0) {
                     chartContainer.innerHTML = `<div class="text-center p-8 bg-slate-50">尚無任務，請在下方新增。</div>`;
+                    checkOverflow();
                     return;
                 }
                 const allDates = tasks.flatMap(task => [parseYearMonth(task.start), parseYearMonth(task.end)]);
                 const minDate = new Date(Math.min(...allDates));
                 const maxDate = new Date(Math.max(...allDates));
                 
+                // Add one extra month at the end for padding
+                const paddedMaxDate = new Date(maxDate);
+                paddedMaxDate.setMonth(paddedMaxDate.getMonth() + 1);
+
                 let monthsHeader = [];
                 let currentDate = new Date(minDate);
-                while (currentDate <= maxDate) {
+                while (currentDate <= paddedMaxDate) { // Loop to the padded date
                     monthsHeader.push(new Date(currentDate));
                     currentDate.setMonth(currentDate.getMonth() + 1);
                 }
@@ -270,7 +286,8 @@
                 const totalMonths = monthsHeader.length;
                 const gridContainer = document.createElement('div');
                 gridContainer.className = 'gantt-grid';
-                gridContainer.style.gridTemplateColumns = `repeat(${totalMonths}, minmax(100px, 1fr))`;
+                // Adjust minmax for narrower columns
+                gridContainer.style.gridTemplateColumns = `repeat(${totalMonths}, minmax(80px, 1fr))`;
                 
                 const quarterData = monthsHeader.reduce((acc, date) => {
                     const year = date.getFullYear();
@@ -306,7 +323,7 @@
                             <div class="gantt-task-bar-container" data-id="${task.id}" draggable="true" style="grid-row: ${gridRow}; --start: ${gridStart}; --end: ${gridEnd}; --task-color: ${task.color};">
                                 <div class="gantt-task-bar">
                                     <div class="gantt-bar-content">
-                                        <span class="drag-handle" title="按住拖曳以排序"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M7 2a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-3 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-3 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/></svg></span>
+                                        <span class="drag-handle" title="按住拖曳以排序"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M7 2a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-3 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0_MONTHS 1 2 0zm-3 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/></svg></span>
                                         <span class="task-name">${task.name}</span>
                                         <div class="task-actions">
                                             <button class="icon-btn edit-btn" data-id="${task.id}" title="編輯任務"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/><path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/></svg></button>
@@ -322,6 +339,7 @@
                 gridContainer.innerHTML = quarterHeaderHTML + monthHeaderHTML + tasksHTML;
                 chartContainer.innerHTML = '';
                 chartContainer.appendChild(gridContainer);
+                checkOverflow();
             }
 
             function resetForm() {
@@ -546,10 +564,10 @@ Respond ONLY with a valid JSON object that matches the provided schema.`
             }
 
             // Initial Render
+            window.addEventListener('resize', checkOverflow);
             renderGanttChart();
         });
     </script>
 </body>
 </html>
-
 
