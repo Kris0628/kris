@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>建置期程規劃</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .gantt-grid {
+            display: grid;
+            border-left: 1px solid #e2e8f0;
+        }
+        .gantt-task-row {
+            display: contents; 
+        }
+        .gantt-header-quarter {
+            text-align: center;
+            background-color: #1e3a8a; /* Solid dark blue */
+            color: white;
+            font-weight: 700;
+            font-size: 1rem; /* Larger font */
+            border-right: 1px solid white; /* Same as month, but white */
+            border-bottom: 1px solid white; /* Same as month, but white */
+            padding: 0.5rem;
+            white-space: nowrap;
+        }
+        .gantt-header-month {
+            text-align: center;
+            background-color: #3b82f6;
+            color: white;
+            font-weight: 500;
+            font-size: 0.8rem; /* Smaller font */
+            border-right: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0.75rem;
+            white-space: nowrap;
+        }
+        .gantt-task-bar-container {
+            position: relative;
+            grid-column: var(--start) / var(--end);
+            padding: 0.75rem 0;
+            cursor: grab;
+        }
+        .gantt-task-bar {
+            background-color: var(--task-color, #14b8a6); /* Use CSS variable */
+            height: 1.75rem;
+            border-top-left-radius: 0.375rem;
+            border-bottom-left-radius: 0.375rem;
+            position: relative;
+            width: calc(100% - 1rem);
+            left: 0.5rem;
+        }
+        .gantt-bar-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            padding: 0 0.5rem 0 0.75rem;
+            gap: 0.5rem;
+            color: white;
+        }
+        .gantt-bar-content .task-name {
+            flex-grow: 1;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .gantt-task-bar::after {
+            content: '';
+            position: absolute;
+            right: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-top: 14px solid transparent;
+            border-bottom: 14px solid transparent;
+            border-left: 10px solid var(--task-color, #14b8a6); /* Use CSS variable */
+        }
+        .task-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            background-color: rgba(0,0,0,0.1);
+            padding: 2px 4px;
+            border-radius: 9999px;
+            opacity: 0; /* Default to hidden */
+            transition: opacity 0.2s ease-in-out;
+        }
+        .gantt-task-bar-container:hover .task-actions {
+            opacity: 1; /* Show on hover */
+        }
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: white;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+            padding: 0.25rem;
+        }
+        .icon-btn:hover {
+            opacity: 1;
+        }
+        .drag-handle {
+            cursor: grab;
+            opacity: 0.7;
+        }
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+        .gantt-task-bar-container.dragging {
+            opacity: 0.4;
+            z-index: 50;
+        }
+        .gantt-task-bar-container.drag-over {
+            box-shadow: 0 2px 0 #3b82f6;
+        }
+        .spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto space-y-8">
+
+        <!-- Block 1: Planning Area -->
+        <div class="bg-white shadow-xl rounded-xl overflow-hidden">
+            <header class="p-6 bg-gradient-to-br from-blue-900 to-slate-800">
+                <h1 class="text-3xl font-bold text-white text-center tracking-wider">建置期程規劃</h1>
+            </header>
+            <main class="p-4 md:p-6">
+                <div id="gantt-chart-container" class="overflow-x-auto rounded-lg border border-slate-200">
+                    <!-- Gantt chart is dynamically generated here -->
+                </div>
+                <div id="deadline-container" class="text-right mt-2 mr-1 text-red-600 font-semibold text-base">
+                    ※本案預估<span id="editable-deadline" class="cursor-pointer hover:underline" title="點擊以更改日期">2026年4月上線</span>
+                </div>
+            </main>
+        </div>
+
+        <!-- Block 2: Controls Area -->
+        <div class="bg-slate-50 p-6 rounded-xl border border-slate-200 shadow-xl" id="task-editor">
+            
+            <!-- Gemini AI Feature Section -->
+            <div class="mb-6 pb-6 border-b border-slate-200">
+                 <h2 class="text-xl font-bold mb-3 text-slate-800">✨ AI 智慧助理</h2>
+                 <p class="text-sm text-slate-600 mb-4">輸入一個高階的專案目標，AI 將自動為您拆解成數個可執行的子任務。</p>
+                 <div class="flex items-center gap-2">
+                     <input type="text" id="smart-task-input" placeholder="例如：舉辦一場新產品發表會" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                     <button id="gemini-generate-btn" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex items-center justify-center min-w-[120px]">
+                        智慧拆解
+                     </button>
+                 </div>
+                 <p id="gemini-error-message" class="text-red-500 mt-2 text-sm h-4"></p>
+            </div>
+            
+            <h2 id="form-title" class="text-xl font-bold mb-4 text-slate-800">手動新增/編輯任務</h2>
+            <form id="task-form" class="space-y-4">
+                <input type="hidden" id="task-id">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label for="task-name" class="block text-sm font-medium text-gray-700 mb-1">任務名稱</label>
+                        <input type="text" id="task-name" placeholder="例如：預計施工完成" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+                    <div>
+                        <label for="start-date" class="block text-sm font-medium text-gray-700 mb-1">開始月份</label>
+                        <input type="month" id="start-date" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+                    <div>
+                        <label for="end-date" class="block text-sm font-medium text-gray-700 mb-1">結束月份</label>
+                        <input type="month" id="end-date" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+                    <div>
+                        <label for="task-color" class="block text-sm font-medium text-gray-700 mb-1">任務顏色</label>
+                        <input type="color" id="task-color" value="#14b8a6" class="w-full h-10 px-1 py-1 border border-gray-300 rounded-md shadow-sm cursor-pointer">
+                    </div>
+                </div>
+                 <div class="flex gap-2 pt-2">
+                     <button type="submit" id="submit-btn" class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        新增任務
+                    </button>
+                    <button type="button" id="cancel-btn" class="w-full bg-slate-200 text-slate-700 font-bold py-2 px-4 rounded-md hover:bg-slate-300 transition-colors hidden">
+                        取消
+                    </button>
+                 </div>
+            </form>
+            <p id="error-message" class="text-red-500 mt-2 text-sm h-4"></p>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let tasks = [
+                { id: 1, name: '簽約完成', start: '2025-10', end: '2025-11', color: '#3b82f6' },
+                { id: 2, name: '開始送請電流程', start: '2025-11', end: '2026-01', color: '#10b981' },
+                { id: 3, name: '內部請採完成', start: '2025-11', end: '2026-01', color: '#10b981' },
+                { id: 4, name: '預計請電完成', start: '2026-01', end: '2026-02', color: '#f97316' },
+                { id: 5, name: '預計施工完成', start: '2026-02', end: '2026-03', color: '#ef4444' },
+                { id: 6, name: '工程收尾', start: '2026-03', end: '2026-04', color: '#8b5cf6' },
+            ];
+            let draggedTaskId = null;
+
+            // DOM Elements
+            const chartContainer = document.getElementById('gantt-chart-container');
+            const taskForm = document.getElementById('task-form');
+            const taskIdInput = document.getElementById('task-id');
+            const taskNameInput = document.getElementById('task-name');
+            const startDateInput = document.getElementById('start-date');
+            const endDateInput = document.getElementById('end-date');
+            const taskColorInput = document.getElementById('task-color');
+            const errorMessage = document.getElementById('error-message');
+            const formTitle = document.getElementById('form-title');
+            const submitBtn = document.getElementById('submit-btn');
+            const cancelBtn = document.getElementById('cancel-btn');
+            const deadlineContainer = document.getElementById('deadline-container');
+            
+            // Gemini AI Elements
+            const geminiBtn = document.getElementById('gemini-generate-btn');
+            const smartTaskInput = document.getElementById('smart-task-input');
+            const geminiErrorMessage = document.getElementById('gemini-error-message');
+
+            const parseYearMonth = (ym) => new Date(ym + '-01T00:00:00');
+            const diffInMonths = (d1, d2) => {
+                let months = (d2.getFullYear() - d1.getFullYear()) * 12;
+                months -= d1.getMonth();
+                months += d2.getMonth();
+                return months <= 0 ? 0 : months;
+            };
+
+            function renderGanttChart() {
+                if (tasks.length === 0) {
+                    chartContainer.innerHTML = `<div class="text-center p-8 bg-slate-50">尚無任務，請在下方新增。</div>`;
+                    return;
+                }
+                const allDates = tasks.flatMap(task => [parseYearMonth(task.start), parseYearMonth(task.end)]);
+                const minDate = new Date(Math.min(...allDates));
+                const maxDate = new Date(Math.max(...allDates));
+                
+                let monthsHeader = [];
+                let currentDate = new Date(minDate);
+                while (currentDate <= maxDate) {
+                    monthsHeader.push(new Date(currentDate));
+                    currentDate.setMonth(currentDate.getMonth() + 1);
+                }
+
+                const totalMonths = monthsHeader.length;
+                const gridContainer = document.createElement('div');
+                gridContainer.className = 'gantt-grid';
+                gridContainer.style.gridTemplateColumns = `repeat(${totalMonths}, minmax(100px, 1fr))`;
+                
+                const quarterData = monthsHeader.reduce((acc, date) => {
+                    const year = date.getFullYear();
+                    const quarter = `Q${Math.floor(date.getMonth() / 3) + 1}`;
+                    const key = `${year} ${quarter}`;
+                    if (!acc[key]) {
+                        acc[key] = { label: key, monthCount: 0 };
+                    }
+                    acc[key].monthCount++;
+                    return acc;
+                }, {});
+
+                const quarterHeaderHTML = Object.values(quarterData).map(q => 
+                    `<div class="gantt-header-quarter" style="grid-column: span ${q.monthCount}; grid-row: 1;">${q.label}</div>`
+                ).join('');
+
+                const monthHeaderHTML = monthsHeader.map(date => {
+                    const month = date.getMonth() + 1;
+                    return `<div class="gantt-header-month" style="grid-row: 2;">${month.toString().padStart(2, '0')}月</div>`;
+                }).join('');
+
+                let tasksHTML = tasks.map((task, index) => {
+                    const taskStart = parseYearMonth(task.start);
+                    const taskEnd = parseYearMonth(task.end);
+                    const startOffset = diffInMonths(minDate, taskStart);
+                    const duration = diffInMonths(taskStart, taskEnd) + 1;
+                    const gridStart = startOffset + 1;
+                    const gridEnd = gridStart + duration;
+                    const gridRow = index + 3;
+
+                    return `
+                        <div class="gantt-task-row" data-row-id="${task.id}">
+                            <div class="gantt-task-bar-container" data-id="${task.id}" draggable="true" style="grid-row: ${gridRow}; --start: ${gridStart}; --end: ${gridEnd}; --task-color: ${task.color};">
+                                <div class="gantt-task-bar">
+                                    <div class="gantt-bar-content">
+                                        <span class="drag-handle" title="按住拖曳以排序"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M7 2a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-3 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-3 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/></svg></span>
+                                        <span class="task-name">${task.name}</span>
+                                        <div class="task-actions">
+                                            <button class="icon-btn edit-btn" data-id="${task.id}" title="編輯任務"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/><path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/></svg></button>
+                                            <button class="icon-btn delete-btn" data-id="${task.id}" title="刪除任務"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                gridContainer.innerHTML = quarterHeaderHTML + monthHeaderHTML + tasksHTML;
+                chartContainer.innerHTML = '';
+                chartContainer.appendChild(gridContainer);
+            }
+
+            function resetForm() {
+                taskForm.reset();
+                taskIdInput.value = '';
+                formTitle.textContent = '新增任務';
+                submitBtn.textContent = '新增任務';
+                taskColorInput.value = '#14b8a6';
+                cancelBtn.classList.add('hidden');
+                errorMessage.textContent = '';
+            }
+            
+            taskForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                errorMessage.textContent = ''; 
+                const name = taskNameInput.value.trim();
+                const start = startDateInput.value;
+                const end = endDateInput.value;
+                const color = taskColorInput.value;
+                const id = taskIdInput.value;
+                if(!name || !start || !end) return;
+
+                if (start > end) {
+                    errorMessage.textContent = '錯誤：結束月份不能早於開始月份。';
+                    return;
+                }
+                
+                if (id) {
+                    const numericId = parseFloat(id);
+                    const taskIndex = tasks.findIndex(t => t.id === numericId);
+                    if (taskIndex > -1) {
+                        tasks[taskIndex] = { ...tasks[taskIndex], name, start, end, color };
+                    }
+                } else {
+                    const newTask = { id: Date.now() + Math.random(), name, start, end, color };
+                    tasks.push(newTask);
+                }
+                renderGanttChart();
+                resetForm();
+            });
+            
+            cancelBtn.addEventListener('click', resetForm);
+
+            // --- Event Listeners for Edit/Delete/Drag ---
+            chartContainer.addEventListener('click', (e) => {
+                const targetBtn = e.target.closest('.icon-btn');
+                if (!targetBtn) return;
+                const id = parseFloat(targetBtn.dataset.id);
+                if (targetBtn.classList.contains('delete-btn')) {
+                    tasks = tasks.filter(task => task.id !== id);
+                    if(taskIdInput.value && parseFloat(taskIdInput.value) === id) resetForm();
+                    renderGanttChart();
+                } else if (targetBtn.classList.contains('edit-btn')) {
+                    const taskToEdit = tasks.find(task => task.id === id);
+                    if (taskToEdit) {
+                        taskIdInput.value = taskToEdit.id;
+                        taskNameInput.value = taskToEdit.name;
+                        startDateInput.value = taskToEdit.start;
+                        endDateInput.value = taskToEdit.end;
+                        taskColorInput.value = taskToEdit.color;
+                        formTitle.textContent = '編輯任務';
+                        submitBtn.textContent = '更新任務';
+                        cancelBtn.classList.remove('hidden');
+                        document.getElementById('task-editor').scrollIntoView({ behavior: 'smooth' });
+                    }
+                }
+            });
+            chartContainer.addEventListener('dragstart', e => {
+                const draggedContainer = e.target.closest('.gantt-task-bar-container[draggable="true"]');
+                if (draggedContainer) {
+                    draggedTaskId = parseFloat(draggedContainer.dataset.id);
+                    e.dataTransfer.effectAllowed = 'move';
+                    setTimeout(() => { draggedContainer.classList.add('dragging'); }, 0);
+                }
+            });
+            chartContainer.addEventListener('dragend', e => {
+                 const draggedContainer = e.target.closest('.gantt-task-bar-container[draggable="true"]');
+                if(draggedContainer) { draggedContainer.classList.remove('dragging'); }
+                document.querySelectorAll('.gantt-task-bar-container.drag-over').forEach(el => el.classList.remove('drag-over'));
+            });
+            chartContainer.addEventListener('dragover', e => {
+                e.preventDefault();
+                const targetContainer = e.target.closest('.gantt-task-bar-container');
+                if (!targetContainer || parseFloat(targetContainer.dataset.id) === draggedTaskId) return;
+                document.querySelectorAll('.gantt-task-bar-container.drag-over').forEach(el => el.classList.remove('drag-over'));
+                targetContainer.classList.add('drag-over');
+            });
+            chartContainer.addEventListener('drop', e => {
+                e.preventDefault();
+                document.querySelectorAll('.gantt-task-bar-container.drag-over').forEach(el => el.classList.remove('drag-over'));
+                const dropTargetContainer = e.target.closest('.gantt-task-bar-container');
+                if (!dropTargetContainer || !draggedTaskId) return;
+                const targetId = parseFloat(dropTargetContainer.dataset.id);
+                const draggedIndex = tasks.findIndex(t => t.id === draggedTaskId);
+                const targetIndex = tasks.findIndex(t => t.id === targetId);
+                if (draggedIndex > -1 && targetIndex > -1 && draggedIndex !== targetIndex) {
+                    const [draggedItem] = tasks.splice(draggedIndex, 1);
+                    tasks.splice(targetIndex, 0, draggedItem);
+                    renderGanttChart();
+                }
+                draggedTaskId = null;
+            });
+            deadlineContainer.addEventListener('click', (e) => {
+                if (e.target.id === 'editable-deadline') {
+                    const span = e.target;
+                    const currentText = span.textContent;
+                    const match = currentText.match(/(\d{4})年(\d{1,2})月/);
+                    if (match) {
+                        const year = match[1];
+                        const month = match[2].padStart(2, '0');
+                        const input = document.createElement('input');
+                        input.type = 'month';
+                        input.value = `${year}-${month}`;
+                        input.className = 'bg-transparent border-b border-red-400 focus:outline-none';
+                        const updateAndReplace = () => {
+                            const [newYear, newMonth] = input.value.split('-');
+                            span.textContent = `${newYear}年${parseInt(newMonth, 10)}月上線`;
+                            deadlineContainer.replaceChild(span, input);
+                        };
+                        input.addEventListener('blur', updateAndReplace);
+                        input.addEventListener('keydown', (evt) => {
+                            if (evt.key === 'Enter') input.blur();
+                            else if (evt.key === 'Escape') deadlineContainer.replaceChild(span, input);
+                        });
+                        deadlineContainer.replaceChild(input, span);
+                        input.focus();
+                    }
+                }
+            });
+
+            // --- Gemini API Integration ---
+            geminiBtn.addEventListener('click', async () => {
+                const goal = smartTaskInput.value.trim();
+                if (!goal) {
+                    geminiErrorMessage.textContent = '請先輸入您的專案目標。';
+                    return;
+                }
+
+                geminiErrorMessage.textContent = '';
+                geminiBtn.disabled = true;
+                geminiBtn.innerHTML = '<span class="spinner"></span>';
+
+                try {
+                    const generatedTasks = await callGeminiForTaskBreakdown(goal);
+                    if (generatedTasks && generatedTasks.length > 0) {
+                        const newTasks = generatedTasks.map(task => ({
+                            id: Date.now() + Math.random(),
+                            name: task.name,
+                            start: task.start,
+                            end: task.end,
+                            color: `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`
+                        }));
+                        tasks.push(...newTasks);
+                        renderGanttChart();
+                        smartTaskInput.value = '';
+                    } else {
+                        throw new Error('AI 未能生成有效的任務。');
+                    }
+                } catch (error) {
+                    console.error('Gemini API Error:', error);
+                    geminiErrorMessage.textContent = `發生錯誤：${error.message}`;
+                } finally {
+                    geminiBtn.disabled = false;
+                    geminiBtn.innerHTML = '智慧拆解';
+                }
+            });
+
+            async function callGeminiForTaskBreakdown(goal) {
+                const apiKey = ""; // API key will be provided by the environment
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                
+                // Get current date to provide context to the model
+                const today = new Date();
+                const currentYear = today.getFullYear();
+                const currentMonth = today.toLocaleString('default', { month: 'long' });
+
+                const payload = {
+                    contents: [{
+                        parts: [{
+                            text: `You are a helpful project management assistant. Based on the user's high-level goal, break it down into several smaller, actionable tasks.
+The current date is ${currentMonth} ${currentYear}. Please provide realistic start and end months for each task in 'YYYY-MM' format, assuming the project can start immediately.
+The user's goal is: "${goal}"
+Respond ONLY with a valid JSON object that matches the provided schema.`
+                        }]
+                    }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    name: { type: "STRING", description: "子任務的名稱。" },
+                                    start: { type: "STRING", description: "預計開始月份，格式為 YYYY-MM。" },
+                                    end: { type: "STRING", description: "預計結束月份，格式為 YYYY-MM。" }
+                                },
+                                required: ["name", "start", "end"]
+                            }
+                        }
+                    }
+                };
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorBody = await response.json();
+                    throw new Error(`API request failed with status ${response.status}: ${errorBody.error.message}`);
+                }
+
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    return JSON.parse(candidate.content.parts[0].text);
+                } else {
+                    throw new Error("Invalid response structure from API.");
+                }
+            }
+
+            // Initial Render
+            renderGanttChart();
+        });
+    </script>
+</body>
+</html>
+
+
