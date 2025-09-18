@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>星舟快充｜充電事業合作方案</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            scroll-behavior: smooth;
+        }
+        /* Style for editable content focus */
+        [contenteditable]:focus {
+            outline: 2px solid #3b82f6;
+            background-color: #eff6ff;
+            border-radius: 4px;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+        }
+        /* Timeline styles */
+        .timeline {
+            position: relative;
+            padding-top: 2rem;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 2.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 3px;
+            height: calc(100% - 2.5rem);
+            background-color: #d1d5db;
+            border-radius: 2px;
+        }
+        .timeline-item {
+            position: relative;
+            width: 50%;
+            padding-bottom: 2.5rem;
+        }
+        .timeline-item:nth-child(odd) {
+            left: 0;
+            padding-right: 2rem;
+            text-align: right;
+        }
+        .timeline-item:nth-child(even) {
+            left: 50%;
+            padding-left: 2rem;
+            text-align: left;
+        }
+        .timeline-dot {
+            position: absolute;
+            top: 0.25rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            background-color: #3b82f6;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 0 4px #3b82f6;
+            z-index: 1;
+        }
+        .timeline-item:nth-child(odd) .timeline-dot {
+            right: -0.625rem; /* Adjusted for dot size */
+        }
+        .timeline-item:nth-child(even) .timeline-dot {
+            left: -0.625rem; /* Adjusted for dot size */
+        }
+        .partner-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .partner-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        /* Responsive styles for timeline */
+        @media (max-width: 768px) {
+            .timeline::before {
+                left: 0.625rem;
+                transform: translateX(0);
+            }
+            .timeline-item {
+                width: 100%;
+                padding-left: 2.5rem;
+                padding-right: 0;
+                text-align: left !important;
+                left: 0 !important;
+            }
+            .timeline-item:nth-child(odd) .timeline-dot,
+            .timeline-item:nth-child(even) .timeline-dot {
+                left: -0.625rem;
+                right: auto;
+            }
+        }
+        /* FAQ Accordion arrow */
+        .faq-toggle-icon {
+            transition: transform 0.3s ease-in-out;
+        }
+        .faq-question.open .faq-toggle-icon {
+            transform: rotate(180deg);
+        }
+        
+        /* Interactive partner controls */
+        .partner-controls {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .group:hover .partner-controls {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Text Editor Toolbar -->
+    <div id="editor-toolbar" class="bg-gray-100 p-2 fixed top-[70px] left-1/2 -translate-x-1/2 z-[100] shadow-lg rounded-lg flex items-center space-x-2 border border-gray-300 hidden">
+        <select id="font-family-select" class="toolbar-item border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" title="選擇字體">
+            <option value="'Noto Sans TC', sans-serif">預設字體</option>
+            <option value="Arial, sans-serif">Arial</option>
+            <option value="Verdana, sans-serif">Verdana</option>
+            <option value="'Times New Roman', serif">Times New Roman</option>
+            <option value="Georgia, serif">Georgia</option>
+            <option value="'Microsoft JhengHei', sans-serif">微軟正黑體</option>
+        </select>
+        <select id="font-size-select" class="toolbar-item border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" title="字體大小">
+            <option value="">大小</option>
+            <option value="12px">12px</option>
+            <option value="14px">14px</option>
+            <option value="16px">16px</option>
+            <option value="18px">18px</option>
+            <option value="24px">24px</option>
+            <option value="32px">32px</option>
+            <option value="48px">48px</option>
+        </select>
+        <button id="bold-btn" class="toolbar-item font-bold w-8 h-8 flex items-center justify-center rounded-md hover:bg-gray-200" title="粗體">B</button>
+        <button id="italic-btn" class="toolbar-item italic w-8 h-8 flex items-center justify-center rounded-md hover:bg-gray-200" title="斜體">I</button>
+        <button id="underline-btn" class="toolbar-item underline w-8 h-8 flex items-center justify-center rounded-md hover:bg-gray-200" title="底線">U</button>
+        <input type="color" id="font-color-picker" class="toolbar-item w-8 h-8 p-1 border-gray-300 rounded-md cursor-pointer" title="文字顏色" value="#374151">
+        <select id="line-height-select" class="toolbar-item border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" title="行距">
+            <option value="">行距</option>
+            <option value="1">單行</option>
+            <option value="1.5">1.5倍</option>
+            <option value="2">2倍</option>
+            <option value="2.5">2.5倍</option>
+        </select>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#" class="flex items-center space-x-2">
+                <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                <h1 class="text-2xl font-bold text-gray-800" contenteditable="true">星舟快充</h1>
+            </a>
+            <a href="#" class="open-modal-btn bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg hover:bg-blue-700 transition duration-300">立即諮詢</a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main-content">
+        
+        <!-- Hero Section -->
+        <div class="editable-section relative group">
+            <div class="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
+                <button class="add-section-btn bg-blue-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-blue-600" title="新增區塊">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                </button>
+                <button class="delete-section-btn bg-red-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-red-600" title="刪除區塊">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
+                </button>
+            </div>
+            <section class="bg-white">
+                <div class="container mx-auto px-6 py-16 md:py-24">
+                    <div class="text-center max-w-3xl mx-auto">
+                        <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900" style="line-height: 1.5;" contenteditable="true">
+                            為您的停車場<br class="hidden md:block">
+                            <span class="text-blue-600">注入充電新收益</span>
+                        </h2>
+                        <p class="mt-4 text-lg text-gray-600 mx-auto" contenteditable="true">
+                            將閒置車位轉化為穩定現金流，吸引高消費電動車主，輕鬆跨入兆元電動車產業。
+                        </p>
+                        <div class="mt-8">
+                            <a href="#" class="open-modal-btn bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 transition duration-300 text-lg">免費取得合作方案</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="container mx-auto px-6 py-12">
+            <!-- Best Solution Section -->
+             <div class="editable-section relative group">
+                <div class="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
+                    <button class="add-section-btn bg-blue-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-blue-600" title="新增區塊">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                    </button>
+                    <button class="delete-section-btn bg-red-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-red-600" title="刪除區塊">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
+                    </button>
+                </div>
+                <section class="py-16">
+                     <!-- New Text Block -->
+                    <div class="text-center mb-12">
+                        <h2 class="text-4xl font-bold text-gray-800" contenteditable="true">
+                            專為 <span class="text-green-600">停車場業者</span>
+                        </h2>
+                        <p class="mt-3 text-lg text-gray-600 max-w-2xl mx-auto" contenteditable="true">
+                            將車位轉化為收益，吸引電動車人潮，提升市場競爭力
+                        </p>
+                    </div>
+                     <!-- Legal Requirements -->
+                    <div class="max-w-4xl mx-auto border-2 border-orange-400 bg-orange-50 rounded-lg p-6 mb-16 text-center">
+                        <h4 class="text-xl font-bold text-orange-800 mb-3" contenteditable="true">法規要求：充電樁設置義務</h4>
+                        <div class="flex flex-col md:flex-row justify-center items-center gap-x-8 gap-y-4">
+                            <p class="text-orange-700" contenteditable="true"><span class="font-bold">公有停車場：</span>需保留 <span class="text-2xl font-bold">2%</span> 停車位作為充電專用。</p>
+                            <p class="text-orange-700" contenteditable="true"><span class="font-bold">民營停車場：</span>需保留 <span class="text-2xl font-bold">1%</span> 停車位作為充電專用。</p>
+                        </div>
+                    </div>
+
+                    <h3 class="text-3xl font-bold text-center mb-12" contenteditable="true">這就是您在尋找的最佳方案</h3>
+                    <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                        <!-- Step 1 -->
+                        <div class="bg-white p-8 rounded-xl shadow-lg text-center">
+                            <div class="bg-blue-100 text-blue-600 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4 font-bold text-xl">1</div>
+                            <h4 class="text-xl font-bold mb-2" contenteditable="true">採購與建置</h4>
+                            <p class="text-gray-600" contenteditable="true">我們提供從場勘、規劃到施工的全套建置服務，為您安裝高品質、符合法規的充電樁。</p>
+                        </div>
+                        <!-- Step 2 -->
+                        <div class="bg-white p-8 rounded-xl shadow-lg text-center">
+                            <div class="bg-blue-100 text-blue-600 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4 font-bold text-xl">2</div>
+                            <h4 class="text-xl font-bold mb-2" contenteditable="true">資產全權擁有</h4>
+                            <p class="text-gray-600" contenteditable="true">充電樁與相關設備100%為您的資產，讓您享有完整的控制權與增值潛力。</p>
+                        </div>
+                        <!-- Step 3 -->
+                        <div class="bg-white p-8 rounded-xl shadow-lg text-center">
+                            <div class="bg-blue-100 text-blue-600 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4 font-bold text-xl">3</div>
+                            <h4 class="text-xl font-bold mb-2" contenteditable="true">專業維運代管</h4>
+                            <p class="text-gray-600" contenteditable="true">設備上線後，由我們接手24小時客服、金流、軟體更新與維護，您只需坐享其成。</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <!-- Core Value Section -->
+             <div class="editable-section relative group">
+                <div class="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
+                    <button class="add-section-btn bg-blue-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-blue-600" title="新增區塊">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                    </button>
+                    <button class="delete-section-btn bg-red-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-red-600" title="刪除區塊">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
+                    </button>
+                </div>
+                <section class="py-16">
+                    <h3 class="text-3xl font-bold text-center mb-10" contenteditable="true">為您創造的核心價值</h3>
+                    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-blue-100 p-6 rounded-lg">
+                            <h4 class="font-bold text-lg text-blue-800" contenteditable="true">創造高利潤營收</h4>
+                            <p class="text-blue-700 mt-1" contenteditable="true">升級車位為充電樁，開創高毛利充電服務費新營收。</p>
+                        </div>
+                        <div class="bg-blue-100 p-6 rounded-lg">
+                            <h4 class="font-bold text-lg text-blue-800" contenteditable="true">資產完全自有</h4>
+                            <p class="text-blue-700 mt-1" contenteditable="true">充電樁資產為您所有，可隨場域規劃靈活運用。</p>
+                        </div>
+                        <div class="bg-blue-100 p-6 rounded-lg">
+                            <h4 class="font-bold text-lg text-blue-800" contenteditable="true">營運完全免操心</h4>
+                            <p class="text-blue-700 mt-1" contenteditable="true">從金流到維運全由我們代管，為您省下管理時間與成本。</p>
+                        </div>
+                        <div class="bg-blue-100 p-6 rounded-lg">
+                            <h4 class="font-bold text-lg text-blue-800" contenteditable="true">提升場站價值</h4>
+                            <p class="text-blue-700 mt-1" contenteditable="true">成為電動車主首選，提升來客率、客戶黏著度與競爭力。</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <!-- Why Choose Us Section -->
+            <div class="editable-section relative group">
+                <div class="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
+                    <button class="add-section-btn bg-blue-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-blue-600" title="新增區塊">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                    </button>
+                    <button class="delete-section-btn bg-red-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-red-600" title="刪除區塊">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
+                    </button>
+                </div>
+                <section class="py-16">
+                    <h3 class="text-3xl font-bold text-center mb-10" contenteditable="true">為何選擇星舟快充？</h3>
+                    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                        <!-- Card 1 -->
+                        <div class="bg-white p-8 rounded-xl shadow-lg text-center">
+                            <div class="flex justify-center mb-4">
+                                <svg class="w-12 h-12 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
+                            </div>
+                            <h4 class="text-xl font-bold mb-2" contenteditable="true">一站式整合服務</h4>
+                            <p class="text-gray-600" contenteditable="true">從場勘、建置到代管，我們提供完整解決方案，讓您省時省力，無後顧之憂。</p>
+                        </div>
+                        <!-- Card 2 -->
+                        <div class="bg-white p-8 rounded-xl shadow-lg text-center">
+                            <div class="flex justify-center mb-4">
+                                <svg class="w-12 h-12 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" /></svg>
+                            </div>
+                            <h4 class="text-xl font-bold mb-2" contenteditable="true">強大的軟體實力</h4>
+                            <p class="text-gray-600" contenteditable="true">自主研發的管理平台，讓您隨時掌握營運數據，並能靈活設定費率與會員方案。</p>
+                        </div>
+                        <!-- Card 3 -->
+                        <div class="bg-white p-8 rounded-xl shadow-lg text-center">
+                            <div class="flex justify-center mb-4">
+                                <svg class="w-12 h-12 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.286z" /></svg>
+                            </div>
+                            <h4 class="text-xl font-bold mb-2" contenteditable="true">可靠的維運團隊</h4>
+                            <p class="text-gray-600" contenteditable="true">遍佈全台的維運網絡與24小時客服，能即時排除故障，確保充電站穩定營運。</p>
+                        </div>
+                        <!-- Card 4 -->
+                        <div class="bg-white p-8 rounded-xl shadow-lg text-center">
+                            <div class="flex justify-center mb-4">
+                                <svg class="w-12 h-12 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125V6.375m1.125 13.125A1.125 1.125 0 004.5 18.375h15a1.125 1.125 0 001.125-1.125V6.375m0 13.125V6.375a1.125 1.125 0 00-1.125-1.125H4.5A1.125 1.125 0 003.375 6.375m17.25 0L12 12.75l-4.125-4.125L3.375 12.75" /></svg>
+                            </div>
+                            <h4 class="text-xl font-bold mb-2" contenteditable="true">行銷引流的價值</h4>
+                            <p class="text-gray-600" contenteditable="true">透過我們的平台與合作網絡，有效增加您場站的曝光，吸引源源不絕的電動車主。</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <!-- Timeline Section -->
+            <div class="editable-section relative group">
+                <div class="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
+                    <button class="add-section-btn bg-blue-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-blue-600" title="新增區塊">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                    </button>
+                    <button class="delete-section-btn bg-red-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-red-600" title="刪除區塊">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
+                    </button>
+                </div>
+                <section class="py-16">
+                     <h3 class="text-3xl font-bold text-center mb-12" contenteditable="true">停車場維運代管架構</h3>
+                     <div class="timeline max-w-3xl mx-auto">
+                         <!-- Item 1 -->
+                         <div class="timeline-item">
+                             <div class="timeline-dot"></div>
+                             <h4 class="font-bold text-lg" contenteditable="true">投資資金</h4>
+                             <p class="text-gray-600" contenteditable="true">停車場業主提供建站場域及資金。</p>
+                         </div>
+                         <!-- Item 2 -->
+                         <div class="timeline-item">
+                             <div class="timeline-dot"></div>
+                             <h4 class="font-bold text-lg" contenteditable="true">充電站(樁)建置</h4>
+                             <p class="text-gray-600" contenteditable="true">星舟快充提供充電站建置服務。</p>
+                         </div>
+                         <!-- Item 3 -->
+                         <div class="timeline-item">
+                             <div class="timeline-dot"></div>
+                             <h4 class="font-bold text-lg" contenteditable="true">充電付費</h4>
+                             <p class="text-gray-600" contenteditable="true">電動車主透過 APP 或刷卡付費充電。</p>
+                         </div>
+                         <!-- Item 4 -->
+                          <div class="timeline-item">
+                             <div class="timeline-dot"></div>
+                             <h4 class="font-bold text-lg" contenteditable="true">金流代收</h4>
+                             <p class="text-gray-600" contenteditable="true">所有充電費用由星舟快充代收。</p>
+                         </div>
+                         <!-- Item 5 -->
+                         <div class="timeline-item">
+                             <div class="timeline-dot"></div>
+                             <h4 class="font-bold text-lg" contenteditable="true">定期對帳</h4>
+                             <p class="text-gray-600" contenteditable="true">星舟快充每月提供清晰營收報表與業主對帳。</p>
+                         </div>
+                         <!-- Item 6 -->
+                         <div class="timeline-item">
+                             <div class="timeline-dot"></div>
+                             <h4 class="font-bold text-lg" contenteditable="true">營收分潤</h4>
+                             <p class="text-gray-600" contenteditable="true">扣除服務費後，將營收匯款至業主指定帳戶。</p>
+                         </div>
+                     </div>
+                </section>
+            </div>
+            <!-- Partnership Plan Section -->
+            <div class="editable-section relative group">
+                <div class="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
+                    <button class="add-section-btn bg-blue-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-blue-600" title="新增區塊">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                    </button>
+                    <button class="delete-section-btn bg-red-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-red-600" title="刪除區塊">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
+                    </button>
+                </div>
+                <section class="py-16 bg-white rounded-xl shadow-md my-16">
+                    <div class="container mx-auto px-6">
+                        <!-- Title and Subtitle -->
+                        <div class="text-center mb-12">
+                            <h3 class="text-3xl font-bold text-gray-800" contenteditable="true">阿波羅電力｜充電站加盟合作計畫</h3>
+                            <p class="mt-3 text-lg text-gray-600" contenteditable="true">易宏科技 & 星舟快充 攜手為您打造專業充電服務</p>
+                        </div>
+            
+                        <!-- Flowchart Section -->
+                        <div class="relative group max-w-4xl mx-auto border-2 border-blue-500 bg-blue-50 rounded-lg p-8 mb-16">
+                             <h4 class="text-xl font-bold text-blue-800 mb-6 text-center" contenteditable="true">獨家建置代管服務</h4>
+                             <p class="text-center text-gray-700 mb-8" contenteditable="true">星舟 & 易宏聯手，提供一站式充電站建置與維運服務。</p>
+                             <div id="partnership-flowchart" class="flex flex-col md:flex-row justify-around items-center gap-4 text-center">
+                                <!-- Partner 1 -->
+                                <div class="partner-item-wrapper relative group">
+                                    <div class="partner-controls absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-2 bg-white p-2 rounded-md shadow-lg z-10">
+                                        <input type="color" class="partner-color-picker w-7 h-7 cursor-pointer" value="#bee3f8" title="變更顏色">
+                                        <input type="range" class="partner-size-slider w-20" min="40" max="120" value="64" title="調整大小">
+                                        <button class="delete-partner-btn text-red-500 hover:text-red-700" title="刪除">
+                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"></path></svg>
+                                        </button>
+                                    </div>
+                                    <div class="partner-card p-4 rounded-lg">
+                                        <div class="partner-circle text-blue-800 rounded-full flex items-center justify-center mx-auto mb-2 font-bold" style="background-color: rgb(190, 227, 248); width: 64px; height: 64px;">
+                                            <span contenteditable="true">阿波羅</span>
+                                        </div>
+                                        <p class="text-gray-700 mt-2 font-semibold" contenteditable="true">資金出資</p>
+                                    </div>
+                                </div>
+                                <!-- Arrow 1 -->
+                                <div class="partner-arrow text-3xl font-bold text-blue-400 transform rotate-90 md:rotate-0">→</div>
+                                <!-- Partner 2 -->
+                                <div class="partner-item-wrapper relative group">
+                                    <div class="partner-controls absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-2 bg-white p-2 rounded-md shadow-lg z-10">
+                                        <input type="color" class="partner-color-picker w-7 h-7 cursor-pointer" value="#bee3f8" title="變更顏色">
+                                        <input type="range" class="partner-size-slider w-20" min="40" max="120" value="64" title="調整大小">
+                                        <button class="delete-partner-btn text-red-500 hover:text-red-700" title="刪除">
+                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"></path></svg>
+                                        </button>
+                                    </div>
+                                    <div class="partner-card p-4 rounded-lg">
+                                        <div class="partner-circle text-blue-800 rounded-full flex items-center justify-center mx-auto mb-2 font-bold" style="background-color: rgb(190, 227, 248); width: 64px; height: 64px;">
+                                            <span contenteditable="true">易宏</span>
+                                        </div>
+                                        <p class="text-gray-700 mt-2 font-semibold" contenteditable="true">EPC工程</p>
+                                    </div>
+                                </div>
+                                <!-- Arrow 2 -->
+                                <div class="partner-arrow text-3xl font-bold text-blue-400 transform rotate-90 md:rotate-0">→</div>
+                                <!-- Partner 3 -->
+                                 <div class="partner-item-wrapper relative group">
+                                    <div class="partner-controls absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-2 bg-white p-2 rounded-md shadow-lg z-10">
+                                        <input type="color" class="partner-color-picker w-7 h-7 cursor-pointer" value="#bee3f8" title="變更顏色">
+                                        <input type="range" class="partner-size-slider w-20" min="40" max="120" value="64" title="調整大小">
+                                        <button class="delete-partner-btn text-red-500 hover:text-red-700" title="刪除">
+                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"></path></svg>
+                                        </button>
+                                    </div>
+                                    <div class="partner-card p-4 rounded-lg">
+                                        <div class="partner-circle text-blue-800 rounded-full flex items-center justify-center mx-auto mb-2 font-bold" style="background-color: rgb(190, 227, 248); width: 64px; height: 64px;">
+                                            <span contenteditable="true">星舟</span>
+                                        </div>
+                                        <p class="text-gray-700 mt-2 font-semibold" contenteditable="true">設備/SaaS平台<br>服務代管</p>
+                                    </div>
+                                </div>
+                             </div>
+                             <div class="text-center mt-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <button id="add-partner-btn" class="bg-green-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-600 transition duration-300">
+                                    新增合作夥伴
+                                </button>
+                             </div>
+                        </div>
+            
+                        <!-- Financial & Services Grid -->
+                        <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                            <!-- Financial Model -->
+                            <div class="border-2 border-red-300 bg-red-50 p-8 rounded-lg">
+                                <h4 class="text-2xl font-bold mb-4 text-red-800" contenteditable="true">金流機制</h4>
+                                <ul class="space-y-4 text-gray-700">
+                                    <li class="flex items-start" contenteditable="true"><span class="font-bold bg-red-200 text-red-800 rounded-full w-8 h-8 text-center leading-8 mr-3 flex-shrink-0">1</span><span><strong class="font-semibold">充電收入：</strong>站點產生收入。</span></li>
+                                    <li class="flex items-start" contenteditable="true"><span class="font-bold bg-red-200 text-red-800 rounded-full w-8 h-8 text-center leading-8 mr-3 flex-shrink-0">2</span><span><strong class="font-semibold">服務費：</strong>每月總收入扣除 10% 服務費。</span></li>
+                                    <li class="flex items-start" contenteditable="true"><span class="font-bold bg-red-200 text-red-800 rounded-full w-8 h-8 text-center leading-8 mr-3 flex-shrink-0">3</span><span><strong class="font-semibold">報表匯款：</strong>星舟提供報表並匯款項。</span></li>
+                                </ul>
+                            </div>
+                            <!-- Operations & Customer Service -->
+                            <div class="border-2 border-green-300 bg-green-50 p-8 rounded-lg">
+                                <h4 class="text-2xl font-bold mb-4 text-green-800" contenteditable="true">維運與客戶服務</h4>
+                                <ul class="space-y-4 text-gray-700">
+                                    <li class="flex items-start">
+                                        <svg class="w-6 h-6 text-green-600 mr-3 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        <div>
+                                            <strong class="font-semibold" contenteditable="true">即時維護服務</strong>
+                                            <p class="text-sm" contenteditable="true">透過SaaS後台監控，確保站點正常運作。</p>
+                                        </div>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <svg class="w-6 h-6 text-green-600 mr-3 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        <div>
+                                            <strong class="font-semibold" contenteditable="true">客戶支援</strong>
+                                            <p class="text-sm" contenteditable="true">24小時客服支援，即時解決問題。</p>
+                                        </div>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <svg class="w-6 h-6 text-green-600 mr-3 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                                        <div>
+                                            <strong class="font-semibold" contenteditable="true">站點行銷推廣</strong>
+                                            <p class="text-sm" contenteditable="true">行銷規劃與曝光，提升站點使用率。</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+             <!-- FAQ Section -->
+            <div class="editable-section relative group">
+                <div class="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
+                    <button class="add-section-btn bg-blue-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-blue-600" title="新增區塊">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                    </button>
+                    <button class="delete-section-btn bg-red-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-red-600" title="刪除區塊">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
+                    </button>
+                </div>
+                <section class="py-16">
+                    <h3 class="text-3xl font-bold text-center mb-10" contenteditable="true">常見問題</h3>
+                    <div class="max-w-3xl mx-auto space-y-4" id="faq-container">
+                        <!-- FAQ Item 1 -->
+                        <div class="bg-white rounded-lg shadow-md">
+                            <button class="faq-question flex justify-between items-center w-full p-5 text-left font-semibold">
+                                <span contenteditable="true">建置充電樁需要多久時間？</span>
+                                <svg class="faq-toggle-icon w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                            <div class="faq-answer hidden p-5 pt-0 text-gray-600">
+                                <p contenteditable="true">從初步場勘、電力評估、方案設計到最終施工完成，一般情況下約需 30-45 個工作天。實際時程會因場地條件、台電申請流程等因素而異。</p>
+                            </div>
+                        </div>
+                        <!-- FAQ Item 2 -->
+                        <div class="bg-white rounded-lg shadow-md">
+                            <button class="faq-question flex justify-between items-center w-full p-5 text-left font-semibold">
+                                <span contenteditable="true">充電樁的維護成本高嗎？</span>
+                                <svg class="faq-toggle-icon w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                            <div class="faq-answer hidden p-5 pt-0 text-gray-600">
+                                <p contenteditable="true">我們的代管服務已包含日常的軟體更新、線上故障排除與定期巡檢。硬體設備皆享原廠保固，且我們選用的設備均為業界頂尖品牌，故障率極低，大幅降低您的長期維護成本。</p>
+                            </div>
+                        </div>
+                        <!-- FAQ Item 3 -->
+                        <div class="bg-white rounded-lg shadow-md">
+                            <button class="faq-question flex justify-between items-center w-full p-5 text-left font-semibold">
+                                <span contenteditable="true">我可以自己設定充電費率嗎？</span>
+                                <svg class="faq-toggle-icon w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                            <div class="faq-answer hidden p-5 pt-0 text-gray-600">
+                                <p contenteditable="true">是的，您可以完全自主定價。透過我們的智慧營運後台，您可以根據離尖峰時段、會員等級或特定活動，靈活設定多種費率方案，最大化您的充電收益。</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <div class="editable-section relative group">
+        <div class="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
+            <button class="add-section-btn bg-blue-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-blue-600" title="新增區塊">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+            </button>
+            <button class="delete-section-btn bg-red-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-red-600" title="刪除區塊">
+                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
+            </button>
+        </div>
+        <footer id="contact" class="bg-gray-800 text-white">
+            <div class="container mx-auto px-6 py-12">
+                <div class="text-center">
+                     <h3 class="text-3xl font-bold" contenteditable="true">準備好開啟您的充電事業了嗎？</h3>
+                     <p class="mt-3 text-gray-300" contenteditable="true">立即聯絡我們，讓專業團隊為您量身打造最佳獲利方案。</p>
+                     <div class="mt-8">
+                         <a href="#" class="open-modal-btn bg-blue-600 text-white font-semibold py-3 px-8 rounded-lg hover:bg-blue-700 transition duration-300 text-lg">取得免費諮詢</a>
+                     </div>
+                </div>
+                <div class="mt-12 pt-8 border-t border-gray-700 flex flex-col md:flex-row justify-between items-center text-sm text-gray-400">
+                     <div class="flex items-center space-x-2 mb-4 md:mb-0">
+                        <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        <span class="font-bold text-white" contenteditable="true">星舟快充</span>
+                    </div>
+                    <p contenteditable="true">&copy; 2025 星舟快充股份有限公司. All Rights Reserved.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Business Card Modal -->
+    <div id="business-card-modal" class="fixed inset-0 bg-black bg-opacity-60 z-[110] flex items-center justify-center hidden p-4">
+        <div id="modal-content" class="bg-white rounded-lg shadow-xl transform transition-all sm:max-w-md w-full relative">
+            <!-- Close Button -->
+            <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-10">
+                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            
+            <!-- Business Card Content -->
+            <div class="overflow-hidden rounded-lg">
+                <div class="bg-gray-100 p-6 text-center">
+                    <img class="w-28 h-auto mx-auto mb-4" src="https://i.imgur.com/your-logo-id.png" alt="Star Charger Logo" onerror="this.onerror=null;this.src='https://placehold.co/150x50/FFFFFF/000000?text=STAR+CHARGER';">
+                </div>
+                <div class="p-8 bg-yellow-500 text-gray-800">
+                    <div class="text-center mb-6">
+                        <h3 class="text-3xl font-bold" contenteditable="true">杜建賢 <span class="text-xl font-normal">Kris Du</span></h3>
+                        <p class="font-semibold mt-1" contenteditable="true">業務部</p>
+                    </div>
+                    <div class="space-y-3 text-sm">
+                        <p class="flex items-center" contenteditable="true">
+                            <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg>
+                            <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg>
+                            <span>0989-224307</span>
+                        </p>
+                        <p class="flex items-center" contenteditable="true">
+                            <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg>
+                            <span>kris.du@hdrenewables.com</span>
+                        </p>
+                         <p class="flex items-center" contenteditable="true">
+                            <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" /></svg>
+                            <span>02 2832 8057 #113</span>
+                        </p>
+                        <p class="flex items-center" contenteditable="true">
+                           <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.706C6.512 5.73 6.974 6 7.5 6A1.5 1.5 0 019 7.5V8a2 2 0 004 0 2 2 0 011.527 1.907 6.011 6.011 0 01-1.631 3.033 1.5 1.5 0 01-2.121.13c-.566-.424-1.122-.852-1.74-1.297-.624-.45-1.39-1.04-2.285-1.04-1.25 0-2.318.68-3.044 1.522A5.987 5.987 0 014 9.5a1.5 1.5 0 01.332-1.473z" clip-rule="evenodd" /></svg>
+                            <span>02 2832 8059</span>
+                        </p>
+                        <p class="flex items-start" contenteditable="true">
+                             <svg class="w-5 h-5 mr-3 flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg>
+                            <span>111台北市士林區德行西路35號5樓</span>
+                        </p>
+                         <p class="flex items-center" contenteditable="true">
+                            <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg>
+                            <span>統一編號: 90148497</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // FAQ Accordion Script
+        const faqContainer = document.getElementById('faq-container');
+        if (faqContainer) {
+            faqContainer.addEventListener('click', function(e) {
+                const questionButton = e.target.closest('.faq-question');
+                if (questionButton) {
+                    const answer = questionButton.nextElementSibling;
+                    questionButton.classList.toggle('open');
+                    answer.classList.toggle('hidden');
+                }
+            });
+        }
+
+        // --- Text Editor Toolbar Script ---
+        const editorToolbar = document.getElementById('editor-toolbar');
+        const fontFamilySelect = document.getElementById('font-family-select');
+        const fontSizeSelect = document.getElementById('font-size-select');
+        const boldBtn = document.getElementById('bold-btn');
+        const italicBtn = document.getElementById('italic-btn');
+        const underlineBtn = document.getElementById('underline-btn');
+        const fontColorPicker = document.getElementById('font-color-picker');
+        const lineHeightSelect = document.getElementById('line-height-select');
+
+        // Show/Hide toolbar logic
+        let currentEditable = null;
+        
+        document.addEventListener('focusin', (e) => {
+            // When an editable element is focused, show the toolbar.
+            if (e.target.isContentEditable) {
+                currentEditable = e.target;
+                editorToolbar.classList.remove('hidden');
+            }
+        });
+
+        document.addEventListener('mousedown', (e) => {
+            // If an editable element is active, check where the click happened.
+            if (currentEditable) {
+                // If the click is outside both the current editor AND the toolbar, then hide the toolbar.
+                if (!currentEditable.contains(e.target) && !editorToolbar.contains(e.target)) {
+                    editorToolbar.classList.add('hidden');
+                    currentEditable = null; 
+                }
+            }
+        });
+
+        // Apply style by wrapping selection in a span for font size
+        function applyFontSize(size) {
+            if (!size) return;
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                if (range.collapsed) {
+                    return; 
+                }
+                document.execCommand('styleWithCSS', false, true);
+                const span = document.createElement('span');
+                span.style.fontSize = size;
+                try {
+                    range.surroundContents(span);
+                } catch(e) {
+                    console.error("Could not surround contents for font size, selection might be complex.", e);
+                }
+            }
+        }
+        
+        // Helper function to find the parent element of the current text selection
+        function getSelectionParent() {
+            let parent = null, sel;
+            if (window.getSelection) {
+                sel = window.getSelection();
+                if (sel.rangeCount) {
+                    parent = sel.getRangeAt(0).commonAncestorContainer;
+                    if (parent.nodeType != 1) {
+                        parent = parent.parentNode;
+                    }
+                }
+            }
+            return parent;
+        }
+        
+        // Apply line height to the containing block-level element
+        function applyLineHeight(height) {
+            if (!height) return;
+            let element = getSelectionParent();
+            if (element && currentEditable && currentEditable.contains(element)) {
+                while (element && getComputedStyle(element).display !== 'block') {
+                    if (element === currentEditable) break;
+                    element = element.parentNode;
+                }
+                if (element && element !== document.body && element !== document.documentElement) {
+                   element.style.lineHeight = height;
+                }
+            }
+        }
+
+        // --- Event Listeners for Toolbar ---
+        fontFamilySelect.addEventListener('change', (e) => {
+            if (currentEditable) {
+                 document.execCommand('fontName', false, e.target.value);
+                 currentEditable.focus();
+            }
+        });
+
+        fontSizeSelect.addEventListener('change', (e) => {
+            if (currentEditable) {
+                applyFontSize(e.target.value);
+                currentEditable.focus();
+            }
+        });
+        
+        fontColorPicker.addEventListener('input', (e) => {
+            if (currentEditable) {
+                document.execCommand('foreColor', false, e.target.value);
+            }
+        });
+
+        lineHeightSelect.addEventListener('change', (e) => {
+            if (currentEditable) {
+                applyLineHeight(e.target.value);
+                currentEditable.focus();
+            }
+        });
+
+        boldBtn.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            if (currentEditable) document.execCommand('bold');
+        });
+
+        italicBtn.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            if (currentEditable) document.execCommand('italic');
+        });
+
+        underlineBtn.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            if (currentEditable) document.execCommand('underline');
+        });
+
+        // --- Section Add/Delete Script ---
+        document.body.addEventListener('click', function(e) {
+            // Section Controls
+            const deleteBtn = e.target.closest('.delete-section-btn');
+            const addBtn = e.target.closest('.add-section-btn');
+            if (deleteBtn) {
+                const sectionWrapper = deleteBtn.closest('.editable-section');
+                if (sectionWrapper) {
+                    sectionWrapper.remove();
+                }
+            }
+            if (addBtn) {
+                const sectionWrapper = addBtn.closest('.editable-section');
+                if (sectionWrapper) {
+                    const clone = sectionWrapper.cloneNode(true);
+                    sectionWrapper.parentNode.insertBefore(clone, sectionWrapper.nextSibling);
+                }
+            }
+
+            // Partner Deletion
+            const deletePartnerBtn = e.target.closest('.delete-partner-btn');
+            if (deletePartnerBtn) {
+                const wrapper = deletePartnerBtn.closest('.partner-item-wrapper');
+                if (wrapper) {
+                    const nextEl = wrapper.nextElementSibling;
+                    const prevEl = wrapper.previousElementSibling;
+                    if (nextEl && nextEl.classList.contains('partner-arrow')) {
+                        nextEl.remove();
+                    } else if (prevEl && prevEl.classList.contains('partner-arrow')) {
+                        prevEl.remove();
+                    }
+                    wrapper.remove();
+                }
+            }
+        });
+
+        // --- Interactive Partnership Flowchart Script ---
+        const addPartnerBtn = document.getElementById('add-partner-btn');
+        const flowchartContainer = document.getElementById('partnership-flowchart');
+
+        if(addPartnerBtn && flowchartContainer){
+            addPartnerBtn.addEventListener('click', () => {
+                const arrowHTML = `<div class="partner-arrow text-3xl font-bold text-blue-400 transform rotate-90 md:rotate-0">→</div>`;
+                const newPartnerHTML = `
+                <div class="partner-item-wrapper relative group">
+                    <div class="partner-controls absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-2 bg-white p-2 rounded-md shadow-lg z-10">
+                        <input type="color" class="partner-color-picker w-7 h-7 cursor-pointer" value="#bee3f8" title="變更顏色">
+                        <input type="range" class="partner-size-slider w-20" min="40" max="120" value="64" title="調整大小">
+                        <button class="delete-partner-btn text-red-500 hover:text-red-700" title="刪除">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"></path></svg>
+                        </button>
+                    </div>
+                    <div class="partner-card p-4 rounded-lg">
+                        <div class="partner-circle text-blue-800 rounded-full flex items-center justify-center mx-auto mb-2 font-bold" style="background-color: #bee3f8; width: 64px; height: 64px;">
+                            <span contenteditable="true">新夥伴</span>
+                        </div>
+                        <p class="text-gray-700 mt-2 font-semibold" contenteditable="true">夥伴角色</p>
+                    </div>
+                </div>`;
+                
+                // Add arrow only if there are existing partners
+                if(flowchartContainer.children.length > 0) {
+                    flowchartContainer.insertAdjacentHTML('beforeend', arrowHTML);
+                }
+                flowchartContainer.insertAdjacentHTML('beforeend', newPartnerHTML);
+            });
+        }
+
+        // Delegation for partner controls
+        document.body.addEventListener('input', function(e) {
+            const colorPicker = e.target.closest('.partner-color-picker');
+            if (colorPicker) {
+                const wrapper = colorPicker.closest('.partner-item-wrapper');
+                const circle = wrapper.querySelector('.partner-circle');
+                circle.style.backgroundColor = colorPicker.value;
+            }
+
+            const sizeSlider = e.target.closest('.partner-size-slider');
+            if (sizeSlider) {
+                const wrapper = sizeSlider.closest('.partner-item-wrapper');
+                const circle = wrapper.querySelector('.partner-circle');
+                const size = sizeSlider.value + 'px';
+                circle.style.width = size;
+                circle.style.height = size;
+            }
+        });
+
+        // --- Business Card Modal Script ---
+        const modal = document.getElementById('business-card-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const openModalButtons = document.querySelectorAll('.open-modal-btn');
+
+        if (modal && closeModalBtn && openModalButtons.length > 0) {
+            
+            const openModal = () => modal.classList.remove('hidden');
+            const closeModal = () => modal.classList.add('hidden');
+
+            openModalButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    openModal();
+                });
+            });
+
+            closeModalBtn.addEventListener('click', closeModal);
+
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+
+
+
