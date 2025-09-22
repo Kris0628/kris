@@ -106,9 +106,28 @@
             opacity: 0;
             transition: opacity 0.3s ease, visibility 0.3s ease;
         }
+        /* This is the default Tailwind behavior */
         .group:hover .partner-controls {
             visibility: visible;
             opacity: 1;
+        }
+        
+        /* --- Admin Mode Styles --- */
+        /* When NOT in admin mode, disable all hover effects for controls */
+        body:not(.admin-mode) .group:hover .group-hover\:opacity-100,
+        body:not(.admin-mode) .group:hover .partner-controls {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        /* Shake animation for password error */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        .animate-shake {
+            animation: shake 0.5s ease-in-out;
         }
     </style>
 </head>
@@ -201,7 +220,7 @@
                     </button>
                 </div>
                 <section class="py-16">
-                     <!-- New Text Block -->
+                        <!-- New Text Block -->
                     <div class="text-center mb-12">
                         <h2 class="text-4xl font-bold text-gray-800" contenteditable="true">
                             專為 <span class="text-green-600">停車場業者</span>
@@ -210,7 +229,7 @@
                             將車位轉化為收益，吸引電動車人潮，提升市場競爭力
                         </p>
                     </div>
-                     <!-- Legal Requirements -->
+                        <!-- Legal Requirements -->
                     <div class="max-w-4xl mx-auto border-2 border-orange-400 bg-orange-50 rounded-lg p-6 mb-16 text-center">
                         <h4 class="text-xl font-bold text-orange-800 mb-3" contenteditable="true">法規要求：充電樁設置義務</h4>
                         <div class="flex flex-col md:flex-row justify-center items-center gap-x-8 gap-y-4">
@@ -335,42 +354,42 @@
                 <section class="py-16">
                      <h3 class="text-3xl font-bold text-center mb-12" contenteditable="true">停車場維運代管架構</h3>
                      <div class="timeline max-w-3xl mx-auto">
-                         <!-- Item 1 -->
-                         <div class="timeline-item">
-                             <div class="timeline-dot"></div>
-                             <h4 class="font-bold text-lg" contenteditable="true">投資資金</h4>
-                             <p class="text-gray-600" contenteditable="true">停車場業主提供建站場域及資金。</p>
-                         </div>
-                         <!-- Item 2 -->
-                         <div class="timeline-item">
-                             <div class="timeline-dot"></div>
-                             <h4 class="font-bold text-lg" contenteditable="true">充電站(樁)建置</h4>
-                             <p class="text-gray-600" contenteditable="true">星舟快充提供充電站建置服務。</p>
-                         </div>
-                         <!-- Item 3 -->
-                         <div class="timeline-item">
-                             <div class="timeline-dot"></div>
-                             <h4 class="font-bold text-lg" contenteditable="true">充電付費</h4>
-                             <p class="text-gray-600" contenteditable="true">電動車主透過 APP 或刷卡付費充電。</p>
-                         </div>
-                         <!-- Item 4 -->
-                          <div class="timeline-item">
-                             <div class="timeline-dot"></div>
-                             <h4 class="font-bold text-lg" contenteditable="true">金流代收</h4>
-                             <p class="text-gray-600" contenteditable="true">所有充電費用由星舟快充代收。</p>
-                         </div>
-                         <!-- Item 5 -->
-                         <div class="timeline-item">
-                             <div class="timeline-dot"></div>
-                             <h4 class="font-bold text-lg" contenteditable="true">定期對帳</h4>
-                             <p class="text-gray-600" contenteditable="true">星舟快充每月提供清晰營收報表與業主對帳。</p>
-                         </div>
-                         <!-- Item 6 -->
-                         <div class="timeline-item">
-                             <div class="timeline-dot"></div>
-                             <h4 class="font-bold text-lg" contenteditable="true">營收分潤</h4>
-                             <p class="text-gray-600" contenteditable="true">扣除服務費後，將營收匯款至業主指定帳戶。</p>
-                         </div>
+                           <!-- Item 1 -->
+                           <div class="timeline-item">
+                               <div class="timeline-dot"></div>
+                               <h4 class="font-bold text-lg" contenteditable="true">投資資金</h4>
+                               <p class="text-gray-600" contenteditable="true">停車場業主提供建站場域及資金。</p>
+                           </div>
+                           <!-- Item 2 -->
+                           <div class="timeline-item">
+                               <div class="timeline-dot"></div>
+                               <h4 class="font-bold text-lg" contenteditable="true">充電站(樁)建置</h4>
+                               <p class="text-gray-600" contenteditable="true">星舟快充提供充電站建置服務。</p>
+                           </div>
+                           <!-- Item 3 -->
+                           <div class="timeline-item">
+                               <div class="timeline-dot"></div>
+                               <h4 class="font-bold text-lg" contenteditable="true">充電付費</h4>
+                               <p class="text-gray-600" contenteditable="true">電動車主透過 APP 或刷卡付費充電。</p>
+                           </div>
+                           <!-- Item 4 -->
+                            <div class="timeline-item">
+                               <div class="timeline-dot"></div>
+                               <h4 class="font-bold text-lg" contenteditable="true">金流代收</h4>
+                               <p class="text-gray-600" contenteditable="true">所有充電費用由星舟快充代收。</p>
+                           </div>
+                           <!-- Item 5 -->
+                           <div class="timeline-item">
+                               <div class="timeline-dot"></div>
+                               <h4 class="font-bold text-lg" contenteditable="true">定期對帳</h4>
+                               <p class="text-gray-600" contenteditable="true">星舟快充每月提供清晰營收報表與業主對帳。</p>
+                           </div>
+                           <!-- Item 6 -->
+                           <div class="timeline-item">
+                               <div class="timeline-dot"></div>
+                               <h4 class="font-bold text-lg" contenteditable="true">營收分潤</h4>
+                               <p class="text-gray-600" contenteditable="true">扣除服務費後，將營收匯款至業主指定帳戶。</p>
+                           </div>
                      </div>
                 </section>
             </div>
@@ -397,63 +416,63 @@
                              <h4 class="text-xl font-bold text-blue-800 mb-6 text-center" contenteditable="true">獨家建置代管服務</h4>
                              <p class="text-center text-gray-700 mb-8" contenteditable="true">星舟 & 易宏聯手，提供一站式充電站建置與維運服務。</p>
                              <div id="partnership-flowchart" class="flex flex-col md:flex-row justify-around items-center gap-4 text-center">
-                                <!-- Partner 1 -->
-                                <div class="partner-item-wrapper relative group">
-                                    <div class="partner-controls absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-2 bg-white p-2 rounded-md shadow-lg z-10">
-                                        <input type="color" class="partner-color-picker w-7 h-7 cursor-pointer" value="#bee3f8" title="變更顏色">
-                                        <input type="range" class="partner-size-slider w-20" min="40" max="120" value="64" title="調整大小">
-                                        <button class="delete-partner-btn text-red-500 hover:text-red-700" title="刪除">
-                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"></path></svg>
-                                        </button>
-                                    </div>
-                                    <div class="partner-card p-4 rounded-lg">
-                                        <div class="partner-circle text-blue-800 rounded-full flex items-center justify-center mx-auto mb-2 font-bold" style="background-color: rgb(190, 227, 248); width: 64px; height: 64px;">
-                                            <span contenteditable="true">阿波羅</span>
-                                        </div>
-                                        <p class="text-gray-700 mt-2 font-semibold" contenteditable="true">資金出資</p>
-                                    </div>
-                                </div>
-                                <!-- Arrow 1 -->
-                                <div class="partner-arrow text-3xl font-bold text-blue-400 transform rotate-90 md:rotate-0">→</div>
-                                <!-- Partner 2 -->
-                                <div class="partner-item-wrapper relative group">
-                                    <div class="partner-controls absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-2 bg-white p-2 rounded-md shadow-lg z-10">
-                                        <input type="color" class="partner-color-picker w-7 h-7 cursor-pointer" value="#bee3f8" title="變更顏色">
-                                        <input type="range" class="partner-size-slider w-20" min="40" max="120" value="64" title="調整大小">
-                                        <button class="delete-partner-btn text-red-500 hover:text-red-700" title="刪除">
-                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"></path></svg>
-                                        </button>
-                                    </div>
-                                    <div class="partner-card p-4 rounded-lg">
-                                        <div class="partner-circle text-blue-800 rounded-full flex items-center justify-center mx-auto mb-2 font-bold" style="background-color: rgb(190, 227, 248); width: 64px; height: 64px;">
-                                            <span contenteditable="true">易宏</span>
-                                        </div>
-                                        <p class="text-gray-700 mt-2 font-semibold" contenteditable="true">EPC工程</p>
-                                    </div>
-                                </div>
-                                <!-- Arrow 2 -->
-                                <div class="partner-arrow text-3xl font-bold text-blue-400 transform rotate-90 md:rotate-0">→</div>
-                                <!-- Partner 3 -->
+                                 <!-- Partner 1 -->
                                  <div class="partner-item-wrapper relative group">
-                                    <div class="partner-controls absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-2 bg-white p-2 rounded-md shadow-lg z-10">
-                                        <input type="color" class="partner-color-picker w-7 h-7 cursor-pointer" value="#bee3f8" title="變更顏色">
-                                        <input type="range" class="partner-size-slider w-20" min="40" max="120" value="64" title="調整大小">
-                                        <button class="delete-partner-btn text-red-500 hover:text-red-700" title="刪除">
-                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"></path></svg>
-                                        </button>
-                                    </div>
-                                    <div class="partner-card p-4 rounded-lg">
-                                        <div class="partner-circle text-blue-800 rounded-full flex items-center justify-center mx-auto mb-2 font-bold" style="background-color: rgb(190, 227, 248); width: 64px; height: 64px;">
-                                            <span contenteditable="true">星舟</span>
-                                        </div>
-                                        <p class="text-gray-700 mt-2 font-semibold" contenteditable="true">設備/SaaS平台<br>服務代管</p>
-                                    </div>
-                                </div>
-                             </div>
+                                     <div class="partner-controls absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-2 bg-white p-2 rounded-md shadow-lg z-10">
+                                         <input type="color" class="partner-color-picker w-7 h-7 cursor-pointer" value="#bee3f8" title="變更顏色">
+                                         <input type="range" class="partner-size-slider w-20" min="40" max="120" value="64" title="調整大小">
+                                         <button class="delete-partner-btn text-red-500 hover:text-red-700" title="刪除">
+                                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"></path></svg>
+                                         </button>
+                                     </div>
+                                     <div class="partner-card p-4 rounded-lg">
+                                         <div class="partner-circle text-blue-800 rounded-full flex items-center justify-center mx-auto mb-2 font-bold" style="background-color: rgb(190, 227, 248); width: 64px; height: 64px;">
+                                             <span contenteditable="true">阿波羅</span>
+                                         </div>
+                                         <p class="text-gray-700 mt-2 font-semibold" contenteditable="true">資金出資</p>
+                                     </div>
+                                 </div>
+                                 <!-- Arrow 1 -->
+                                 <div class="partner-arrow text-3xl font-bold text-blue-400 transform rotate-90 md:rotate-0">→</div>
+                                 <!-- Partner 2 -->
+                                 <div class="partner-item-wrapper relative group">
+                                     <div class="partner-controls absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-2 bg-white p-2 rounded-md shadow-lg z-10">
+                                         <input type="color" class="partner-color-picker w-7 h-7 cursor-pointer" value="#bee3f8" title="變更顏色">
+                                         <input type="range" class="partner-size-slider w-20" min="40" max="120" value="64" title="調整大小">
+                                         <button class="delete-partner-btn text-red-500 hover:text-red-700" title="刪除">
+                                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"></path></svg>
+                                         </button>
+                                     </div>
+                                     <div class="partner-card p-4 rounded-lg">
+                                         <div class="partner-circle text-blue-800 rounded-full flex items-center justify-center mx-auto mb-2 font-bold" style="background-color: rgb(190, 227, 248); width: 64px; height: 64px;">
+                                             <span contenteditable="true">易宏</span>
+                                         </div>
+                                         <p class="text-gray-700 mt-2 font-semibold" contenteditable="true">EPC工程</p>
+                                     </div>
+                                 </div>
+                                 <!-- Arrow 2 -->
+                                 <div class="partner-arrow text-3xl font-bold text-blue-400 transform rotate-90 md:rotate-0">→</div>
+                                 <!-- Partner 3 -->
+                                  <div class="partner-item-wrapper relative group">
+                                     <div class="partner-controls absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-2 bg-white p-2 rounded-md shadow-lg z-10">
+                                         <input type="color" class="partner-color-picker w-7 h-7 cursor-pointer" value="#bee3f8" title="變更顏色">
+                                         <input type="range" class="partner-size-slider w-20" min="40" max="120" value="64" title="調整大小">
+                                         <button class="delete-partner-btn text-red-500 hover:text-red-700" title="刪除">
+                                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"></path></svg>
+                                         </button>
+                                     </div>
+                                     <div class="partner-card p-4 rounded-lg">
+                                         <div class="partner-circle text-blue-800 rounded-full flex items-center justify-center mx-auto mb-2 font-bold" style="background-color: rgb(190, 227, 248); width: 64px; height: 64px;">
+                                             <span contenteditable="true">星舟</span>
+                                         </div>
+                                         <p class="text-gray-700 mt-2 font-semibold" contenteditable="true">設備/SaaS平台<br>服務代管</p>
+                                     </div>
+                                 </div>
+                              </div>
                              <div class="text-center mt-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                <button id="add-partner-btn" class="bg-green-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-600 transition duration-300">
-                                    新增合作夥伴
-                                </button>
+                                 <button id="add-partner-btn" class="bg-green-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-600 transition duration-300">
+                                     新增合作夥伴
+                                 </button>
                              </div>
                         </div>
             
@@ -572,7 +591,7 @@
                         <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                         <span class="font-bold text-white" contenteditable="true">星舟快充</span>
                     </div>
-                    <p contenteditable="true">&copy; 2025 星舟快充股份有限公司. All Rights Reserved.</p>
+                    <p contenteditable="false">&copy; <span id="copyright-year">2025</span> 星舟快充股份有限公司. All Rights Reserved.</p>
                 </div>
             </div>
         </footer>
@@ -588,19 +607,20 @@
             
             <!-- Business Card Content -->
             <div class="overflow-hidden rounded-lg">
-                <div class="bg-gray-100 p-6 text-center">
-                    <img class="w-28 h-auto mx-auto mb-4" src="https://i.imgur.com/your-logo-id.png" alt="Star Charger Logo" onerror="this.onerror=null;this.src='https://placehold.co/150x50/FFFFFF/000000?text=STAR+CHARGER';">
+                <div class="bg-white p-6 text-center">
+                    <img class="w-36 h-auto mx-auto mb-4" src="https://placehold.co/200x80/ffffff/1e40af?text=星舟快充&font=notosanstc" alt="星舟快充 Logo">
                 </div>
-                <div class="p-8 bg-yellow-500 text-gray-800">
+                <div class="p-8 bg-blue-700 text-white">
                     <div class="text-center mb-6">
                         <h3 class="text-3xl font-bold" contenteditable="true">杜建賢 <span class="text-xl font-normal">Kris Du</span></h3>
                         <p class="font-semibold mt-1" contenteditable="true">業務部</p>
                     </div>
                     <div class="space-y-3 text-sm">
                         <p class="flex items-center" contenteditable="true">
-                            <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg>
-                            <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg>
-                            <span>0989-224307</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.5 2a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 005.5 18h9a1.5 1.5 0 001.5-1.5V3.5A1.5 1.5 0 0014.5 2h-9zM6 4.5a.5.5 0 01.5-.5h7a.5.5 0 010 1h-7a.5.5 0 01-.5-.5z" clip-rule="evenodd" />
+                            </svg>
+                            <span>行動電話: 0989-224307</span>
                         </p>
                         <p class="flex items-center" contenteditable="true">
                             <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg>
@@ -608,11 +628,11 @@
                         </p>
                          <p class="flex items-center" contenteditable="true">
                             <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" /></svg>
-                            <span>02 2832 8057 #113</span>
+                            <span>公司電話: 02 2832 8057 #113</span>
                         </p>
                         <p class="flex items-center" contenteditable="true">
-                           <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.706C6.512 5.73 6.974 6 7.5 6A1.5 1.5 0 019 7.5V8a2 2 0 004 0 2 2 0 011.527 1.907 6.011 6.011 0 01-1.631 3.033 1.5 1.5 0 01-2.121.13c-.566-.424-1.122-.852-1.74-1.297-.624-.45-1.39-1.04-2.285-1.04-1.25 0-2.318.68-3.044 1.522A5.987 5.987 0 014 9.5a1.5 1.5 0 01.332-1.473z" clip-rule="evenodd" /></svg>
-                            <span>02 2832 8059</span>
+                            <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 4v3h10V4H5zm-2 1a2 2 0 012-2h10a2 2 0 012 2v3H3V5zm2 10h10v-3H5v3zM3 15a2 2 0 002 2h10a2 2 0 002-2v-3H3v3zm0-9h14v1H3V6z" clip-rule="evenodd" /></svg>
+                            <span>傳真: 02 2832 8059</span>
                         </p>
                         <p class="flex items-start" contenteditable="true">
                              <svg class="w-5 h-5 mr-3 flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg>
@@ -627,261 +647,366 @@
             </div>
         </div>
     </div>
+
+    <!-- Password Modal -->
+    <div id="password-modal" class="fixed inset-0 bg-black bg-opacity-60 z-[120] flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-sm">
+            <h3 class="text-2xl font-bold text-center mb-4">請輸入管理密碼</h3>
+            <input type="password" id="password-input" class="w-full border border-gray-300 rounded-md px-4 py-2 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <p id="password-error" class="text-red-500 text-sm mt-2 text-center h-5"></p>
+            <div class="flex items-center justify-between mt-4">
+                <button id="change-password-btn" class="text-sm text-blue-600 hover:underline">更改密碼</button>
+                <button id="password-submit" class="bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg hover:bg-blue-700 transition duration-300">登入</button>
+            </div>
+             <button id="password-close" class="w-full bg-gray-200 text-gray-700 font-semibold py-2 px-5 rounded-lg hover:bg-gray-300 transition duration-300 mt-2">取消</button>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div id="change-password-modal" class="fixed inset-0 bg-black bg-opacity-60 z-[130] flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-sm">
+            <h3 class="text-2xl font-bold text-center mb-6">更改密碼</h3>
+            <div class="space-y-4">
+                <div>
+                    <label for="old-password-input" class="block text-sm font-medium text-gray-700">舊密碼</label>
+                    <input type="password" id="old-password-input" class="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label for="new-password-input" class="block text-sm font-medium text-gray-700">新密碼</label>
+                    <input type="password" id="new-password-input" class="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label for="confirm-password-input" class="block text-sm font-medium text-gray-700">確認新密碼</label>
+                    <input type="password" id="confirm-password-input" class="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+            <p id="change-password-error" class="text-red-500 text-sm mt-3 text-center h-5"></p>
+            <p id="change-password-success" class="text-green-600 text-sm mt-3 text-center h-5"></p>
+            <button id="change-password-submit" class="w-full bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg hover:bg-blue-700 transition duration-300 mt-4">確認更改</button>
+            <button id="change-password-close" class="w-full bg-gray-200 text-gray-700 font-semibold py-2 px-5 rounded-lg hover:bg-gray-300 transition duration-300 mt-2">返回登入</button>
+        </div>
+    </div>
+
+
+    <!-- Settings/Lock Button -->
+    <button id="settings-btn" class="fixed bottom-6 right-6 bg-blue-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center hover:bg-blue-700 transition-transform hover:scale-110 z-[100]">
+        <!-- Gear Icon -->
+        <svg id="gear-icon" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.532 1.532 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.532 1.532 0 01-.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106A1.532 1.532 0 0111.49 3.17zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+        </svg>
+        <!-- Lock Icon (hidden by default) -->
+        <svg id="lock-icon" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 hidden" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd" />
+        </svg>
+    </button>
     
     <script>
-        // FAQ Accordion Script
-        const faqContainer = document.getElementById('faq-container');
-        if (faqContainer) {
-            faqContainer.addEventListener('click', function(e) {
-                const questionButton = e.target.closest('.faq-question');
-                if (questionButton) {
-                    const answer = questionButton.nextElementSibling;
-                    questionButton.classList.toggle('open');
-                    answer.classList.toggle('hidden');
-                }
-            });
-        }
+        document.addEventListener('DOMContentLoaded', () => {
 
-        // --- Text Editor Toolbar Script ---
-        const editorToolbar = document.getElementById('editor-toolbar');
-        const fontFamilySelect = document.getElementById('font-family-select');
-        const fontSizeSelect = document.getElementById('font-size-select');
-        const boldBtn = document.getElementById('bold-btn');
-        const italicBtn = document.getElementById('italic-btn');
-        const underlineBtn = document.getElementById('underline-btn');
-        const fontColorPicker = document.getElementById('font-color-picker');
-        const lineHeightSelect = document.getElementById('line-height-select');
-
-        // Show/Hide toolbar logic
-        let currentEditable = null;
-        
-        document.addEventListener('focusin', (e) => {
-            // When an editable element is focused, show the toolbar.
-            if (e.target.isContentEditable) {
-                currentEditable = e.target;
-                editorToolbar.classList.remove('hidden');
+            // --- Dynamic Copyright Year ---
+            const yearSpan = document.getElementById('copyright-year');
+            if (yearSpan) {
+                yearSpan.textContent = new Date().getFullYear();
             }
-        });
 
-        document.addEventListener('mousedown', (e) => {
-            // If an editable element is active, check where the click happened.
-            if (currentEditable) {
-                // If the click is outside both the current editor AND the toolbar, then hide the toolbar.
-                if (!currentEditable.contains(e.target) && !editorToolbar.contains(e.target)) {
-                    editorToolbar.classList.add('hidden');
-                    currentEditable = null; 
-                }
-            }
-        });
-
-        // Apply style by wrapping selection in a span for font size
-        function applyFontSize(size) {
-            if (!size) return;
-            const selection = window.getSelection();
-            if (selection.rangeCount > 0) {
-                const range = selection.getRangeAt(0);
-                if (range.collapsed) {
-                    return; 
-                }
-                document.execCommand('styleWithCSS', false, true);
-                const span = document.createElement('span');
-                span.style.fontSize = size;
-                try {
-                    range.surroundContents(span);
-                } catch(e) {
-                    console.error("Could not surround contents for font size, selection might be complex.", e);
-                }
-            }
-        }
-        
-        // Helper function to find the parent element of the current text selection
-        function getSelectionParent() {
-            let parent = null, sel;
-            if (window.getSelection) {
-                sel = window.getSelection();
-                if (sel.rangeCount) {
-                    parent = sel.getRangeAt(0).commonAncestorContainer;
-                    if (parent.nodeType != 1) {
-                        parent = parent.parentNode;
+            // --- FAQ Accordion Script ---
+            const faqContainer = document.getElementById('faq-container');
+            if (faqContainer) {
+                faqContainer.addEventListener('click', function(e) {
+                    const questionButton = e.target.closest('.faq-question');
+                    if (questionButton) {
+                        const answer = questionButton.nextElementSibling;
+                        questionButton.classList.toggle('open');
+                        answer.classList.toggle('hidden');
                     }
-                }
-            }
-            return parent;
-        }
-        
-        // Apply line height to the containing block-level element
-        function applyLineHeight(height) {
-            if (!height) return;
-            let element = getSelectionParent();
-            if (element && currentEditable && currentEditable.contains(element)) {
-                while (element && getComputedStyle(element).display !== 'block') {
-                    if (element === currentEditable) break;
-                    element = element.parentNode;
-                }
-                if (element && element !== document.body && element !== document.documentElement) {
-                   element.style.lineHeight = height;
-                }
-            }
-        }
-
-        // --- Event Listeners for Toolbar ---
-        fontFamilySelect.addEventListener('change', (e) => {
-            if (currentEditable) {
-                 document.execCommand('fontName', false, e.target.value);
-                 currentEditable.focus();
-            }
-        });
-
-        fontSizeSelect.addEventListener('change', (e) => {
-            if (currentEditable) {
-                applyFontSize(e.target.value);
-                currentEditable.focus();
-            }
-        });
-        
-        fontColorPicker.addEventListener('input', (e) => {
-            if (currentEditable) {
-                document.execCommand('foreColor', false, e.target.value);
-            }
-        });
-
-        lineHeightSelect.addEventListener('change', (e) => {
-            if (currentEditable) {
-                applyLineHeight(e.target.value);
-                currentEditable.focus();
-            }
-        });
-
-        boldBtn.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            if (currentEditable) document.execCommand('bold');
-        });
-
-        italicBtn.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            if (currentEditable) document.execCommand('italic');
-        });
-
-        underlineBtn.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            if (currentEditable) document.execCommand('underline');
-        });
-
-        // --- Section Add/Delete Script ---
-        document.body.addEventListener('click', function(e) {
-            // Section Controls
-            const deleteBtn = e.target.closest('.delete-section-btn');
-            const addBtn = e.target.closest('.add-section-btn');
-            if (deleteBtn) {
-                const sectionWrapper = deleteBtn.closest('.editable-section');
-                if (sectionWrapper) {
-                    sectionWrapper.remove();
-                }
-            }
-            if (addBtn) {
-                const sectionWrapper = addBtn.closest('.editable-section');
-                if (sectionWrapper) {
-                    const clone = sectionWrapper.cloneNode(true);
-                    sectionWrapper.parentNode.insertBefore(clone, sectionWrapper.nextSibling);
-                }
-            }
-
-            // Partner Deletion
-            const deletePartnerBtn = e.target.closest('.delete-partner-btn');
-            if (deletePartnerBtn) {
-                const wrapper = deletePartnerBtn.closest('.partner-item-wrapper');
-                if (wrapper) {
-                    const nextEl = wrapper.nextElementSibling;
-                    const prevEl = wrapper.previousElementSibling;
-                    if (nextEl && nextEl.classList.contains('partner-arrow')) {
-                        nextEl.remove();
-                    } else if (prevEl && prevEl.classList.contains('partner-arrow')) {
-                        prevEl.remove();
-                    }
-                    wrapper.remove();
-                }
-            }
-        });
-
-        // --- Interactive Partnership Flowchart Script ---
-        const addPartnerBtn = document.getElementById('add-partner-btn');
-        const flowchartContainer = document.getElementById('partnership-flowchart');
-
-        if(addPartnerBtn && flowchartContainer){
-            addPartnerBtn.addEventListener('click', () => {
-                const arrowHTML = `<div class="partner-arrow text-3xl font-bold text-blue-400 transform rotate-90 md:rotate-0">→</div>`;
-                const newPartnerHTML = `
-                <div class="partner-item-wrapper relative group">
-                    <div class="partner-controls absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-2 bg-white p-2 rounded-md shadow-lg z-10">
-                        <input type="color" class="partner-color-picker w-7 h-7 cursor-pointer" value="#bee3f8" title="變更顏色">
-                        <input type="range" class="partner-size-slider w-20" min="40" max="120" value="64" title="調整大小">
-                        <button class="delete-partner-btn text-red-500 hover:text-red-700" title="刪除">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"></path></svg>
-                        </button>
-                    </div>
-                    <div class="partner-card p-4 rounded-lg">
-                        <div class="partner-circle text-blue-800 rounded-full flex items-center justify-center mx-auto mb-2 font-bold" style="background-color: #bee3f8; width: 64px; height: 64px;">
-                            <span contenteditable="true">新夥伴</span>
-                        </div>
-                        <p class="text-gray-700 mt-2 font-semibold" contenteditable="true">夥伴角色</p>
-                    </div>
-                </div>`;
-                
-                // Add arrow only if there are existing partners
-                if(flowchartContainer.children.length > 0) {
-                    flowchartContainer.insertAdjacentHTML('beforeend', arrowHTML);
-                }
-                flowchartContainer.insertAdjacentHTML('beforeend', newPartnerHTML);
-            });
-        }
-
-        // Delegation for partner controls
-        document.body.addEventListener('input', function(e) {
-            const colorPicker = e.target.closest('.partner-color-picker');
-            if (colorPicker) {
-                const wrapper = colorPicker.closest('.partner-item-wrapper');
-                const circle = wrapper.querySelector('.partner-circle');
-                circle.style.backgroundColor = colorPicker.value;
-            }
-
-            const sizeSlider = e.target.closest('.partner-size-slider');
-            if (sizeSlider) {
-                const wrapper = sizeSlider.closest('.partner-item-wrapper');
-                const circle = wrapper.querySelector('.partner-circle');
-                const size = sizeSlider.value + 'px';
-                circle.style.width = size;
-                circle.style.height = size;
-            }
-        });
-
-        // --- Business Card Modal Script ---
-        const modal = document.getElementById('business-card-modal');
-        const closeModalBtn = document.getElementById('close-modal-btn');
-        const openModalButtons = document.querySelectorAll('.open-modal-btn');
-
-        if (modal && closeModalBtn && openModalButtons.length > 0) {
-            
-            const openModal = () => modal.classList.remove('hidden');
-            const closeModal = () => modal.classList.add('hidden');
-
-            openModalButtons.forEach(button => {
-                button.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    openModal();
                 });
-            });
+            }
 
-            closeModalBtn.addEventListener('click', closeModal);
-
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    closeModal();
+            // --- Text Editor Toolbar Script ---
+            const editorToolbar = document.getElementById('editor-toolbar');
+            const fontFamilySelect = document.getElementById('font-family-select');
+            const fontSizeSelect = document.getElementById('font-size-select');
+            const boldBtn = document.getElementById('bold-btn');
+            const italicBtn = document.getElementById('italic-btn');
+            const underlineBtn = document.getElementById('underline-btn');
+            const fontColorPicker = document.getElementById('font-color-picker');
+            const lineHeightSelect = document.getElementById('line-height-select');
+            let currentEditable = null;
+            
+            document.addEventListener('focusin', (e) => {
+                if (e.target.isContentEditable && document.body.classList.contains('admin-mode')) {
+                    currentEditable = e.target;
+                    editorToolbar.classList.remove('hidden');
                 }
             });
-        }
+
+            document.addEventListener('mousedown', (e) => {
+                if (currentEditable) {
+                    if (!currentEditable.contains(e.target) && !editorToolbar.contains(e.target)) {
+                        editorToolbar.classList.add('hidden');
+                        currentEditable = null; 
+                    }
+                }
+            });
+            
+            function applyFontSize(size) {
+                if (!size) return;
+                const sizeMap = {
+                    "12px": "1", "14px": "2", "16px": "3", "18px": "4",
+                    "24px": "5", "32px": "6", "48px": "7",
+                };
+                const commandValue = sizeMap[size];
+                if (commandValue) {
+                    document.execCommand('fontSize', false, commandValue);
+                }
+            }
+            
+            function getSelectionParent() {
+                let parent = null, sel;
+                if (window.getSelection) {
+                    sel = window.getSelection();
+                    if (sel.rangeCount) {
+                        parent = sel.getRangeAt(0).commonAncestorContainer;
+                        if (parent.nodeType != 1) {
+                            parent = parent.parentNode;
+                        }
+                    }
+                }
+                return parent;
+            }
+            
+            function applyLineHeight(height) {
+                if (!height) return;
+                let element = getSelectionParent();
+                if (element && currentEditable && currentEditable.contains(element)) {
+                    while (element && getComputedStyle(element).display !== 'block') {
+                        if (element === currentEditable) break;
+                        element = element.parentNode;
+                    }
+                    if (element && element !== document.body && element !== document.documentElement) {
+                       element.style.lineHeight = height;
+                    }
+                }
+            }
+
+            fontFamilySelect.addEventListener('change', (e) => { if (currentEditable) { document.execCommand('fontName', false, e.target.value); currentEditable.focus(); } });
+            fontSizeSelect.addEventListener('input', (e) => { if (currentEditable) { applyFontSize(e.target.value); currentEditable.focus(); } });
+            fontColorPicker.addEventListener('input', (e) => { if (currentEditable) { document.execCommand('foreColor', false, e.target.value); } });
+            lineHeightSelect.addEventListener('change', (e) => { if (currentEditable) { applyLineHeight(e.target.value); currentEditable.focus(); } });
+            boldBtn.addEventListener('mousedown', (e) => { e.preventDefault(); if (currentEditable) document.execCommand('bold'); });
+            italicBtn.addEventListener('mousedown', (e) => { e.preventDefault(); if (currentEditable) document.execCommand('italic'); });
+            underlineBtn.addEventListener('mousedown', (e) => { e.preventDefault(); if (currentEditable) document.execCommand('underline'); });
+
+            // --- Section Add/Delete Script ---
+            document.body.addEventListener('click', function(e) {
+                if (!document.body.classList.contains('admin-mode')) return;
+
+                const deleteBtn = e.target.closest('.delete-section-btn');
+                if (deleteBtn) { deleteBtn.closest('.editable-section')?.remove(); }
+
+                const addBtn = e.target.closest('.add-section-btn');
+                if (addBtn) {
+                    const sectionWrapper = addBtn.closest('.editable-section');
+                    if (sectionWrapper) {
+                        const clone = sectionWrapper.cloneNode(true);
+                        sectionWrapper.parentNode.insertBefore(clone, sectionWrapper.nextSibling);
+                    }
+                }
+
+                const deletePartnerBtn = e.target.closest('.delete-partner-btn');
+                if (deletePartnerBtn) {
+                    const wrapper = deletePartnerBtn.closest('.partner-item-wrapper');
+                    if (wrapper) {
+                        const nextEl = wrapper.nextElementSibling;
+                        const prevEl = wrapper.previousElementSibling;
+                        if (nextEl && nextEl.classList.contains('partner-arrow')) { nextEl.remove(); } 
+                        else if (prevEl && prevEl.classList.contains('partner-arrow')) { prevEl.remove(); }
+                        wrapper.remove();
+                    }
+                }
+            });
+
+            // --- Interactive Partnership Flowchart Script ---
+            const addPartnerBtn = document.getElementById('add-partner-btn');
+            const flowchartContainer = document.getElementById('partnership-flowchart');
+            if(addPartnerBtn && flowchartContainer){
+                addPartnerBtn.addEventListener('click', () => {
+                    if (!document.body.classList.contains('admin-mode')) return;
+                    const arrowHTML = `<div class="partner-arrow text-3xl font-bold text-blue-400 transform rotate-90 md:rotate-0">→</div>`;
+                    const newPartnerHTML = `
+                    <div class="partner-item-wrapper relative group">
+                        <div class="partner-controls absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-2 bg-white p-2 rounded-md shadow-lg z-10">
+                            <input type="color" class="partner-color-picker w-7 h-7 cursor-pointer" value="#bee3f8" title="變更顏色">
+                            <input type="range" class="partner-size-slider w-20" min="40" max="120" value="64" title="調整大小">
+                            <button class="delete-partner-btn text-red-500 hover:text-red-700" title="刪除">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"></path></svg>
+                            </button>
+                        </div>
+                        <div class="partner-card p-4 rounded-lg">
+                            <div class="partner-circle text-blue-800 rounded-full flex items-center justify-center mx-auto mb-2 font-bold" style="background-color: #bee3f8; width: 64px; height: 64px;">
+                                <span contenteditable="true">新夥伴</span>
+                            </div>
+                            <p class="text-gray-700 mt-2 font-semibold" contenteditable="true">夥伴角色</p>
+                        </div>
+                    </div>`;
+                    if(flowchartContainer.children.length > 0) { flowchartContainer.insertAdjacentHTML('beforeend', arrowHTML); }
+                    flowchartContainer.insertAdjacentHTML('beforeend', newPartnerHTML);
+                });
+            }
+
+            document.body.addEventListener('input', function(e) {
+                if (!document.body.classList.contains('admin-mode')) return;
+                const colorPicker = e.target.closest('.partner-color-picker');
+                if (colorPicker) {
+                    const circle = colorPicker.closest('.partner-item-wrapper').querySelector('.partner-circle');
+                    circle.style.backgroundColor = colorPicker.value;
+                }
+                const sizeSlider = e.target.closest('.partner-size-slider');
+                if (sizeSlider) {
+                    const circle = sizeSlider.closest('.partner-item-wrapper').querySelector('.partner-circle');
+                    const size = sizeSlider.value + 'px';
+                    circle.style.width = size;
+                    circle.style.height = size;
+                }
+            });
+
+            // --- Business Card Modal Script ---
+            const modal = document.getElementById('business-card-modal');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            const openModalButtons = document.querySelectorAll('.open-modal-btn');
+            if (modal && closeModalBtn && openModalButtons.length > 0) {
+                const openModal = () => modal.classList.remove('hidden');
+                const closeModal = () => modal.classList.add('hidden');
+                openModalButtons.forEach(button => button.addEventListener('click', (e) => { e.preventDefault(); openModal(); }));
+                closeModalBtn.addEventListener('click', closeModal);
+                modal.addEventListener('click', (e) => { if (e.target === modal) { closeModal(); } });
+            }
+
+            // --- Admin Mode and Editing Lock ---
+            const settingsBtn = document.getElementById('settings-btn');
+            const gearIcon = document.getElementById('gear-icon');
+            const lockIcon = document.getElementById('lock-icon');
+            // Login Modal
+            const passwordModal = document.getElementById('password-modal');
+            const passwordInput = document.getElementById('password-input');
+            const passwordSubmit = document.getElementById('password-submit');
+            const passwordClose = document.getElementById('password-close');
+            const passwordError = document.getElementById('password-error');
+            const openChangePasswordBtn = document.getElementById('change-password-btn');
+            // Change Password Modal
+            const changePasswordModal = document.getElementById('change-password-modal');
+            const oldPasswordInput = document.getElementById('old-password-input');
+            const newPasswordInput = document.getElementById('new-password-input');
+            const confirmPasswordInput = document.getElementById('confirm-password-input');
+            const changePasswordSubmit = document.getElementById('change-password-submit');
+            const changePasswordClose = document.getElementById('change-password-close');
+            const changePasswordError = document.getElementById('change-password-error');
+            const changePasswordSuccess = document.getElementById('change-password-success');
+            
+            const PASSWORD_KEY = 'starChargerAdminPassword';
+            let adminPassword = localStorage.getItem(PASSWORD_KEY);
+            if (!adminPassword) {
+                adminPassword = '1234';
+                localStorage.setItem(PASSWORD_KEY, adminPassword);
+            }
+
+            let isAdminMode = false;
+            const editableElements = Array.from(document.querySelectorAll('[contenteditable="true"]'));
+
+            const toggleAdminMode = (enable) => {
+                isAdminMode = enable;
+                document.body.classList.toggle('admin-mode', enable);
+                gearIcon.classList.toggle('hidden', enable);
+                lockIcon.classList.toggle('hidden', !enable);
+                const isEditable = enable ? 'true' : 'false';
+                // Use original list to toggle, not re-querying every time
+                editableElements.forEach(el => el.setAttribute('contenteditable', isEditable));
+                if (!enable && currentEditable) {
+                    editorToolbar.classList.add('hidden');
+                    currentEditable = null;
+                }
+            };
+
+            toggleAdminMode(false); // Initial state
+
+            settingsBtn.addEventListener('click', () => {
+                if (isAdminMode) {
+                    toggleAdminMode(false);
+                } else {
+                    passwordError.textContent = '';
+                    passwordInput.value = '';
+                    passwordModal.classList.remove('hidden');
+                    passwordInput.focus();
+                }
+            });
+            
+            const handlePasswordSubmit = () => {
+                if (passwordInput.value === adminPassword) {
+                    passwordModal.classList.add('hidden');
+                    toggleAdminMode(true);
+                } else {
+                    passwordError.textContent = '密碼錯誤，請重試。';
+                    passwordModal.querySelector('div').classList.add('animate-shake');
+                    setTimeout(() => {
+                         passwordModal.querySelector('div').classList.remove('animate-shake');
+                    }, 500);
+                }
+            };
+
+            passwordSubmit.addEventListener('click', handlePasswordSubmit);
+            passwordInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') handlePasswordSubmit(); });
+            passwordClose.addEventListener('click', () => passwordModal.classList.add('hidden'));
+            
+            // --- Change Password Logic ---
+            openChangePasswordBtn.addEventListener('click', () => {
+                passwordModal.classList.add('hidden');
+                changePasswordError.textContent = '';
+                changePasswordSuccess.textContent = '';
+                oldPasswordInput.value = '';
+                newPasswordInput.value = '';
+                confirmPasswordInput.value = '';
+                changePasswordModal.classList.remove('hidden');
+                oldPasswordInput.focus();
+            });
+
+            changePasswordSubmit.addEventListener('click', () => {
+                const oldPass = oldPasswordInput.value;
+                const newPass = newPasswordInput.value;
+                const confirmPass = confirmPasswordInput.value;
+                
+                changePasswordError.textContent = '';
+                changePasswordSuccess.textContent = '';
+
+                if (oldPass !== adminPassword) {
+                    changePasswordError.textContent = '舊密碼不正確。';
+                    return;
+                }
+                if (!newPass) {
+                    changePasswordError.textContent = '新密碼不能為空。';
+                    return;
+                }
+                if (newPass !== confirmPass) {
+                    changePasswordError.textContent = '新密碼與確認密碼不相符。';
+                    return;
+                }
+
+                adminPassword = newPass;
+                localStorage.setItem(PASSWORD_KEY, adminPassword);
+                changePasswordSuccess.textContent = '密碼已成功更新！';
+
+                setTimeout(() => {
+                    changePasswordModal.classList.add('hidden');
+                }, 1500);
+            });
+
+            changePasswordClose.addEventListener('click', () => {
+                changePasswordModal.classList.add('hidden');
+                passwordModal.classList.remove('hidden');
+                passwordInput.focus();
+            });
+
+        });
     </script>
 </body>
 </html>
-
-
 
