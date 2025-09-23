@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>充電站(樁)投資效益分析 (v12.9.36 - 浮點數錯誤修正)</title>
+    <title>充電站(樁)投資效益分析 (v12.9.43 - 文字修正)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -336,7 +336,7 @@
         <header class="mb-10">
             <div class="text-center">
                  <h1 class="text-3xl md:text-5xl font-extrabold text-gray-800 leading-tight">充電站(樁)投資效益分析</h1>
-                 <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v12.9.36 - 浮點數錯誤修正)</p>
+                 <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v12.9.43 - 文字修正)</p>
             </div>
             <div class="flex flex-col sm:flex-row justify-between items-center mt-6 bg-amber-100 p-3 rounded-xl shadow-sm gap-4">
                 <div>
@@ -585,20 +585,20 @@
                             </div>
                             <div class="space-y-3">
                                 <div id="profitShareByAmountSection" class="hidden-section grid grid-cols-2 items-center gap-4">
-                                    <span class="label-text">每度電分潤 (元)</span><input type="number" id="profitShareAmount" class="input-field" value="1" step="0.1">
+                                    <span class="label-text">每度電分潤 (元)</span><input type="number" id="profitShareAmount" class="input-field center-text-input" value="1" step="0.1">
                                 </div>
                                 <div id="profitShareByPercentageSection" class="hidden-section grid grid-cols-2 items-center gap-4">
-                                    <span class="label-text">營收分潤 (%)</span><input type="number" id="profitSharePercentage" class="input-field" value="10" step="1">
+                                    <span class="label-text">營收分潤 (%)</span><input type="number" id="profitSharePercentage" class="input-field center-text-input" value="10" step="1">
                                 </div>
                                 <div id="profitShareBySiteSection" class="hidden-section space-y-3">
                                      <div class="grid grid-cols-2 items-center gap-4">
-                                        <span class="label-text">每站收費(月)</span><input type="number" id="siteFeeMonthly" class="input-field" value="3000">
+                                        <span class="label-text">每站收費(月)</span><input type="number" id="siteFeeMonthly" class="input-field center-text-input" value="3000">
                                     </div>
                                      <div class="grid grid-cols-2 items-center gap-4">
-                                        <span class="label-text">槍數基準</span><input type="number" id="gunCountThreshold" class="input-field" value="5">
+                                        <span class="label-text">槍數基準</span><input type="number" id="gunCountThreshold" class="input-field center-text-input" value="5">
                                     </div>
                                      <div class="grid grid-cols-2 items-center gap-4">
-                                        <span class="label-text">每槍計費(月)</span><input type="number" id="siteFeePerGunMonthly" class="input-field" value="600">
+                                        <span class="label-text">每槍計費(月)</span><input type="number" id="siteFeePerGunMonthly" class="input-field center-text-input" value="600">
                                     </div>
                                     <div id="siteFeeValidationMessage" class="text-xs text-red-600 mt-2"></div>
                                 </div>
@@ -746,7 +746,8 @@
             <div id="advancedContentSection" class="hidden">
                 <div class="modal-tabs">
                     <button class="modal-tab-btn active" data-tab="specs">設備規格</button>
-                    <button class="modal-tab-btn" data-tab="formulas">計算參數</button>
+                    <button class="modal-tab-btn" data-tab="investment">建置成本</button>
+                    <button class="modal-tab-btn" data-tab="annual_costs">年度成本</button>
                     <button class="modal-tab-btn" data-tab="tou">尖離峰時段</button>
                     <button class="modal-tab-btn" data-tab="password">修改密碼</button>
                 </div>
@@ -763,7 +764,8 @@
                          <ul class="list-disc list-inside ml-4"><li>當設置小於等於3樁(6車格)時, 180kW較划算。</li><li>若超過3樁時則 360kW較划算。</li></ul>
                      </div>
                 </div>
-                <div id="tab-formulas" class="modal-tab-content"><h4 class="text-xl font-bold text-gray-800 mb-4">詳細計算參數</h4><div id="formulaContainer" class="space-y-3"></div></div>
+                <div id="tab-investment" class="modal-tab-content"><h4 class="text-xl font-bold text-gray-800 mb-4">建置成本參數</h4><div id="investmentFormulaContainer" class="space-y-3"></div></div>
+                <div id="tab-annual_costs" class="modal-tab-content"><h4 class="text-xl font-bold text-gray-800 mb-4">年度成本參數</h4><div id="annualFormulaContainer" class="space-y-3"></div></div>
                 <div id="tab-tou" class="modal-tab-content">
                     <div id="touGridEditor">
                         <div class="tou-controls flex-col items-start">
@@ -987,8 +989,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     Config.deviceSpecs[power][type] = parseFloat(input.value.replace(/,/g,'')) || 0;
                 }
             });
-            const formulaInputs = UI.elements.formulaContainer.querySelectorAll('input[type="text"]');
-            const formulaCheckboxes = UI.elements.formulaContainer.querySelectorAll('input[type="checkbox"]');
+            const formulaInputs = document.querySelectorAll('#investmentFormulaContainer input[type="text"], #annualFormulaContainer input[type="text"]');
+            const formulaCheckboxes = document.querySelectorAll('#investmentFormulaContainer input[type="checkbox"], #annualFormulaContainer input[type="checkbox"]');
             formulaInputs.forEach(input => {
                 const key = input.dataset.key;
                 if (Config.calculationParams[key] && !Config.calculationParams[key].readonly) {
@@ -1084,8 +1086,8 @@ document.addEventListener('DOMContentLoaded', function () {
             transactionFeeRate: { value: 0.03, label: '金流手續費', unit: '%', description: '支付給金流服務商の每筆交易手續費率。', enabled: true, category: 'annual' },
             insuranceFee: { value: 8500, label: '意外保險費/年', unit: '元', description: '場域年度意外險費用。', enabled: true, category: 'annual' },
             electronicInvoiceFeePerTransaction: { value: 1.2, label: '電子發票/張', unit: '元', description: '每筆交易の電子發票成本。', enabled: true, category: 'annual' },
-            repairPartsRate: { value: 0.01, label: '設備維護備品', unit: '%', description: '年度維修備品費用，為設備含稅總成本的百分比。', enabled: true, category: 'annual' },
-            extendedWarrantyPerPile: { value: 0.02, label: '保固延保', unit: '%', description: '年度延長保固費用，為設備含稅總成本的百分比。', enabled: true, category: 'annual' },
+            repairPartsRate: { value: 0.01, label: '設備維護備品', unit: '%', description: '年度維修備品費用，為設備含稅總成本の百分比。', enabled: true, category: 'annual' },
+            extendedWarrantyPerPile: { value: 0.02, label: '保固延保', unit: '%', description: '年度延長保固費用，為設備含稅總成本の百分比。', enabled: true, category: 'annual' },
             extendedWarrantyStartYear: { value: 2, label: '保固起始年', unit: '年', description: '延長保固費用從第幾年開始計算。', enabled: true, category: 'annual' },
             laborCost: { value: 60000, label: '勞務成本/年', unit: '元', description: '年度人力、巡檢等相關勞務成本。', enabled: false, category: 'annual' },
             internetFee: { value: 500, label: '網路費/月', unit: '元', description: '場域每月の網路通訊費用。', enabled: true, category: 'annual' },
@@ -1103,7 +1105,7 @@ document.addEventListener('DOMContentLoaded', function () {
         elements: {},
         init() { this.cacheDOMElements(); this.updateUIVisibility(); this.elements.addEquipmentBtn.addEventListener('click', () => { this.addEquipmentRow(); App.update(); }); },
         cacheDOMElements() {
-            const ids = ['siteNameDisplay', 'saveBtn', 'recordsBtn', 'newAnalysisBtn', 'saveRecordModal', 'closeSaveModalBtn', 'cancelSaveBtn', 'recordNameInput', 'saveRecordMessage', 'confirmSaveBtn', 'recordsModal', 'closeRecordsModalBtn', 'recordsList', 'newAnalysisConfirmModal', 'cancelNewAnalysisBtn', 'confirmNewAnalysisBtn', 'equipmentListContainer', 'addEquipmentBtn', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'infrastructureCostMain', 'chargeFeePerKwhAC', 'chargeFeePerKwhDC', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'acSettingsBlock', 'dcSettingsBlock', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'fixedRateSectionDC', 'touRateSectionDC', 'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection', 'rentPerKwh', 'rentPercentage', 'rentByKwhShareSection', 'rentByRevenueShareSection', 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'pnlTable', 'cumulativePnlChart', 'touPieChart', 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'revenueCostChart', 'managementChart', 'rentChart', 'operationPeriodSummary', 'totalRevenueSummary', 'totalNetProfitSummary', 'roiSummary', 'irrSummary', 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn', 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage', 'advancedContentSection', 'specsModalTableBody', 'formulaContainer', 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage', 'saveAdvancedBtn', 'touGridEditor', 'touGridContainer', 'touEditorMessage', 'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost', 'explainerPaybackPeriod', 'explainerTotalManagementCost', 'explainerTotalManagementCostItem', 'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn', 'profitShareByAmount', 'profitShareByPercentage', 'profitShareBySite', 'profitShareNone', 'profitShareByAmountSection', 'profitShareByPercentageSection', 'profitShareAmount', 'profitSharePercentage', 'profitShareBySiteSection', 'siteFeeMonthly', 'gunCountThreshold', 'siteFeePerGunMonthly', 'siteFeeValidationMessage', 'financingToggle', 'financingSection', 'loanPercentage', 'interestRate', 'loanTerm', 'peakPercentDisplay', 'offpeakPercentDisplay', 'holidayPercentDisplay', 'totalInterestSummary', 'roeSummary', 'explainerEquityItem', 'explainerLoanItem', 'explainerTotalInterestItem', 'explainerEquity', 'explainerLoan', 'explainerTotalInterest', 'cumulativePnlChartLegend', 'revenueCostChartLegend', 'managementChartLegend', 'rentChartLegend'];
+            const ids = ['siteNameDisplay', 'saveBtn', 'recordsBtn', 'newAnalysisBtn', 'saveRecordModal', 'closeSaveModalBtn', 'cancelSaveBtn', 'recordNameInput', 'saveRecordMessage', 'confirmSaveBtn', 'recordsModal', 'closeRecordsModalBtn', 'recordsList', 'newAnalysisConfirmModal', 'cancelNewAnalysisBtn', 'confirmNewAnalysisBtn', 'equipmentListContainer', 'addEquipmentBtn', 'parkingSpaces', 'equipmentCostDisplayMain', 'salvageValueDisplay', 'infrastructureCostMain', 'chargeFeePerKwhAC', 'chargeFeePerKwhDC', 'peakRate', 'offPeakRate', 'holidayRate', 'avgTouRate', 'carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'acSettingsBlock', 'dcSettingsBlock', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC', 'avgKwhPerCar', 'demandGrowthRate', 'operationYears', 'depreciationYears', 'fixedRateSectionDC', 'touRateSectionDC', 'rentPerSpace', 'rentPerLand', 'rentBySpaceSection', 'rentByLandSection', 'rentPerKwh', 'rentPercentage', 'rentByKwhShareSection', 'rentByRevenueShareSection', 'totalInvestment', 'paybackPeriod', 'pnlTableBody', 'pnlTable', 'cumulativePnlChart', 'touPieChart', 'touPieChartContainer', 'peakUsageRatio', 'offPeakUsageRatio', 'holidayUsageRatio', 'kwhStatsTableBody', 'toggleKwhTableBtn', 'kwhTableIcon', 'kwhTableContainer', 'revenueCostChart', 'managementChart', 'rentChart', 'operationPeriodSummary', 'totalRevenueSummary', 'totalNetProfitSummary', 'roiSummary', 'irrSummary', 'advancedModal', 'closeAdvancedModalBtn', 'openAdvancedModalBtn', 'advancedPasswordSection', 'advancedPassword', 'loginAdvancedBtn', 'advancedMessage', 'advancedContentSection', 'specsModalTableBody', 'investmentFormulaContainer', 'annualFormulaContainer', 'oldPassword', 'newPassword', 'confirmNewPassword', 'changePasswordBtn', 'passwordChangeMessage', 'saveAdvancedBtn', 'touGridEditor', 'touGridContainer', 'touEditorMessage', 'explanationList', 'explainerTotalInvestment', 'explainerTotalRevenue', 'explainerTotalCost', 'explainerPaybackPeriod', 'explainerTotalManagementCost', 'explainerTotalManagementCostItem', 'explanationModal', 'explanationModalTitle', 'explanationModalBody', 'closeExplanationModalBtn', 'profitShareByAmount', 'profitShareByPercentage', 'profitShareBySite', 'profitShareNone', 'profitShareByAmountSection', 'profitShareByPercentageSection', 'profitShareAmount', 'profitSharePercentage', 'profitShareBySiteSection', 'siteFeeMonthly', 'gunCountThreshold', 'siteFeePerGunMonthly', 'siteFeeValidationMessage', 'financingToggle', 'financingSection', 'loanPercentage', 'interestRate', 'loanTerm', 'peakPercentDisplay', 'offpeakPercentDisplay', 'holidayPercentDisplay', 'totalInterestSummary', 'roeSummary', 'explainerEquityItem', 'explainerLoanItem', 'explainerTotalInterestItem', 'explainerEquity', 'explainerLoan', 'explainerTotalInterest', 'cumulativePnlChartLegend', 'revenueCostChartLegend', 'managementChartLegend', 'rentChartLegend'];
             ids.forEach(id => this.elements[id] = document.getElementById(id));
         },
         getNumericValue(element, defaultValue = 0) { if (!element) return defaultValue; const value = parseFloat(String(element.value).replace(/,/g, '')); return isNaN(value) ? defaultValue : value; },
@@ -1574,7 +1576,29 @@ document.addEventListener('DOMContentLoaded', function () {
             const focusable = Array.from(tableBody.querySelectorAll('.cost-input, .salvage-percent-input'));
             focusable.forEach((input, index) => {
                 input.addEventListener('focus', (e) => e.target.dataset.originalValue = e.target.value);
-                input.addEventListener('keydown', (e) => { switch (e.key) { case 'Enter': case 'ArrowDown': e.preventDefault(); if (e.key === 'Enter') e.target.blur(); focusable[(index + 1) % focusable.length].focus(); focusable[(index + 1) % focusable.length].select(); break; case 'ArrowUp': e.preventDefault(); focusable[(index - 1 + focusable.length) % focusable.length].focus(); focusable[(index - 1 + focusable.length) % focusable.length].select(); break; case 'Escape': e.preventDefault(); e.target.value = e.target.dataset.originalValue; e.target.blur(); break; } });
+                input.addEventListener('keydown', (e) => {
+                    switch (e.key) {
+                        case 'Enter':
+                            e.preventDefault();
+                            e.target.blur();
+                            break;
+                        case 'ArrowDown':
+                            e.preventDefault();
+                            focusable[(index + 1) % focusable.length].focus();
+                            focusable[(index + 1) % focusable.length].select();
+                            break;
+                        case 'ArrowUp':
+                            e.preventDefault();
+                            focusable[(index - 1 + focusable.length) % focusable.length].focus();
+                            focusable[(index - 1 + focusable.length) % focusable.length].select();
+                            break;
+                        case 'Escape':
+                            e.preventDefault();
+                            e.target.value = e.target.dataset.originalValue;
+                            e.target.blur();
+                            break;
+                    }
+                });
                 input.addEventListener('input', (e) => {
                     const row = e.target.closest('tr');
                     const costInput = row.querySelector('.cost-input');
@@ -1597,43 +1621,102 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         },
         populateFormulasModal(calculationParams) {
-            const container = this.elements.formulaContainer; container.innerHTML = ''; const categories = { investment: '總投資額項目', annual: '年度成本項目' }; const lastResults = Calculator.getLastResults(); const inputs = this.getInputs();
-            Object.keys(categories).forEach(catKey => {
-                const header = document.createElement('h5'); header.className = 'text-lg font-bold text-indigo-700 mt-4 pb-2 border-b'; header.textContent = categories[catKey]; container.appendChild(header);
-                Object.entries(calculationParams).forEach(([key, param]) => {
-                    if (param.category === catKey) {
-                        const isPercentage = param.unit === '%'; let formattedValue; let isReadonly = param.readonly || false; let customClass = isReadonly ? 'readonly' : '';
-                        if (key === 'deviceCost') { const untaxedCost = lastResults.costBreakdown ? lastResults.costBreakdown.totalDeviceCostUntaxed : 0; formattedValue = this.formatCurrency(untaxedCost, 0, false, true); } else if (key === 'constructionFee') { formattedValue = this.formatCurrency(inputs.infrastructureCostMain, 0, false, true); } else { const displayValue = isPercentage ? param.value * 100 : param.value; formattedValue = isPercentage ? displayValue : displayValue.toLocaleString('en-US', {maximumFractionDigits: 2}); }
-                        container.insertAdjacentHTML('beforeend', `<div class="grid grid-cols-1 md:grid-cols-12 items-center gap-2 border-b border-gray-100 pb-3"><div class="md:col-span-4 flex items-center"><input type="checkbox" id="check_${key}" data-key="${key}" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-3" ${param.enabled ? 'checked' : ''}><label for="check_${key}" class="font-medium text-gray-800">${param.label}</label></div><div class="md:col-span-5"><p class="text-sm text-gray-500">${param.description}</p></div><div class="md:col-span-3 flex items-center"><input type="text" id="input_${key}" data-key="${key}" value="${formattedValue}" class="modal-table-input ${customClass}" ${isReadonly ? 'readonly' : ''}><span class="ml-2 text-gray-600 w-10 text-left">${param.unit}</span></div></div>`);
+            const investmentContainer = this.elements.investmentFormulaContainer;
+            const annualContainer = this.elements.annualFormulaContainer;
+            investmentContainer.innerHTML = '';
+            annualContainer.innerHTML = '';
+            const lastResults = Calculator.getLastResults();
+            const inputs = this.getInputs();
+
+            Object.entries(calculationParams).forEach(([key, param]) => {
+                const container = param.category === 'investment' ? investmentContainer : annualContainer;
+                if(container){
+                    const isPercentage = param.unit === '%';
+                    let formattedValue;
+                    let isReadonly = param.readonly || false;
+                    let customClass = isReadonly ? 'readonly' : '';
+
+                    if (key === 'deviceCost') {
+                        const untaxedCost = lastResults.costBreakdown ? lastResults.costBreakdown.totalDeviceCostUntaxed : 0;
+                        formattedValue = this.formatCurrency(untaxedCost, 0, false, true);
+                    } else if (key === 'constructionFee') {
+                        formattedValue = this.formatCurrency(inputs.infrastructureCostMain, 0, false, true);
+                    } else {
+                        const displayValue = isPercentage ? param.value * 100 : param.value;
+                        formattedValue = isPercentage ? displayValue.toLocaleString('en-US', {maximumFractionDigits: 2}) : displayValue.toLocaleString('en-US', {maximumFractionDigits: 2});
                     }
-                });
+
+                    container.insertAdjacentHTML('beforeend', `<div class="grid grid-cols-1 md:grid-cols-12 items-center gap-2 border-b border-gray-100 py-3"><div class="md:col-span-4 flex items-center"><input type="checkbox" id="check_${key}" data-key="${key}" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-3" ${param.enabled ? 'checked' : ''}><label for="check_${key}" class="font-medium text-gray-800">${param.label}</label></div><div class="md:col-span-5"><p class="text-sm text-gray-500">${param.description}</p></div><div class="md:col-span-3 flex items-center"><input type="text" id="input_${key}" data-key="${key}" value="${formattedValue}" class="modal-table-input ${customClass}" ${isReadonly ? 'readonly' : ''}><span class="ml-2 text-gray-600 w-10 text-left">${param.unit}</span></div></div>`);
+                }
             });
             this.addFormulaInputListeners();
         },
         addFormulaInputListeners() {
-            const container = this.elements.formulaContainer;
-            container.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            const textInputs = document.querySelectorAll('#investmentFormulaContainer input[type="text"]:not([readonly]), #annualFormulaContainer input[type="text"]:not([readonly])');
+            
+            document.querySelectorAll('#investmentFormulaContainer input[type="checkbox"], #annualFormulaContainer input[type="checkbox"]').forEach(checkbox => {
                 checkbox.addEventListener('change', (e) => {
                     const key = e.target.dataset.key;
                     if (Config.calculationParams[key]) {
                         Config.calculationParams[key].enabled = e.target.checked;
+                        if(key === 'extendedWarrantyPerPile') {
+                            const startYearInput = document.getElementById('input_extendedWarrantyStartYear');
+                            if(startYearInput) startYearInput.disabled = !e.target.checked;
+                        }
                         Persistence.saveSession();
                         App.update();
                     }
                 });
             });
-            const textInputs = container.querySelectorAll('input[type="text"]:not([readonly])');
+
             textInputs.forEach((input) => {
                 input.addEventListener('focus', (e) => e.target.dataset.originalValue = e.target.value);
                 input.addEventListener('keydown', (e) => {
                     const focusable = Array.from(textInputs); const currentIndex = focusable.indexOf(e.target);
                     switch (e.key) {
-                        case 'Enter': case 'ArrowDown': e.preventDefault(); if (e.key === 'Enter') { const key = e.target.dataset.key; const param = Config.calculationParams[key]; if (param) { const isPercentage = param.unit === '%'; const numericValue = parseFloat(e.target.value.replace(/,/g, '')); if (!isNaN(numericValue)) { param.value = isPercentage ? numericValue / 100 : numericValue; e.target.value = isPercentage ? numericValue : numericValue.toLocaleString('en-US', { maximumFractionDigits: 2 }); Persistence.saveSession(); App.update(); e.target.style.transition = 'border-color 0.1s ease-in-out'; e.target.style.borderColor = '#10b981'; setTimeout(() => { e.target.style.borderColor = ''; }, 1000); } } } focusable[(currentIndex + 1) % focusable.length].focus(); focusable[(currentIndex + 1) % focusable.length].select(); break;
-                        case 'ArrowUp': e.preventDefault(); focusable[(currentIndex - 1 + focusable.length) % focusable.length].focus(); focusable[(currentIndex - 1 + focusable.length) % focusable.length].select(); break;
-                        case 'Escape': e.preventDefault(); e.target.value = e.target.dataset.originalValue; e.target.blur(); break;
+                        case 'Enter':
+                            e.preventDefault();
+                            const key = e.target.dataset.key; const param = Config.calculationParams[key];
+                            if (param) {
+                                const isPercentage = param.unit === '%';
+                                const numericValue = parseFloat(e.target.value.replace(/,/g, ''));
+                                if (!isNaN(numericValue)) {
+                                    param.value = isPercentage ? numericValue / 100 : numericValue;
+                                    e.target.value = isPercentage ? numericValue.toLocaleString('en-US', {maximumFractionDigits: 2}) : numericValue.toLocaleString('en-US', { maximumFractionDigits: 2 });
+                                    Persistence.saveSession();
+                                    App.update();
+                                    e.target.style.transition = 'border-color 0.1s ease-in-out';
+                                    e.target.style.borderColor = '#10b981';
+                                    setTimeout(() => { e.target.style.borderColor = ''; }, 1000);
+                                }
+                            }
+                            e.target.blur();
+                            break;
+                        case 'ArrowDown':
+                            e.preventDefault();
+                            focusable[(currentIndex + 1) % focusable.length].focus();
+                            focusable[(currentIndex + 1) % focusable.length].select();
+                            break;
+                        case 'ArrowUp':
+                            e.preventDefault();
+                            focusable[(currentIndex - 1 + focusable.length) % focusable.length].focus();
+                            focusable[(currentIndex - 1 + focusable.length) % focusable.length].select();
+                            break;
+                        case 'Escape':
+                            e.preventDefault();
+                            e.target.value = e.target.dataset.originalValue;
+                            e.target.blur();
+                            break;
                     }
                 });
             });
+
+            // Initial state for warranty year input
+            const warrantyCheckbox = document.getElementById('check_extendedWarrantyPerPile');
+            const warrantyYearInput = document.getElementById('input_extendedWarrantyStartYear');
+            if (warrantyCheckbox && warrantyYearInput) {
+                warrantyYearInput.disabled = !warrantyCheckbox.checked;
+            }
         },
         openExplanationModal(type, results, inputs) {
             const { calculationParams } = Config; const body = this.elements.explanationModalBody; let title = ''; let contentHtml = '';
@@ -2767,8 +2850,6 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 </body>
 </html>
-
-
 
 
 
