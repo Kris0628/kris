@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>充電站(樁)投資效益分析 (v12.9.43 - 文字修正)</title>
+    <title>充電站(樁)投資效益分析 (v12.9.36 - 浮點數錯誤修正)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -336,7 +336,7 @@
         <header class="mb-10">
             <div class="text-center">
                  <h1 class="text-3xl md:text-5xl font-extrabold text-gray-800 leading-tight">充電站(樁)投資效益分析</h1>
-                 <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v12.9.43 - 文字修正)</p>
+                 <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v12.9.36 - 浮點數錯誤修正)</p>
             </div>
             <div class="flex flex-col sm:flex-row justify-between items-center mt-6 bg-amber-100 p-3 rounded-xl shadow-sm gap-4">
                 <div>
@@ -2821,7 +2821,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 Object.keys(inputs).forEach(key => {
                     const el = UI.elements[key];
                     if (el && typeof inputs[key] !== 'object' && typeof inputs[key] !== 'undefined') {
-                        if (key === 'demandGrowthRate' || key.includes('Percentage') || key === 'loanPercentage' || key === 'interestRate') {
+                        if (key === 'interestRate') {
+                            el.value = (inputs[key] * 100).toFixed(2);
+                        } else if (key === 'demandGrowthRate' || key.includes('Percentage') || key === 'loanPercentage') {
                             el.value = inputs[key] * 100;
                         } else if (!['billingMethod', 'chargeFeePerKwh', 'profitShareMethod', 'profitShareMethods', 'rentMethod'].includes(key)) { 
                             el.value = inputs[key];
@@ -2850,6 +2852,7 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 </body>
 </html>
+
 
 
 
