@@ -156,7 +156,14 @@
         <button id="bold-btn" class="toolbar-item font-bold w-8 h-8 flex items-center justify-center rounded-md hover:bg-gray-200" title="粗體">B</button>
         <button id="italic-btn" class="toolbar-item italic w-8 h-8 flex items-center justify-center rounded-md hover:bg-gray-200" title="斜體">I</button>
         <button id="underline-btn" class="toolbar-item underline w-8 h-8 flex items-center justify-center rounded-md hover:bg-gray-200" title="底線">U</button>
-        <input type="color" id="font-color-picker" class="toolbar-item w-8 h-8 p-1 border-gray-300 rounded-md cursor-pointer" title="文字顏色" value="#374151">
+        <div class="relative" title="文字顏色">
+            <input type="color" id="font-color-picker" class="toolbar-item w-8 h-8 p-1 border-gray-300 rounded-md cursor-pointer" value="#374151">
+             <svg class="w-4 h-4 absolute bottom-1 right-1 pointer-events-none text-gray-600" fill="currentColor" viewBox="0 0 20 20"><path d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" style="mix-blend-mode: difference;"></path></svg>
+        </div>
+        <div class="relative" title="文字欄底色">
+             <input type="color" id="bg-color-picker" class="toolbar-item w-8 h-8 p-1 border-gray-300 rounded-md cursor-pointer" value="#ffffff">
+             <svg class="w-4 h-4 absolute bottom-1 right-1 pointer-events-none text-gray-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" style="mix-blend-mode: difference;"></path></svg>
+        </div>
         <select id="line-height-select" class="toolbar-item border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" title="行距">
             <option value="">行距</option>
             <option value="1">單行</option>
@@ -244,153 +251,21 @@
                         <div class="bg-white p-8 rounded-xl shadow-lg text-center">
                             <div class="bg-blue-100 text-blue-600 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4 font-bold text-xl">1</div>
                             <h4 class="text-xl font-bold mb-2" contenteditable="true">採購與建置</h4>
-                            <p class="text-gray-600" contenteditable="true">我們提供從場勘、規劃到施工的全套建置服務，為您安裝高品質、符合法規的充電樁。</p>
+                            <p class="text-gray-600" contenteditable="true">提供場勘、規劃、施工一站式服務，安裝高品質合規充電樁。</p>
                         </div>
                         <!-- Step 2 -->
                         <div class="bg-white p-8 rounded-xl shadow-lg text-center">
                             <div class="bg-blue-100 text-blue-600 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4 font-bold text-xl">2</div>
                             <h4 class="text-xl font-bold mb-2" contenteditable="true">資產全權擁有</h4>
-                            <p class="text-gray-600" contenteditable="true">充電樁與相關設備100%為您的資產，讓您享有完整的控制權與增值潛力。</p>
+                            <p class="text-gray-600" contenteditable="true">充電樁設備100%為您的資產，享有完整控制權與增值潛力。</p>
                         </div>
                         <!-- Step 3 -->
                         <div class="bg-white p-8 rounded-xl shadow-lg text-center">
                             <div class="bg-blue-100 text-blue-600 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4 font-bold text-xl">3</div>
                             <h4 class="text-xl font-bold mb-2" contenteditable="true">專業維運代管</h4>
-                            <p class="text-gray-600" contenteditable="true">設備上線後，由我們接手24小時客服、金流、軟體更新與維護，您只需坐享其成。</p>
+                            <p class="text-gray-600" contenteditable="true">設備上線後，由我們包辦客服、金流、維護，您坐享其成。</p>
                         </div>
                     </div>
-                </section>
-            </div>
-            <!-- Core Value Section -->
-             <div class="editable-section relative group">
-                <div class="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
-                    <button class="add-section-btn bg-blue-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-blue-600" title="新增區塊">
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
-                    </button>
-                    <button class="delete-section-btn bg-red-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-red-600" title="刪除區塊">
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
-                    </button>
-                </div>
-                <section class="py-16">
-                    <h3 class="text-3xl font-bold text-center mb-10" contenteditable="true">為您創造的核心價值</h3>
-                    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div class="bg-blue-100 p-6 rounded-lg">
-                            <h4 class="font-bold text-lg text-blue-800" contenteditable="true">創造高利潤營收</h4>
-                            <p class="text-blue-700 mt-1" contenteditable="true">升級車位為充電樁，開創高毛利充電服務費新營收。</p>
-                        </div>
-                        <div class="bg-blue-100 p-6 rounded-lg">
-                            <h4 class="font-bold text-lg text-blue-800" contenteditable="true">資產完全自有</h4>
-                            <p class="text-blue-700 mt-1" contenteditable="true">充電樁資產為您所有，可隨場域規劃靈活運用。</p>
-                        </div>
-                        <div class="bg-blue-100 p-6 rounded-lg">
-                            <h4 class="font-bold text-lg text-blue-800" contenteditable="true">營運完全免操心</h4>
-                            <p class="text-blue-700 mt-1" contenteditable="true">從金流到維運全由我們代管，為您省下管理時間與成本。</p>
-                        </div>
-                        <div class="bg-blue-100 p-6 rounded-lg">
-                            <h4 class="font-bold text-lg text-blue-800" contenteditable="true">提升場站價值</h4>
-                            <p class="text-blue-700 mt-1" contenteditable="true">成為電動車主首選，提升來客率、客戶黏著度與競爭力。</p>
-                        </div>
-                    </div>
-                </section>
-            </div>
-            <!-- Why Choose Us Section -->
-            <div class="editable-section relative group">
-                <div class="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
-                    <button class="add-section-btn bg-blue-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-blue-600" title="新增區塊">
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
-                    </button>
-                    <button class="delete-section-btn bg-red-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-red-600" title="刪除區塊">
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
-                    </button>
-                </div>
-                <section class="py-16">
-                    <h3 class="text-3xl font-bold text-center mb-10" contenteditable="true">為何選擇星舟快充？</h3>
-                    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-                        <!-- Card 1 -->
-                        <div class="bg-white p-8 rounded-xl shadow-lg text-center">
-                            <div class="flex justify-center mb-4">
-                                <svg class="w-12 h-12 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
-                            </div>
-                            <h4 class="text-xl font-bold mb-2" contenteditable="true">一站式整合服務</h4>
-                            <p class="text-gray-600" contenteditable="true">從場勘、建置到代管，我們提供完整解決方案，讓您省時省力，無後顧之憂。</p>
-                        </div>
-                        <!-- Card 2 -->
-                        <div class="bg-white p-8 rounded-xl shadow-lg text-center">
-                            <div class="flex justify-center mb-4">
-                                <svg class="w-12 h-12 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" /></svg>
-                            </div>
-                            <h4 class="text-xl font-bold mb-2" contenteditable="true">強大的軟體實力</h4>
-                            <p class="text-gray-600" contenteditable="true">自主研發的管理平台，讓您隨時掌握營運數據，並能靈活設定費率與會員方案。</p>
-                        </div>
-                        <!-- Card 3 -->
-                        <div class="bg-white p-8 rounded-xl shadow-lg text-center">
-                            <div class="flex justify-center mb-4">
-                                <svg class="w-12 h-12 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.286z" /></svg>
-                            </div>
-                            <h4 class="text-xl font-bold mb-2" contenteditable="true">可靠的維運團隊</h4>
-                            <p class="text-gray-600" contenteditable="true">遍佈全台的維運網絡與24小時客服，能即時排除故障，確保充電站穩定營運。</p>
-                        </div>
-                        <!-- Card 4 -->
-                        <div class="bg-white p-8 rounded-xl shadow-lg text-center">
-                            <div class="flex justify-center mb-4">
-                                <svg class="w-12 h-12 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125V6.375m1.125 13.125A1.125 1.125 0 004.5 18.375h15a1.125 1.125 0 001.125-1.125V6.375m0 13.125V6.375a1.125 1.125 0 00-1.125-1.125H4.5A1.125 1.125 0 003.375 6.375m17.25 0L12 12.75l-4.125-4.125L3.375 12.75" /></svg>
-                            </div>
-                            <h4 class="text-xl font-bold mb-2" contenteditable="true">行銷引流的價值</h4>
-                            <p class="text-gray-600" contenteditable="true">透過我們的平台與合作網絡，有效增加您場站的曝光，吸引源源不絕的電動車主。</p>
-                        </div>
-                    </div>
-                </section>
-            </div>
-            <!-- Timeline Section -->
-            <div class="editable-section relative group">
-                <div class="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
-                    <button class="add-section-btn bg-blue-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-blue-600" title="新增區塊">
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
-                    </button>
-                    <button class="delete-section-btn bg-red-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-red-600" title="刪除區塊">
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
-                    </button>
-                </div>
-                <section class="py-16">
-                     <h3 class="text-3xl font-bold text-center mb-12" contenteditable="true">停車場維運代管架構</h3>
-                     <div class="timeline max-w-3xl mx-auto">
-                           <!-- Item 1 -->
-                           <div class="timeline-item">
-                               <div class="timeline-dot"></div>
-                               <h4 class="font-bold text-lg" contenteditable="true">投資資金</h4>
-                               <p class="text-gray-600" contenteditable="true">停車場業主提供建站場域及資金。</p>
-                           </div>
-                           <!-- Item 2 -->
-                           <div class="timeline-item">
-                               <div class="timeline-dot"></div>
-                               <h4 class="font-bold text-lg" contenteditable="true">充電站(樁)建置</h4>
-                               <p class="text-gray-600" contenteditable="true">星舟快充提供充電站建置服務。</p>
-                           </div>
-                           <!-- Item 3 -->
-                           <div class="timeline-item">
-                               <div class="timeline-dot"></div>
-                               <h4 class="font-bold text-lg" contenteditable="true">充電付費</h4>
-                               <p class="text-gray-600" contenteditable="true">電動車主透過 APP 或刷卡付費充電。</p>
-                           </div>
-                           <!-- Item 4 -->
-                            <div class="timeline-item">
-                               <div class="timeline-dot"></div>
-                               <h4 class="font-bold text-lg" contenteditable="true">金流代收</h4>
-                               <p class="text-gray-600" contenteditable="true">所有充電費用由星舟快充代收。</p>
-                           </div>
-                           <!-- Item 5 -->
-                           <div class="timeline-item">
-                               <div class="timeline-dot"></div>
-                               <h4 class="font-bold text-lg" contenteditable="true">定期對帳</h4>
-                               <p class="text-gray-600" contenteditable="true">星舟快充每月提供清晰營收報表與業主對帳。</p>
-                           </div>
-                           <!-- Item 6 -->
-                           <div class="timeline-item">
-                               <div class="timeline-dot"></div>
-                               <h4 class="font-bold text-lg" contenteditable="true">營收分潤</h4>
-                               <p class="text-gray-600" contenteditable="true">扣除服務費後，將營收匯款至業主指定帳戶。</p>
-                           </div>
-                     </div>
                 </section>
             </div>
             <!-- Partnership Plan Section -->
@@ -516,6 +391,196 @@
                             </div>
                         </div>
                     </div>
+                </section>
+            </div>
+             <!-- Maintenance Plan Section (New) -->
+            <div class="editable-section relative group">
+                <div class="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
+                    <button class="add-section-btn bg-blue-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-blue-600" title="新增區塊">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                    </button>
+                    <button class="delete-section-btn bg-red-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-red-600" title="刪除區塊">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"></path></svg>
+                    </button>
+                </div>
+                <section class="py-16">
+                    <div class="container mx-auto px-6">
+                       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-12">
+                             <h3 class="text-3xl font-bold text-gray-800 mb-4 sm:mb-0" contenteditable="true">維運代管方案 (快充)</h3>
+                             <div class="flex items-center space-x-2 flex-shrink-0">
+                                 <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                                 <span class="text-2xl font-bold text-gray-800" contenteditable="true">星舟快充</span>
+                             </div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
+                             <table class="w-full text-left">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="p-4 font-bold text-gray-600 w-1/4" contenteditable="true">項目</th>
+                                        <th class="p-4 font-bold text-gray-600" contenteditable="true">內容</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-t">
+                                        <td class="p-4 font-semibold text-gray-800" contenteditable="true">營運管理</td>
+                                        <td class="p-4 text-gray-700" contenteditable="true">提供充電營運管理軟體與服務</td>
+                                    </tr>
+                                    <tr class="border-t bg-gray-50">
+                                        <td class="p-4 font-semibold text-gray-800" contenteditable="true">故障處理</td>
+                                        <td class="p-4 text-gray-700" contenteditable="true">硬體異常由設備建置廠商處理</td>
+                                    </tr>
+                                     <tr class="border-t">
+                                        <td class="p-4 font-semibold text-gray-800" contenteditable="true">異常通知</td>
+                                        <td class="p-4 text-gray-700" contenteditable="true">系統偵測異常，主動通知客戶</td>
+                                    </tr>
+                                    <tr class="border-t bg-gray-50">
+                                        <td class="p-4 font-semibold text-gray-800" contenteditable="true">營運報告</td>
+                                        <td class="p-4 text-gray-700" contenteditable="true">每月提供使用量與營收報告 (TDX 另收 $299/樁/月)</td>
+                                    </tr>
+                                     <tr class="border-t">
+                                        <td class="p-4 font-semibold text-gray-800" contenteditable="true">場地設施</td>
+                                        <td class="p-4 text-gray-700" contenteditable="true">客戶需提供電力、網路、消防與用電技術人員證</td>
+                                    </tr>
+                                    <tr class="border-t bg-gray-50">
+                                        <td class="p-4 font-semibold text-gray-800" contenteditable="true">初步排查</td>
+                                        <td class="p-4 text-gray-700" contenteditable="true">協助檢測網路/通訊問題</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <!-- Core Value Section -->
+             <div class="editable-section relative group">
+                <div class="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
+                    <button class="add-section-btn bg-blue-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-blue-600" title="新增區塊">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                    </button>
+                    <button class="delete-section-btn bg-red-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-red-600" title="刪除區塊">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
+                    </button>
+                </div>
+                <section class="py-16">
+                    <h3 class="text-3xl font-bold text-center mb-10" contenteditable="true">為您創造的核心價值</h3>
+                    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-blue-100 p-6 rounded-lg">
+                            <h4 class="font-bold text-lg text-blue-800" contenteditable="true">創造高利潤營收</h4>
+                            <p class="text-blue-700 mt-1" contenteditable="true">升級車位為充電樁，開創高毛利充電服務費新營收。</p>
+                        </div>
+                        <div class="bg-blue-100 p-6 rounded-lg">
+                            <h4 class="font-bold text-lg text-blue-800" contenteditable="true">資產完全自有</h4>
+                            <p class="text-blue-700 mt-1" contenteditable="true">充電樁資產為您所有，可隨場域規劃靈活運用。</p>
+                        </div>
+                        <div class="bg-blue-100 p-6 rounded-lg">
+                            <h4 class="font-bold text-lg text-blue-800" contenteditable="true">營運完全免操心</h4>
+                            <p class="text-blue-700 mt-1" contenteditable="true">從金流到維運全由我們代管，為您省下管理時間與成本。</p>
+                        </div>
+                        <div class="bg-blue-100 p-6 rounded-lg">
+                            <h4 class="font-bold text-lg text-blue-800" contenteditable="true">提升場站價值</h4>
+                            <p class="text-blue-700 mt-1" contenteditable="true">成為電動車主首選，提升來客率、客戶黏著度與競爭力。</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <!-- Why Choose Us Section -->
+            <div class="editable-section relative group">
+                <div class="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
+                    <button class="add-section-btn bg-blue-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-blue-600" title="新增區塊">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                    </button>
+                    <button class="delete-section-btn bg-red-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-red-600" title="刪除區塊">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
+                    </button>
+                </div>
+                <section class="py-16">
+                    <h3 class="text-3xl font-bold text-center mb-10" contenteditable="true">為何選擇星舟快充？</h3>
+                    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                        <!-- Card 1 -->
+                        <div class="bg-white p-8 rounded-xl shadow-lg text-center">
+                            <div class="flex justify-center mb-4">
+                                <svg class="w-12 h-12 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
+                            </div>
+                            <h4 class="text-xl font-bold mb-2" contenteditable="true">一站式整合服務</h4>
+                            <p class="text-gray-600" contenteditable="true">提供從場勘、建置到代管的完整解決方案，省時省力。</p>
+                        </div>
+                        <!-- Card 2 -->
+                        <div class="bg-white p-8 rounded-xl shadow-lg text-center">
+                            <div class="flex justify-center mb-4">
+                                <svg class="w-12 h-12 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" /></svg>
+                            </div>
+                            <h4 class="text-xl font-bold mb-2" contenteditable="true">強大的軟體實力</h4>
+                            <p class="text-gray-600" contenteditable="true">自主研發管理平台，隨時掌握營運數據，靈活設定費率。</p>
+                        </div>
+                        <!-- Card 3 -->
+                        <div class="bg-white p-8 rounded-xl shadow-lg text-center">
+                            <div class="flex justify-center mb-4">
+                                <svg class="w-12 h-12 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.286z" /></svg>
+                            </div>
+                            <h4 class="text-xl font-bold mb-2" contenteditable="true">可靠的維運團隊</h4>
+                            <p class="text-gray-600" contenteditable="true">全台維運網絡與24小時客服，即時排除故障，確保穩定營運。</p>
+                        </div>
+                        <!-- Card 4 -->
+                        <div class="bg-white p-8 rounded-xl shadow-lg text-center">
+                            <div class="flex justify-center mb-4">
+                                <svg class="w-12 h-12 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125V6.375m1.125 13.125A1.125 1.125 0 004.5 18.375h15a1.125 1.125 0 001.125-1.125V6.375m0 13.125V6.375a1.125 1.125 0 00-1.125-1.125H4.5A1.125 1.125 0 003.375 6.375m17.25 0L12 12.75l-4.125-4.125L3.375 12.75" /></svg>
+                            </div>
+                            <h4 class="text-xl font-bold mb-2" contenteditable="true">行銷引流的價值</h4>
+                            <p class="text-gray-600" contenteditable="true">透過平台與合作網絡增加曝光，為您吸引更多電動車主。</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <!-- Timeline Section -->
+            <div class="editable-section relative group">
+                <div class="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
+                    <button class="add-section-btn bg-blue-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-blue-600" title="新增區塊">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                    </button>
+                    <button class="delete-section-btn bg-red-500 text-white w-8 h-8 rounded-md flex items-center justify-center hover:bg-red-600" title="刪除區塊">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
+                    </button>
+                </div>
+                <section class="py-16">
+                     <h3 class="text-3xl font-bold text-center mb-12" contenteditable="true">停車場維運代管架構</h3>
+                     <div class="timeline max-w-3xl mx-auto">
+                           <!-- Item 1 -->
+                           <div class="timeline-item">
+                               <div class="timeline-dot"></div>
+                               <h4 class="font-bold text-lg" contenteditable="true">投資資金</h4>
+                               <p class="text-gray-600" contenteditable="true">停車場業主提供建站場域及資金。</p>
+                           </div>
+                           <!-- Item 2 -->
+                           <div class="timeline-item">
+                               <div class="timeline-dot"></div>
+                               <h4 class="font-bold text-lg" contenteditable="true">充電站(樁)建置</h4>
+                               <p class="text-gray-600" contenteditable="true">星舟快充提供充電站建置服務。</p>
+                           </div>
+                           <!-- Item 3 -->
+                           <div class="timeline-item">
+                               <div class="timeline-dot"></div>
+                               <h4 class="font-bold text-lg" contenteditable="true">充電付費</h4>
+                               <p class="text-gray-600" contenteditable="true">電動車主透過 APP 或刷卡付費充電。</p>
+                           </div>
+                           <!-- Item 4 -->
+                            <div class="timeline-item">
+                               <div class="timeline-dot"></div>
+                               <h4 class="font-bold text-lg" contenteditable="true">金流代收</h4>
+                               <p class="text-gray-600" contenteditable="true">所有充電費用由星舟快充代收。</p>
+                           </div>
+                           <!-- Item 5 -->
+                           <div class="timeline-item">
+                               <div class="timeline-dot"></div>
+                               <h4 class="font-bold text-lg" contenteditable="true">定期對帳</h4>
+                               <p class="text-gray-600" contenteditable="true">星舟快充每月提供清晰營收報表與業主對帳。</p>
+                           </div>
+                           <!-- Item 6 -->
+                           <div class="timeline-item">
+                               <div class="timeline-dot"></div>
+                               <h4 class="font-bold text-lg" contenteditable="true">營收分潤</h4>
+                               <p class="text-gray-600" contenteditable="true">扣除服務費後，將營收匯款至業主指定帳戶。</p>
+                           </div>
+                     </div>
                 </section>
             </div>
              <!-- FAQ Section -->
@@ -730,6 +795,7 @@
             const italicBtn = document.getElementById('italic-btn');
             const underlineBtn = document.getElementById('underline-btn');
             const fontColorPicker = document.getElementById('font-color-picker');
+            const bgColorPicker = document.getElementById('bg-color-picker');
             const lineHeightSelect = document.getElementById('line-height-select');
             let currentEditable = null;
             
@@ -792,6 +858,7 @@
             fontFamilySelect.addEventListener('change', (e) => { if (currentEditable) { document.execCommand('fontName', false, e.target.value); currentEditable.focus(); } });
             fontSizeSelect.addEventListener('input', (e) => { if (currentEditable) { applyFontSize(e.target.value); currentEditable.focus(); } });
             fontColorPicker.addEventListener('input', (e) => { if (currentEditable) { document.execCommand('foreColor', false, e.target.value); } });
+            bgColorPicker.addEventListener('input', (e) => { if (currentEditable) { document.execCommand('backColor', false, e.target.value); } });
             lineHeightSelect.addEventListener('change', (e) => { if (currentEditable) { applyLineHeight(e.target.value); currentEditable.focus(); } });
             boldBtn.addEventListener('mousedown', (e) => { e.preventDefault(); if (currentEditable) document.execCommand('bold'); });
             italicBtn.addEventListener('mousedown', (e) => { e.preventDefault(); if (currentEditable) document.execCommand('italic'); });
@@ -1009,4 +1076,6 @@
     </script>
 </body>
 </html>
+
+
 
