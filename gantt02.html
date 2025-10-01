@@ -62,6 +62,13 @@
             color: #475569;
             font-size: 0.9rem;
         }
+        .gantt-task-name-cell[contenteditable=true] {
+            background-color: white;
+            box-shadow: inset 0 0 0 2px #3b82f6;
+            outline: none;
+            cursor: text;
+            overflow: visible;
+        }
         .gantt-quarter-header, .gantt-month-header {
             text-align: center;
             padding: 0.5rem 0;
@@ -180,9 +187,66 @@
             transform: translate(-50%, -120%);
             white-space: nowrap;
         }
+        .toolbar-btn {
+            width: 28px;
+            height: 28px;
+            font-size: 14px;
+            font-family: sans-serif;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .toolbar-btn:hover {
+            background-color: #f0f0f0;
+            border-color: #ccc;
+        }
+        .toolbar-btn b, .toolbar-btn i, .toolbar-btn u {
+            font-weight: bold;
+        }
+        #color-btn b {
+             border-bottom: 3px solid #000;
+        }
+        #custom-color-palette {
+            width: 170px;
+        }
+        .color-swatch {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            transition: transform 0.1s;
+        }
+        .color-swatch:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+            z-index: 10;
+            position: relative;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
+
+    <div id="text-editor-toolbar" class="hidden fixed z-50 bg-white border border-gray-300 rounded-md shadow-lg p-1 flex gap-1 items-center" style="top: 10px; left: 10px;">
+        <button class="toolbar-btn" data-command="bold" title="粗體"><b>B</b></button>
+        <button class="toolbar-btn" data-command="italic" title="斜體"><i>I</i></button>
+        <button class="toolbar-btn" data-command="underline" title="底線"><u>U</u></button>
+        <button class="toolbar-btn" id="color-btn" title="文字顏色"><b>A</b></button>
+    </div>
+
+    <div id="custom-color-palette" class="hidden absolute z-50 bg-white border border-gray-300 rounded-md shadow-lg p-2 space-y-2">
+        <div>
+            <p class="text-xs text-gray-500 mb-1">主題色彩</p>
+            <div class="grid grid-cols-6 gap-1" id="palette-theme-colors"></div>
+        </div>
+        <div>
+            <p class="text-xs text-gray-500 mb-1">標準色彩</p>
+            <div class="grid grid-cols-6 gap-1" id="palette-standard-colors"></div>
+        </div>
+    </div>
+
 
     <div class="max-w-7xl mx-auto space-y-8">
 
@@ -285,6 +349,8 @@
                 '#ED7D31', '#A5A5A5', '#5DADE2', '#58D68D',
                 '#AF7AC5', '#F5B041', '#EC7063', '#85929E'
             ];
+            const standardColors = ['#C00000', '#FF0000', '#FFC000', '#FFFF00', '#92D050', '#00B050', '#00B0F0', '#0070C0', '#002060', '#7030A0', '#000000', '#808080'];
+
             let nextColorIndex = 0;
 
             let draggedTaskId = null;
@@ -294,6 +360,7 @@
             let tooltip = null;
             let minDate, totalDays;
             let taskFlowHeaderText = '任務 / 流程';
+            let activeEditingCell = null;
             const STORAGE_KEY = 'ganttChartProjects';
 
             const chartContainer = document.getElementById('gantt-chart-container');
@@ -323,6 +390,10 @@
             const saveProjectBtn = document.getElementById('save-project-btn');
             const newProjectBtn = document.getElementById('new-project-btn');
             const projectMessage = document.getElementById('project-message');
+            
+            const textEditorToolbar = document.getElementById('text-editor-toolbar');
+            const colorBtn = document.getElementById('color-btn');
+            const customColorPalette = document.getElementById('custom-color-palette');
 
             const ONE_DAY_MS = 1000 * 60 * 60 * 24;
             const parseDate = (dateString) => new Date(dateString); 
@@ -549,8 +620,117 @@
                 renderGanttChart();
             }
 
-            chartContainer.addEventListener('click', (e) => {
+            function editTaskName(cell) {
+                if (activeEditingCell === cell) return;
+                if (activeEditingCell) saveActiveCell();
+                
+                activeEditingCell = cell;
+                cell.contentEditable = 'true';
+                cell.focus();
+                
+                textEditorToolbar.classList.remove('hidden');
+
+                cell.addEventListener('keydown', handleCellKeydown);
+                cell.addEventListener('blur', saveActiveCell, { once: true });
+            }
+
+            function saveActiveCell() {
+                if (!activeEditingCell) return;
+                
+                const cell = activeEditingCell;
+                textEditorToolbar.classList.add('hidden');
+                customColorPalette.classList.add('hidden');
+                cell.contentEditable = 'false';
+                cell.removeEventListener('keydown', handleCellKeydown);
+                
+                const taskId = parseFloat(cell.closest('.gantt-row').dataset.rowId);
+                const newNameHTML = cell.innerHTML;
+                
+                const task = tasks.find(t => t.id === taskId);
+                if (task && task.name !== newNameHTML) {
+                    task.name = newNameHTML;
+                }
+                
+                activeEditingCell = null;
+            }
+
+            function handleCellKeydown(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    e.target.blur();
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    const taskId = parseFloat(e.target.closest('.gantt-row').dataset.rowId);
+                    const task = tasks.find(t => t.id === taskId);
+                    if (task) e.target.innerHTML = task.name;
+                    e.target.blur();
+                }
+            }
+
+            textEditorToolbar.addEventListener('mousedown', (e) => {
+                e.preventDefault(); 
+                const button = e.target.closest('.toolbar-btn');
+                if (button && button.dataset.command) {
+                    document.execCommand(button.dataset.command, false, null);
+                    activeEditingCell.focus();
+                }
+            });
+
+            function populateColorPalette() {
+                const themeContainer = document.getElementById('palette-theme-colors');
+                const standardContainer = document.getElementById('palette-standard-colors');
+                themeContainer.innerHTML = '';
+                standardContainer.innerHTML = '';
+
+                colorPalette.forEach(color => {
+                    const swatch = document.createElement('div');
+                    swatch.className = 'color-swatch';
+                    swatch.style.backgroundColor = color;
+                    swatch.dataset.color = color;
+                    themeContainer.appendChild(swatch);
+                });
+
+                standardColors.forEach(color => {
+                    const swatch = document.createElement('div');
+                    swatch.className = 'color-swatch';
+                    swatch.style.backgroundColor = color;
+                    swatch.dataset.color = color;
+                    standardContainer.appendChild(swatch);
+                });
+            }
+
+            colorBtn.addEventListener('click', (e) => {
+                const rect = colorBtn.getBoundingClientRect();
+                customColorPalette.style.left = `${rect.left}px`;
+                customColorPalette.style.top = `${rect.bottom + 5}px`;
+                customColorPalette.classList.toggle('hidden');
+            });
+            
+            customColorPalette.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                const swatch = e.target.closest('.color-swatch');
+                if (swatch) {
+                    const color = swatch.dataset.color;
+                    document.execCommand('foreColor', false, color);
+                    colorBtn.querySelector('b').style.borderBottomColor = color;
+                    customColorPalette.classList.add('hidden');
+                    activeEditingCell.focus();
+                }
+            });
+            
+            document.addEventListener('click', (e) => {
                 const taskFlowHeader = e.target.closest('#task-flow-header');
+                const taskNameCell = e.target.closest('.gantt-task-name-cell');
+                const targetBtn = e.target.closest('.icon-btn');
+
+                if (activeEditingCell && !taskNameCell && !e.target.closest('#text-editor-toolbar') && !e.target.closest('#custom-color-palette')) {
+                    saveActiveCell();
+                }
+
+                if (!e.target.closest('#text-editor-toolbar') && !e.target.closest('#custom-color-palette')) {
+                    customColorPalette.classList.add('hidden');
+                }
+
                 if (taskFlowHeader && e.target.tagName !== 'INPUT') {
                     if (chartContainer.querySelector('#task-flow-header input')) return;
                     const originalText = taskFlowHeader.textContent.trim();
@@ -581,7 +761,6 @@
                     return; 
                 }
 
-                const targetBtn = e.target.closest('.icon-btn');
                 if (targetBtn && !targetBtn.classList.contains('drag-handle')) {
                     const id = parseFloat(targetBtn.closest('.gantt-task-bar-container').dataset.id);
                     if (targetBtn.classList.contains('delete-btn')) {
@@ -592,7 +771,7 @@
                         const taskToEdit = tasks.find(task => task.id === id);
                         if (taskToEdit) {
                             taskIdInput.value = taskToEdit.id;
-                            taskNameInput.value = taskToEdit.name;
+                            taskNameInput.value = taskToEdit.name.replace(/<[^>]*>/g, '');
                             startDateInput.value = taskToEdit.start;
                             endDateInput.value = taskToEdit.end;
                             taskProgressInput.value = taskToEdit.progress;
@@ -606,36 +785,8 @@
                     return; 
                 }
                 
-                const taskNameCell = e.target.closest('.gantt-task-name-cell');
-                if (taskNameCell && e.target.tagName !== 'INPUT') {
-                    if (chartContainer.querySelector('.gantt-task-name-cell input')) return;
-                    const row = taskNameCell.closest('.gantt-row');
-                    const taskId = parseFloat(row.dataset.rowId);
-                    const originalName = taskNameCell.textContent;
-                    const input = document.createElement('input');
-                    input.type = 'text';
-                    input.value = originalName;
-                    input.className = 'w-full p-0 m-0 bg-white border border-blue-400 rounded focus:outline-none focus:ring-1 focus:ring-blue-500';
-                    taskNameCell.innerHTML = '';
-                    taskNameCell.appendChild(input);
-                    input.select();
-                    const saveOrCancel = (event) => {
-                        if (event.type === 'blur' || (event.type === 'keydown' && event.key === 'Enter')) {
-                            const newTaskName = input.value.trim();
-                            if (newTaskName && newTaskName !== originalName) {
-                                const task = tasks.find(t => t.id === taskId);
-                                if (task) task.name = newTaskName;
-                            }
-                        }
-                        renderGanttChart();
-                    };
-                    input.addEventListener('blur', saveOrCancel);
-                    input.addEventListener('keydown', (evt) => {
-                        if (evt.key === 'Enter' || evt.key === 'Escape') {
-                            evt.preventDefault();
-                            saveOrCancel(evt);
-                        }
-                    });
+                if (taskNameCell) {
+                    editTaskName(taskNameCell);
                 }
             });
             
@@ -688,31 +839,56 @@
             });
             
             deadlineContainer.addEventListener('click', (e) => {
-                if (e.target.id === 'editable-deadline') {
+                if (e.target.id === 'editable-deadline' && e.target.tagName === 'SPAN') {
                     const span = e.target;
                     const currentText = span.textContent;
                     const match = currentText.match(/(\d{4})年(\d{1,2})月(\d{1,2})日/);
+                    let year, month, day;
+
                     if (match) {
-                        const year = match[1];
-                        const month = match[2].padStart(2, '0');
-                        const day = match[3].padStart(2, '0');
-                        const input = document.createElement('input');
-                        input.type = 'date';
-                        input.value = `${year}-${month}-${day}`;
-                        input.className = 'bg-transparent border-b border-red-400 focus:outline-none w-36';
-                        const updateAndReplace = () => {
-                            const [newYear, newMonth, newDay] = input.value.split('-');
-                            span.textContent = `${newYear}年${parseInt(newMonth, 10)}月${parseInt(newDay, 10)}日上線`;
-                            deadlineContainer.replaceChild(span, input);
-                        };
-                        input.addEventListener('blur', updateAndReplace);
-                        input.addEventListener('keydown', (evt) => {
-                            if (evt.key === 'Enter') input.blur();
-                            else if (evt.key === 'Escape') deadlineContainer.replaceChild(span, input);
-                        });
-                        deadlineContainer.replaceChild(input, span);
-                        input.focus();
+                        year = match[1];
+                        month = match[2].padStart(2, '0');
+                        day = match[3].padStart(2, '0');
+                    } else {
+                        const today = new Date();
+                        year = today.getFullYear();
+                        month = (today.getMonth() + 1).toString().padStart(2, '0');
+                        day = today.getDate().toString().padStart(2, '0');
                     }
+
+                    const input = document.createElement('input');
+                    input.type = 'date';
+                    input.value = `${year}-${month}-${day}`;
+                    input.className = 'bg-transparent border-b border-red-400 focus:outline-none w-36';
+
+                    const updateAndReplace = () => {
+                        const [newYear, newMonth, newDay] = input.value.split('-');
+                        if (newYear && newMonth && newDay) {
+                            span.textContent = `${newYear}年${parseInt(newMonth, 10)}月${parseInt(newDay, 10)}日上線`;
+                        } else {
+                            span.textContent = currentText; 
+                        }
+                        if (input.parentNode === deadlineContainer) {
+                           deadlineContainer.replaceChild(span, input);
+                        }
+                    };
+                    
+                    const handleKeydown = (evt) => {
+                        if (evt.key === 'Enter') {
+                            input.blur();
+                        } else if (evt.key === 'Escape') {
+                            span.textContent = currentText;
+                             if (input.parentNode === deadlineContainer) {
+                                deadlineContainer.replaceChild(span, input);
+                            }
+                        }
+                    };
+
+                    input.addEventListener('blur', updateAndReplace, { once: true });
+                    input.addEventListener('keydown', handleKeydown);
+
+                    deadlineContainer.replaceChild(input, span);
+                    input.focus();
                 }
             });
 
@@ -750,7 +926,7 @@
                 
                 const currentProjectNameToSave = saveProjectNameInput.value.trim();
                 if (currentProjectNameToSave && tasks.length > 0) {
-                    _saveProject(currentProjectNameToSave, false); // Silently save current work
+                    _saveProject(currentProjectNameToSave, false);
                 }
 
                 mainTitle.textContent = goal;
@@ -770,7 +946,7 @@
                         }));
                         nextColorIndex = tasks.length; 
                         
-                        _saveProject(goal); // Auto-save the new project
+                        _saveProject(goal);
 
                         renderGanttChart();
                         smartTaskInput.value = '';
@@ -827,7 +1003,6 @@
                 }
             }
             
-            // --- Project Management Functions ---
             function showProjectMessage(message, type = 'success') {
                 projectMessage.textContent = message;
                 projectMessage.className = type === 'error' ? 'text-red-500 mt-2 text-sm h-4' : 'text-green-600 mt-2 text-sm h-4';
@@ -894,14 +1069,11 @@
                         tasks: defaultTasks,
                         nextColorIndex: defaultTasks.length
                     };
-                    projects['預設專案'] = defaultProjectData;
+                    projects['建置期程規劃'] = defaultProjectData;
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
-                    // Load the default tasks into the current view
                     tasks = defaultTasks;
                     nextColorIndex = defaultTasks.length;
                 } else {
-                    // If projects exist, load the first one by default or stay empty?
-                    // Let's stay empty by default if projects exist but none are selected.
                     tasks = [];
                 }
             }
@@ -910,7 +1082,7 @@
             function loadProject() {
                 const projectName = projectSelect.value;
                 if (!projectName) {
-                    newProject(false); // Clear the view if "-- Select --" is chosen
+                    newProject(false); 
                     return;
                 }
                 const projects = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
@@ -962,7 +1134,6 @@
                 if(showMessage) showProjectMessage('已建立新專案。');
             }
 
-            // --- Initial Setup & Event Listeners ---
             saveProjectBtn.addEventListener('click', saveProject);
             projectSelect.addEventListener('change', loadProject);
             deleteProjectBtn.addEventListener('click', deleteProject);
@@ -970,11 +1141,11 @@
             
             initializeDefaultProject();
             populateProjectList();
+            populateColorPalette();
             
-            // Check if there's a default and load it initially
             const projects = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-            if(projects['預設專案'] && tasks.length === 0) {
-                projectSelect.value = '預設專案';
+            if(projects['建置期程規劃'] && tasks.length === 0) {
+                projectSelect.value = '建置期程規劃';
                 loadProject();
             } else {
                 resetForm();
