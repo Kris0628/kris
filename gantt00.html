@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>建置期程規劃</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f4f8;
+            user-select: none; /* Prevent text selection during drag */
+        }
+        .gantt-wrapper {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            border: 1px solid #e0e0e0;
+        }
+        .gantt-grid-container {
+            overflow-x: auto;
+            border-left: 1px solid #e2e8f0;
+            border-right: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+            border-top: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+        }
+        .gantt-grid {
+            display: grid;
+        }
+        .gantt-header, .gantt-task-name-cell {
+            position: sticky;
+            left: 0;
+            z-index: 15;
+            background-color: #f8fafc;
+            font-weight: 600;
+            padding: 0.75rem 1rem;
+            border-right: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .gantt-header {
+            z-index: 25;
+            color: #334155;
+            font-size: 0.875rem;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #task-flow-header {
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .gantt-task-name-cell {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #475569;
+            font-size: 0.9rem;
+        }
+        .gantt-task-name-cell[contenteditable=true] {
+            background-color: white;
+            box-shadow: inset 0 0 0 2px #3b82f6;
+            outline: none;
+            cursor: text;
+            overflow: visible;
+        }
+        .gantt-quarter-header, .gantt-month-header {
+            text-align: center;
+            padding: 0.5rem 0;
+            border-right: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.8rem;
+            color: #475569;
+            position: sticky;
+            top: 0;
+            background: #f8fafc;
+            z-index: 20;
+        }
+        .gantt-quarter-header {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #334155;
+        }
+        .gantt-month-header {
+            top: 41px; /* Height of quarter header */
+        }
+        .gantt-row {
+            display: contents;
+        }
+        .gantt-cell {
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .gantt-task-bar-container {
+            grid-column: var(--start) / span var(--duration);
+            grid-row: var(--row);
+            padding: 0.5rem 0.25rem;
+            z-index: 10;
+            position: relative;
+        }
+        .gantt-task-bar {
+            background-color: var(--task-bg-color, #e0e7ff);
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%);
+        }
+        .gantt-task-progress {
+            background-color: var(--task-color, #4f46e5);
+            height: 100%;
+            position: absolute;
+            transition: width 0.3s ease;
+        }
+        .gantt-progress-text {
+            position: relative;
+            z-index: 5;
+            padding-left: 0.5rem;
+            font-size: 0.75rem;
+            color: white;
+            font-weight: 500;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+        }
+        .gantt-task-bar-container:hover .task-actions {
+            opacity: 1;
+        }
+        .task-actions {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 0.25rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+            background: #f1f5f9;
+            padding: 0.25rem;
+            border-radius: 99px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            z-index: 20;
+            left: 100%;
+            margin-left: 5px;
+        }
+        .task-actions.actions-on-left {
+            left: auto;
+            right: 100%;
+            margin-left: 0;
+            margin-right: 5px;
+        }
+        .icon-btn {
+            background: none; border: none; cursor: pointer; color: #64748b;
+            padding: 0.25rem; display: flex; align-items: center; justify-content: center;
+        }
+        .icon-btn.drag-handle { cursor: grab; }
+        .icon-btn.drag-handle:active { cursor: grabbing; }
+        .icon-btn:hover { color: #334155; }
+        .gantt-task-bar-container.dragging { opacity: 0.5; z-index: 50; }
+        .drag-over-indicator { box-shadow: inset 0 -2px 0 #3b82f6; }
+        .gantt-row:hover .gantt-task-name-cell, .gantt-row:hover .gantt-cell { background-color: #f0f4f8; }
+        .resize-handle {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 8px;
+            cursor: ew-resize;
+            z-index: 15;
+        }
+        .resize-left { left: -4px; }
+        .resize-right { right: -4px; }
+        .spinner { display: inline-block; width: 1rem; height: 1rem; border: 2px solid rgba(255,255,255,.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .gantt-tooltip {
+            position: fixed;
+            background-color: #334155;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            z-index: 100;
+            pointer-events: none;
+            transform: translate(-50%, -120%);
+            white-space: nowrap;
+        }
+        .toolbar-btn {
+            width: 28px;
+            height: 28px;
+            font-size: 14px;
+            font-family: sans-serif;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .toolbar-btn:hover {
+            background-color: #f0f0f0;
+            border-color: #ccc;
+        }
+        .toolbar-btn b, .toolbar-btn i, .toolbar-btn u {
+            font-weight: bold;
+        }
+        #color-btn b {
+             border-bottom: 3px solid #000;
+        }
+        #custom-color-palette {
+            width: 170px;
+        }
+        .color-swatch {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            transition: transform 0.1s;
+        }
+        .color-swatch:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+            z-index: 10;
+            position: relative;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div id="text-editor-toolbar" class="hidden fixed z-50 bg-white border border-gray-300 rounded-md shadow-lg p-1 flex gap-1 items-center" style="top: 10px; left: 10px;">
+        <button class="toolbar-btn" data-command="bold" title="粗體"><b>B</b></button>
+        <button class="toolbar-btn" data-command="italic" title="斜體"><i>I</i></button>
+        <button class="toolbar-btn" data-command="underline" title="底線"><u>U</u></button>
+        <button class="toolbar-btn" id="color-btn" title="文字顏色"><b>A</b></button>
+    </div>
+
+    <div id="custom-color-palette" class="hidden absolute z-50 bg-white border border-gray-300 rounded-md shadow-lg p-2 space-y-2">
+        <div>
+            <p class="text-xs text-gray-500 mb-1">主題色彩</p>
+            <div class="grid grid-cols-6 gap-1" id="palette-theme-colors"></div>
+        </div>
+        <div>
+            <p class="text-xs text-gray-500 mb-1">標準色彩</p>
+            <div class="grid grid-cols-6 gap-1" id="palette-standard-colors"></div>
+        </div>
+    </div>
+
+
+    <div class="max-w-7xl mx-auto space-y-8">
+
+        <div class="gantt-wrapper">
+            <header class="text-center mb-6">
+                 <h1 id="main-title" class="text-3xl font-bold text-slate-800 tracking-wider cursor-pointer hover:bg-slate-200/50 rounded-md transition-colors py-1">建置期程規劃</h1>
+                 <p id="sub-title" class="text-slate-500 cursor-pointer hover:bg-slate-200/50 rounded-md transition-colors py-1">GANTT CHART</p>
+            </header>
+            <main>
+                <div id="gantt-chart-container" class="rounded-lg">
+                    <!-- Gantt chart is dynamically generated here -->
+                </div>
+                 <div id="deadline-container" class="text-right mt-4 mr-1 text-red-600 font-semibold text-base">
+                     ※本案預估<span id="editable-deadline" class="cursor-pointer hover:underline" title="點擊以更改日期">2026年4月30日上線</span>
+                 </div>
+            </main>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-lg" id="project-management">
+            <h2 class="text-xl font-bold mb-4 text-slate-800">🗂️ 專案管理</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                <div class="space-y-2">
+                    <label for="project-select" class="block text-sm font-medium text-gray-700">選擇專案 (點擊立即讀取)</label>
+                    <div class="flex gap-2">
+                        <select id="project-select" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"></select>
+                        <button id="delete-project-btn" class="bg-red-500 text-white font-bold py-2 px-4 rounded-md hover:bg-red-600 transition-colors">刪除</button>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label for="save-project-name" class="block text-sm font-medium text-gray-700">另存新檔/覆蓋</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="save-project-name" placeholder="輸入新專案名稱..." class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <button id="save-project-btn" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition-colors">儲存</button>
+                        <button id="new-project-btn" class="bg-gray-500 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-600 transition-colors">新增</button>
+                    </div>
+                </div>
+            </div>
+            <p id="project-message" class="mt-2 text-sm h-4"></p>
+        </div>
+
+
+        <div class="bg-slate-50 p-6 rounded-xl border border-slate-200 shadow-lg" id="task-editor">
+            
+            <div class="mb-6 pb-6 border-b border-slate-200">
+                 <h2 class="text-xl font-bold mb-3 text-slate-800">✨ AI 智慧助理</h2>
+                 <p class="text-sm text-slate-600 mb-4">輸入一個高階的專案目標，AI 將自動為您拆解成數個可執行的子任務。</p>
+                 <div class="flex items-center gap-2">
+                     <input type="text" id="smart-task-input" placeholder="例如：舉辦一場新產品發表會" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                     <button id="gemini-generate-btn" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex items-center justify-center min-w-[120px]">
+                         智慧拆解
+                     </button>
+                 </div>
+                 <p id="gemini-error-message" class="text-red-500 mt-2 text-sm h-4"></p>
+            </div>
+            
+            <h2 id="form-title" class="text-xl font-bold mb-4 text-slate-800">手動新增/編輯任務</h2>
+            <form id="task-form" class="space-y-4">
+                <input type="hidden" id="task-id">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label for="task-name" class="block text-sm font-medium text-gray-700 mb-1">任務名稱</label>
+                        <input type="text" id="task-name" placeholder="例如：預計施工完成" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+                    <div>
+                        <label for="start-date" class="block text-sm font-medium text-gray-700 mb-1">開始日期</label>
+                        <input type="date" id="start-date" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+                    <div>
+                        <label for="end-date" class="block text-sm font-medium text-gray-700 mb-1">結束日期</label>
+                        <input type="date" id="end-date" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+                    <div>
+                        <label for="task-progress" class="block text-sm font-medium text-gray-700 mb-1">完成進度 (%)</label>
+                        <input type="number" id="task-progress" min="0" max="100" value="100" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+                     <div>
+                        <label for="task-color" class="block text-sm font-medium text-gray-700 mb-1">任務顏色</label>
+                        <input type="color" id="task-color" value="#4f46e5" class="w-full h-10 px-1 py-1 border border-gray-300 rounded-md shadow-sm cursor-pointer">
+                    </div>
+                </div>
+                 <div class="flex gap-2 pt-2">
+                     <button type="submit" id="submit-btn" class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                         新增任務
+                     </button>
+                     <button type="button" id="cancel-btn" class="w-full bg-slate-200 text-slate-700 font-bold py-2 px-4 rounded-md hover:bg-slate-300 transition-colors hidden">
+                         取消
+                     </button>
+                 </div>
+            </form>
+            <p id="error-message" class="text-red-500 mt-2 text-sm h-4"></p>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let tasks = [];
+            const colorPalette = [
+                '#5B9BD5', '#70AD47', '#4472C4', '#FFC000',
+                '#ED7D31', '#A5A5A5', '#5DADE2', '#58D68D',
+                '#AF7AC5', '#F5B041', '#EC7063', '#85929E'
+            ];
+            const standardColors = ['#C00000', '#FF0000', '#FFC000', '#FFFF00', '#92D050', '#00B050', '#00B0F0', '#0070C0', '#002060', '#7030A0', '#000000', '#808080'];
+
+            let nextColorIndex = 0;
+
+            let draggedTaskId = null;
+            let dragOverRowId = null;
+            let isResizing = false;
+            let resizeInfo = {};
+            let tooltip = null;
+            let minDate, totalDays;
+            let taskFlowHeaderText = '任務 / 流程';
+            let activeEditingCell = null;
+            const STORAGE_KEY = 'ganttChartProjects';
+
+            const chartContainer = document.getElementById('gantt-chart-container');
+            const taskForm = document.getElementById('task-form');
+            const taskIdInput = document.getElementById('task-id');
+            const taskNameInput = document.getElementById('task-name');
+            const startDateInput = document.getElementById('start-date');
+            const endDateInput = document.getElementById('end-date');
+            const taskProgressInput = document.getElementById('task-progress');
+            const taskColorInput = document.getElementById('task-color');
+            const errorMessage = document.getElementById('error-message');
+            const formTitle = document.getElementById('form-title');
+            const submitBtn = document.getElementById('submit-btn');
+            const cancelBtn = document.getElementById('cancel-btn');
+            const deadlineContainer = document.getElementById('deadline-container');
+            const geminiBtn = document.getElementById('gemini-generate-btn');
+            const smartTaskInput = document.getElementById('smart-task-input');
+            const geminiErrorMessage = document.getElementById('gemini-error-message');
+            const mainTitle = document.getElementById('main-title');
+            const subTitle = document.getElementById('sub-title');
+            const editableDeadline = document.getElementById('editable-deadline');
+            const header = document.querySelector('.gantt-wrapper header');
+
+            const projectSelect = document.getElementById('project-select');
+            const deleteProjectBtn = document.getElementById('delete-project-btn');
+            const saveProjectNameInput = document.getElementById('save-project-name');
+            const saveProjectBtn = document.getElementById('save-project-btn');
+            const newProjectBtn = document.getElementById('new-project-btn');
+            const projectMessage = document.getElementById('project-message');
+            
+            const textEditorToolbar = document.getElementById('text-editor-toolbar');
+            const colorBtn = document.getElementById('color-btn');
+            const customColorPalette = document.getElementById('custom-color-palette');
+
+            const ONE_DAY_MS = 1000 * 60 * 60 * 24;
+            const parseDate = (dateString) => new Date(dateString); 
+            
+            const diffInDays = (d1, d2) => {
+                const startOfD1 = new Date(d1.getFullYear(), d1.getMonth(), d1.getDate());
+                const startOfD2 = new Date(d2.getFullYear(), d2.getMonth(), d2.getDate());
+                return Math.round((startOfD2.getTime() - startOfD1.getTime()) / ONE_DAY_MS);
+            };
+
+            function renderGanttChart() {
+                if (tasks.length === 0) {
+                    chartContainer.innerHTML = `<div class="text-center p-8 bg-slate-100 rounded-lg">尚無任務，請在下方新增。</div>`;
+                    return;
+                }
+
+                const allDates = tasks.flatMap(task => [parseDate(task.start), parseDate(task.end)]);
+                minDate = new Date(Math.min(...allDates));
+                minDate.setDate(1);
+                
+                const maxDate = new Date(Math.max(...allDates));
+                const paddedMaxDate = new Date(maxDate.getFullYear(), maxDate.getMonth() + 1, 0);
+
+                totalDays = diffInDays(minDate, paddedMaxDate) + 1;
+                const taskNameWidth = 250;
+                
+                const grid = document.createElement('div');
+                grid.className = 'gantt-grid';
+                grid.style.gridTemplateColumns = `${taskNameWidth}px repeat(${totalDays}, 1fr)`;
+                
+                let headersHTML = `<div id="task-flow-header" class="gantt-header" style="grid-row: 1 / 3;">${taskFlowHeaderText}</div>`;
+                let quarterHeaders = [];
+                let monthHeaders = [];
+                let currentColumn = 2;
+                let currentDate = new Date(minDate);
+                
+                while (currentDate <= paddedMaxDate) {
+                    const year = currentDate.getFullYear();
+                    const month = currentDate.getMonth();
+                    const quarter = `Q${Math.floor(month / 3) + 1}`;
+                    const key = `${year} ${quarter}`;
+                    const daysInMonth = new Date(year, month + 1, 0).getDate();
+                    monthHeaders.push(`<div class="gantt-month-header" style="grid-column: ${currentColumn} / span ${daysInMonth}; grid-row: 2;">${month + 1}月</div>`);
+                    let currentQuarter = quarterHeaders.find(q => q.key === key);
+                    if (!currentQuarter) {
+                        currentQuarter = { key, label: `${year} ${quarter}`, startColumn: currentColumn, span: 0 };
+                        quarterHeaders.push(currentQuarter);
+                    }
+                    currentQuarter.span += daysInMonth;
+                    currentColumn += daysInMonth;
+                    currentDate.setMonth(currentDate.getMonth() + 1);
+                }
+                headersHTML += quarterHeaders.map(q => `<div class="gantt-quarter-header" style="grid-column: ${q.startColumn} / span ${q.span}; grid-row: 1;">${q.label}</div>`).join('');
+                headersHTML += monthHeaders.join('');
+
+                let tasksHTML = tasks.map((task, index) => {
+                    const gridRow = index + 3;
+                    const taskStart = parseDate(task.start);
+                    const startDayIndex = diffInDays(minDate, taskStart);
+                    const duration = diffInDays(taskStart, parseDate(task.end)) + 1;
+                    
+                    let cellsHTML = `<div class="gantt-task-name-cell" style="grid-row: ${gridRow};">${task.name}</div>`;
+                    for (let i = 0; i < totalDays; i++) {
+                        cellsHTML += `<div class="gantt-cell" style="grid-column: ${i + 2}; grid-row: ${gridRow};"></div>`;
+                    }
+                    
+                    const lighterColor = task.color.replace(/^#/, '');
+                    const bgColor = `rgba(${parseInt(lighterColor.substring(0,2), 16)}, ${parseInt(lighterColor.substring(2,4), 16)}, ${parseInt(lighterColor.substring(4,6), 16)}, 0.2)`;
+
+                    const isNearEnd = (startDayIndex + duration) > (totalDays - 45);
+                    const actionsClass = isNearEnd ? 'actions-on-left' : '';
+
+                    const taskBarHTML = `
+                        <div class="gantt-task-bar-container" data-id="${task.id}" 
+                             style="--start: ${startDayIndex + 2}; --duration: ${duration}; --row: ${gridRow};">
+                            <div class="gantt-task-bar" style="--task-color: ${task.color}; --task-bg-color: ${bgColor};">
+                                <div class="resize-handle resize-left"></div>
+                                <div class="gantt-task-progress" style="width: ${task.progress}%;"></div>
+                                ${task.progress < 100 ? `<span class="gantt-progress-text">${task.progress}%</span>` : ''}
+                                <div class="resize-handle resize-right"></div>
+                            </div>
+                            <div class="task-actions ${actionsClass}">
+                                <button class="icon-btn drag-handle" title="拖曳排序" draggable="true"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M7 2a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-3 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-3 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/></svg></button>
+                                <button class="icon-btn edit-btn" title="編輯"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/></svg></button>
+                                <button class="icon-btn delete-btn" title="刪除"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg></button>
+                            </div>
+                        </div>`;
+                    
+                    return `<div class="gantt-row" data-row-id="${task.id}">${cellsHTML}</div>` + taskBarHTML;
+                }).join('');
+
+                grid.innerHTML = headersHTML + tasksHTML;
+                const gridContainer = document.createElement('div');
+                gridContainer.className = 'gantt-grid-container';
+                gridContainer.appendChild(grid);
+                chartContainer.innerHTML = '';
+                chartContainer.appendChild(gridContainer);
+
+                setTimeout(() => {
+                    if (grid.scrollWidth - gridContainer.clientWidth < 1) {
+                        gridContainer.style.overflowX = 'hidden';
+                    } else {
+                        gridContainer.style.overflowX = 'auto';
+                    }
+                }, 0);
+            }
+
+            function resetForm() {
+                taskForm.reset();
+                taskIdInput.value = '';
+                formTitle.textContent = '手動新增/編輯任務';
+                submitBtn.textContent = '新增任務';
+                taskColorInput.value = colorPalette[nextColorIndex % colorPalette.length];
+                taskProgressInput.value = 100;
+                cancelBtn.classList.add('hidden');
+                errorMessage.textContent = '';
+            }
+            
+            taskForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                errorMessage.textContent = ''; 
+                const name = taskNameInput.value.trim();
+                const start = startDateInput.value;
+                const end = endDateInput.value;
+                const progress = parseInt(taskProgressInput.value, 10);
+                const color = taskColorInput.value;
+                const id = taskIdInput.value;
+                if(!name || !start || !end) return;
+
+                if (start > end) {
+                    errorMessage.textContent = '錯誤：結束日期不能早於開始日期。';
+                    return;
+                }
+                
+                if (id) {
+                    const numericId = parseFloat(id);
+                    const taskIndex = tasks.findIndex(t => t.id === numericId);
+                    if (taskIndex > -1) {
+                        tasks[taskIndex] = { ...tasks[taskIndex], name, start, end, color, progress };
+                    }
+                } else {
+                    const newColor = colorPalette[nextColorIndex % colorPalette.length];
+                    nextColorIndex++;
+                    const newTask = { id: Date.now() + Math.random(), name, start, end, color: newColor, progress };
+                    tasks.push(newTask);
+                }
+                renderGanttChart();
+                resetForm();
+            });
+            
+            cancelBtn.addEventListener('click', resetForm);
+
+            chartContainer.addEventListener('mousedown', (e) => {
+                if (e.target.matches('.resize-handle')) {
+                    e.preventDefault();
+                    isResizing = true;
+                    const handle = e.target;
+                    const barContainer = handle.closest('.gantt-task-bar-container');
+                    const taskId = parseFloat(barContainer.dataset.id);
+                    const gridEl = chartContainer.querySelector('.gantt-grid');
+                    const gridRect = gridEl.getBoundingClientRect();
+                    const taskNameWidth = 250;
+                    const timelineRect = { 
+                        left: gridRect.left + taskNameWidth, 
+                        width: gridRect.width - taskNameWidth
+                    };
+                    const dayWidth = timelineRect.width / totalDays;
+                    resizeInfo = { taskId, handle: handle.classList.contains('resize-left') ? 'left' : 'right', timelineRect, dayWidth };
+                    tooltip = document.createElement('div');
+                    tooltip.className = 'gantt-tooltip';
+                    document.body.appendChild(tooltip);
+                    document.addEventListener('mousemove', handleResizeMove);
+                    document.addEventListener('mouseup', handleResizeUp);
+                }
+            });
+
+            function handleResizeMove(e) {
+                if (!isResizing) return;
+                const timelineX = Math.max(0, e.clientX - resizeInfo.timelineRect.left);
+                let dayIndex = Math.round(timelineX / resizeInfo.dayWidth);
+                if (dayIndex >= totalDays) dayIndex = totalDays - 1;
+                const newDate = new Date(minDate.getTime() + dayIndex * ONE_DAY_MS);
+                const task = tasks.find(t => t.id === resizeInfo.taskId);
+                if (!task) return;
+                const newDateString = newDate.toISOString().split('T')[0];
+                let canUpdate = false;
+                if (resizeInfo.handle === 'right') {
+                    if (newDate >= parseDate(task.start)) {
+                        task.end = newDateString;
+                        canUpdate = true;
+                    }
+                } else { 
+                    if (newDate <= parseDate(task.end)) {
+                        task.start = newDateString;
+                        canUpdate = true;
+                    }
+                }
+                if (canUpdate) renderGanttChart();
+                if (tooltip) {
+                    const displayDate = new Date(newDateString);
+                    tooltip.textContent = `${displayDate.getFullYear()}/${displayDate.getMonth() + 1}/${displayDate.getDate()}`;
+                    tooltip.style.left = `${e.clientX}px`;
+                    tooltip.style.top = `${e.clientY}px`;
+                }
+            }
+
+            function handleResizeUp() {
+                if (!isResizing) return;
+                isResizing = false;
+                document.removeEventListener('mousemove', handleResizeMove);
+                document.removeEventListener('mouseup', handleResizeUp);
+                if (tooltip) {
+                    tooltip.remove();
+                    tooltip = null;
+                }
+                const task = tasks.find(t => t.id === resizeInfo.taskId);
+                if(task){
+                    const editedTaskId = parseFloat(taskIdInput.value);
+                    if(editedTaskId && editedTaskId === resizeInfo.taskId) {
+                        startDateInput.value = task.start;
+                        endDateInput.value = task.end;
+                    }
+                }
+                renderGanttChart();
+            }
+
+            function editTaskName(cell) {
+                if (activeEditingCell === cell) return;
+                if (activeEditingCell) saveActiveCell();
+                
+                activeEditingCell = cell;
+                cell.contentEditable = 'true';
+                cell.focus();
+                
+                textEditorToolbar.classList.remove('hidden');
+
+                cell.addEventListener('keydown', handleCellKeydown);
+                cell.addEventListener('blur', saveActiveCell, { once: true });
+            }
+
+            function saveActiveCell() {
+                if (!activeEditingCell) return;
+                
+                const cell = activeEditingCell;
+                textEditorToolbar.classList.add('hidden');
+                customColorPalette.classList.add('hidden');
+                cell.contentEditable = 'false';
+                cell.removeEventListener('keydown', handleCellKeydown);
+                
+                const taskId = parseFloat(cell.closest('.gantt-row').dataset.rowId);
+                const newNameHTML = cell.innerHTML;
+                
+                const task = tasks.find(t => t.id === taskId);
+                if (task && task.name !== newNameHTML) {
+                    task.name = newNameHTML;
+                }
+                
+                activeEditingCell = null;
+            }
+
+            function handleCellKeydown(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    e.target.blur();
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    const taskId = parseFloat(e.target.closest('.gantt-row').dataset.rowId);
+                    const task = tasks.find(t => t.id === taskId);
+                    if (task) e.target.innerHTML = task.name;
+                    e.target.blur();
+                }
+            }
+
+            textEditorToolbar.addEventListener('mousedown', (e) => {
+                e.preventDefault(); 
+                const button = e.target.closest('.toolbar-btn');
+                if (button && button.dataset.command) {
+                    document.execCommand(button.dataset.command, false, null);
+                    activeEditingCell.focus();
+                }
+            });
+
+            function populateColorPalette() {
+                const themeContainer = document.getElementById('palette-theme-colors');
+                const standardContainer = document.getElementById('palette-standard-colors');
+                themeContainer.innerHTML = '';
+                standardContainer.innerHTML = '';
+
+                colorPalette.forEach(color => {
+                    const swatch = document.createElement('div');
+                    swatch.className = 'color-swatch';
+                    swatch.style.backgroundColor = color;
+                    swatch.dataset.color = color;
+                    themeContainer.appendChild(swatch);
+                });
+
+                standardColors.forEach(color => {
+                    const swatch = document.createElement('div');
+                    swatch.className = 'color-swatch';
+                    swatch.style.backgroundColor = color;
+                    swatch.dataset.color = color;
+                    standardContainer.appendChild(swatch);
+                });
+            }
+
+            colorBtn.addEventListener('click', (e) => {
+                const rect = colorBtn.getBoundingClientRect();
+                customColorPalette.style.left = `${rect.left}px`;
+                customColorPalette.style.top = `${rect.bottom + 5}px`;
+                customColorPalette.classList.toggle('hidden');
+            });
+            
+            customColorPalette.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                const swatch = e.target.closest('.color-swatch');
+                if (swatch) {
+                    const color = swatch.dataset.color;
+                    document.execCommand('foreColor', false, color);
+                    colorBtn.querySelector('b').style.borderBottomColor = color;
+                    customColorPalette.classList.add('hidden');
+                    activeEditingCell.focus();
+                }
+            });
+            
+            document.addEventListener('click', (e) => {
+                const taskFlowHeader = e.target.closest('#task-flow-header');
+                const taskNameCell = e.target.closest('.gantt-task-name-cell');
+                const targetBtn = e.target.closest('.icon-btn');
+
+                if (activeEditingCell && !taskNameCell && !e.target.closest('#text-editor-toolbar') && !e.target.closest('#custom-color-palette')) {
+                    saveActiveCell();
+                }
+
+                if (!e.target.closest('#text-editor-toolbar') && !e.target.closest('#custom-color-palette')) {
+                    customColorPalette.classList.add('hidden');
+                }
+
+                if (taskFlowHeader && e.target.tagName !== 'INPUT') {
+                    if (chartContainer.querySelector('#task-flow-header input')) return;
+                    const originalText = taskFlowHeader.textContent.trim();
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.value = originalText;
+                    input.className = 'w-full h-full p-2 m-0 text-center bg-white border border-blue-400 rounded focus:outline-none focus:ring-1 focus:ring-blue-500';
+                    taskFlowHeader.innerHTML = '';
+                    taskFlowHeader.appendChild(input);
+                    input.select();
+
+                    const finishEditing = (save) => {
+                        const newValue = input.value.trim();
+                        const newText = (save && newValue) ? newValue : originalText;
+                        taskFlowHeader.innerHTML = '';
+                        taskFlowHeader.textContent = newText;
+                        taskFlowHeaderText = newText;
+                        input.removeEventListener('blur', blurHandler);
+                        input.removeEventListener('keydown', keydownHandler);
+                    };
+                    const blurHandler = () => finishEditing(true);
+                    const keydownHandler = (evt) => {
+                        if (evt.key === 'Enter') finishEditing(true);
+                        if (evt.key === 'Escape') finishEditing(false);
+                    };
+                    input.addEventListener('blur', blurHandler);
+                    input.addEventListener('keydown', keydownHandler);
+                    return; 
+                }
+
+                if (targetBtn && !targetBtn.classList.contains('drag-handle')) {
+                    const id = parseFloat(targetBtn.closest('.gantt-task-bar-container').dataset.id);
+                    if (targetBtn.classList.contains('delete-btn')) {
+                        tasks = tasks.filter(task => task.id !== id);
+                        if(taskIdInput.value && parseFloat(taskIdInput.value) === id) resetForm();
+                        renderGanttChart();
+                    } else if (targetBtn.classList.contains('edit-btn')) {
+                        const taskToEdit = tasks.find(task => task.id === id);
+                        if (taskToEdit) {
+                            taskIdInput.value = taskToEdit.id;
+                            taskNameInput.value = taskToEdit.name.replace(/<[^>]*>/g, '');
+                            startDateInput.value = taskToEdit.start;
+                            endDateInput.value = taskToEdit.end;
+                            taskProgressInput.value = taskToEdit.progress;
+                            taskColorInput.value = taskToEdit.color;
+                            formTitle.textContent = '編輯任務';
+                            submitBtn.textContent = '更新任務';
+                            cancelBtn.classList.remove('hidden');
+                            document.getElementById('task-editor').scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }
+                    return; 
+                }
+                
+                if (taskNameCell) {
+                    editTaskName(taskNameCell);
+                }
+            });
+            
+            chartContainer.addEventListener('dragstart', (e) => {
+                const handle = e.target.closest('.drag-handle');
+                if (handle) {
+                    const barContainer = handle.closest('.gantt-task-bar-container');
+                    draggedTaskId = parseFloat(barContainer.dataset.id);
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', draggedTaskId);
+                    setTimeout(() => barContainer.classList.add('dragging'), 0);
+                } else {
+                    e.preventDefault();
+                }
+            });
+
+            chartContainer.addEventListener('dragend', () => {
+                const draggingEl = chartContainer.querySelector('.dragging');
+                if(draggingEl) draggingEl.classList.remove('dragging');
+            });
+            
+            chartContainer.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const row = e.target.closest('.gantt-row');
+                document.querySelectorAll('.drag-over-indicator').forEach(el => el.classList.remove('drag-over-indicator'));
+                if (row) {
+                    row.querySelector('.gantt-task-name-cell').classList.add('drag-over-indicator');
+                    dragOverRowId = parseFloat(row.dataset.rowId);
+                }
+            });
+            
+            chartContainer.addEventListener('dragleave', () => {
+                document.querySelectorAll('.drag-over-indicator').forEach(el => el.classList.remove('drag-over-indicator'));
+            });
+            
+            chartContainer.addEventListener('drop', (e) => {
+                e.preventDefault();
+                document.querySelectorAll('.drag-over-indicator').forEach(el => el.classList.remove('drag-over-indicator'));
+                if (dragOverRowId && draggedTaskId && dragOverRowId !== draggedTaskId) {
+                    const draggedIndex = tasks.findIndex(t => t.id === draggedTaskId);
+                    const targetIndex = tasks.findIndex(t => t.id === dragOverRowId);
+                    if (draggedIndex > -1 && targetIndex > -1) {
+                        const [draggedItem] = tasks.splice(draggedIndex, 1);
+                        tasks.splice(targetIndex, 0, draggedItem);
+                        renderGanttChart();
+                    }
+                }
+                draggedTaskId = null;
+                dragOverRowId = null;
+            });
+            
+            deadlineContainer.addEventListener('click', (e) => {
+                if (e.target.id === 'editable-deadline' && e.target.tagName === 'SPAN') {
+                    const span = e.target;
+                    const currentText = span.textContent;
+                    const match = currentText.match(/(\d{4})年(\d{1,2})月(\d{1,2})日/);
+                    let year, month, day;
+
+                    if (match) {
+                        year = match[1];
+                        month = match[2].padStart(2, '0');
+                        day = match[3].padStart(2, '0');
+                    } else {
+                        const today = new Date();
+                        year = today.getFullYear();
+                        month = (today.getMonth() + 1).toString().padStart(2, '0');
+                        day = today.getDate().toString().padStart(2, '0');
+                    }
+
+                    const input = document.createElement('input');
+                    input.type = 'date';
+                    input.value = `${year}-${month}-${day}`;
+                    input.className = 'bg-transparent border-b border-red-400 focus:outline-none w-36';
+
+                    const updateAndReplace = () => {
+                        const [newYear, newMonth, newDay] = input.value.split('-');
+                        if (newYear && newMonth && newDay) {
+                            span.textContent = `${newYear}年${parseInt(newMonth, 10)}月${parseInt(newDay, 10)}日上線`;
+                        } else {
+                            span.textContent = currentText; 
+                        }
+                        if (input.parentNode === deadlineContainer) {
+                           deadlineContainer.replaceChild(span, input);
+                        }
+                    };
+                    
+                    const handleKeydown = (evt) => {
+                        if (evt.key === 'Enter') {
+                            input.blur();
+                        } else if (evt.key === 'Escape') {
+                            span.textContent = currentText;
+                             if (input.parentNode === deadlineContainer) {
+                                deadlineContainer.replaceChild(span, input);
+                            }
+                        }
+                    };
+
+                    input.addEventListener('blur', updateAndReplace, { once: true });
+                    input.addEventListener('keydown', handleKeydown);
+
+                    deadlineContainer.replaceChild(input, span);
+                    input.focus();
+                }
+            });
+
+            header.addEventListener('click', (e) => {
+                const target = e.target;
+                const isEditable = (target.id === 'main-title' || target.id === 'sub-title') && target.tagName !== 'INPUT';
+                if (!isEditable || header.querySelector('input')) return;
+                const originalText = target.textContent;
+                const originalClasses = target.className;
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = originalText;
+                input.className = originalClasses.replace(/cursor-pointer|hover:bg-slate-200\/50/g, '') + ' w-full text-center bg-transparent border-b-2 border-slate-400 focus:outline-none';
+                const finishEditing = (save) => {
+                    const newValue = input.value.trim();
+                    target.textContent = (save && newValue) ? newValue : originalText;
+                    input.parentNode.replaceChild(target, input);
+                };
+                input.addEventListener('blur', () => finishEditing(true));
+                input.addEventListener('keydown', (evt) => {
+                    if (evt.key === 'Enter') finishEditing(true);
+                    if (evt.key === 'Escape') finishEditing(false);
+                });
+                target.parentNode.replaceChild(input, target);
+                input.select();
+            });
+
+
+            geminiBtn.addEventListener('click', async () => {
+                const goal = smartTaskInput.value.trim();
+                if (!goal) {
+                    geminiErrorMessage.textContent = '請先輸入您的專案目標。';
+                    return;
+                }
+                
+                const currentProjectNameToSave = saveProjectNameInput.value.trim();
+                if (currentProjectNameToSave && tasks.length > 0) {
+                    _saveProject(currentProjectNameToSave, false);
+                }
+
+                mainTitle.textContent = goal;
+                geminiErrorMessage.textContent = '';
+                geminiBtn.disabled = true;
+                geminiBtn.innerHTML = '<span class="spinner"></span>';
+                try {
+                    const generatedTasks = await callGeminiForTaskBreakdown(goal);
+                    if (generatedTasks && generatedTasks.length > 0) {
+                        tasks = generatedTasks.map((task, index) => ({
+                            id: Date.now() + Math.random() + index,
+                            name: task.name,
+                            start: task.start,
+                            end: task.end,
+                            progress: 100, 
+                            color: colorPalette[index % colorPalette.length]
+                        }));
+                        nextColorIndex = tasks.length; 
+                        
+                        _saveProject(goal);
+
+                        renderGanttChart();
+                        smartTaskInput.value = '';
+                        resetForm(); 
+                    } else {
+                        throw new Error('AI 未能生成有效的任務。');
+                    }
+                } catch (error) {
+                    console.error('Gemini API Error:', error);
+                    geminiErrorMessage.textContent = `發生錯誤：${error.message}`;
+                } finally {
+                    geminiBtn.disabled = false;
+                    geminiBtn.innerHTML = '智慧拆解';
+                }
+            });
+
+            smartTaskInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    geminiBtn.click();
+                }
+            });
+
+            async function callGeminiForTaskBreakdown(goal) {
+                const apiKey = "AIzaSyChsfLXnICTZBd79SUsVD2-E2fVBa_V3mg";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const personaDateText = 'September 26, 2025';
+                const payload = {
+                    contents: [{ parts: [{ text: `You are a project manager. Break down this goal into actionable tasks. Today is ${personaDateText}. Provide realistic start/end dates in 'YYYY-MM-DD' format, starting from today or later. Goal: "${goal}". Respond ONLY with a valid JSON object matching the schema.` }] }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "ARRAY", items: {
+                                type: "OBJECT", properties: {
+                                    name: { type: "STRING", description: "子任務的名稱。" },
+                                    start: { type: "STRING", description: "預計開始日期，格式為 YYYY-MM-DD。" },
+                                    end: { type: "STRING", description: "預計結束日期，格式為 YYYY-MM-DD。" }
+                                }, required: ["name", "start", "end"]
+                            }
+                        }
+                    }
+                };
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) {
+                    const errorBody = await response.json();
+                    throw new Error(`API request failed: ${errorBody.error.message}`);
+                }
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    return JSON.parse(candidate.content.parts[0].text);
+                } else {
+                    throw new Error("Invalid response structure from API.");
+                }
+            }
+            
+            function showProjectMessage(message, type = 'success') {
+                projectMessage.textContent = message;
+                projectMessage.className = type === 'error' ? 'text-red-500 mt-2 text-sm h-4' : 'text-green-600 mt-2 text-sm h-4';
+                setTimeout(() => { projectMessage.textContent = ''; }, 3000);
+            }
+            
+            function _saveProject(projectName, showMsg = true) {
+                if (!projectName) {
+                    if (showMsg) showProjectMessage('請輸入專案名稱。', 'error');
+                    return;
+                }
+                const projects = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+                const projectData = {
+                    mainTitle: mainTitle.textContent,
+                    subTitle: subTitle.textContent,
+                    taskFlowHeader: taskFlowHeaderText,
+                    deadline: editableDeadline.textContent,
+                    tasks: tasks,
+                    nextColorIndex: nextColorIndex
+                };
+                projects[projectName] = projectData;
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+                populateProjectList();
+                projectSelect.value = projectName;
+                saveProjectNameInput.value = projectName;
+                if (showMsg) showProjectMessage(`專案 "${projectName}" 已儲存成功！`);
+            }
+
+            function saveProject() {
+                const projectName = saveProjectNameInput.value.trim();
+                _saveProject(projectName);
+            }
+
+            function populateProjectList() {
+                const projects = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+                const projectNames = Object.keys(projects);
+                projectSelect.innerHTML = '<option value="">-- 選擇一個專案 --</option>';
+                projectNames.sort().forEach(name => {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    option.textContent = name;
+                    projectSelect.appendChild(option);
+                });
+            }
+
+            function initializeDefaultProject() {
+                let projects = JSON.parse(localStorage.getItem(STORAGE_KEY));
+                if (!projects || Object.keys(projects).length === 0) {
+                    projects = {};
+                    const defaultTasks = [
+                        { id: 1, name: '專案啟動與範疇定義', start: '2025-09-26', end: '2025-10-15', progress: 100, color: colorPalette[0] },
+                        { id: 2, name: '簽約完成', start: '2025-10-01', end: '2025-10-31', progress: 100, color: colorPalette[1] },
+                        { id: 3, name: '內部請採流程', start: '2025-11-01', end: '2025-12-15', progress: 100, color: colorPalette[2] },
+                        { id: 4, name: '開始送請電流程', start: '2025-11-15', end: '2026-01-31', progress: 100, color: colorPalette[3] },
+                        { id: 5, name: '預計請電完成', start: '2026-02-01', end: '2026-02-28', progress: 100, color: colorPalette[4] },
+                        { id: 6, name: '預計施工完成', start: '2026-02-15', end: '2026-03-31', progress: 100, color: colorPalette[5] },
+                        { id: 7, name: '工程收尾與驗收', start: '2026-04-01', end: '2026-04-30', progress: 100, color: colorPalette[6] },
+                    ];
+                    const defaultProjectData = {
+                        mainTitle: '建置期程規劃',
+                        subTitle: 'GANTT CHART',
+                        taskFlowHeader: '任務 / 流程',
+                        deadline: '2026年4月30日上線',
+                        tasks: defaultTasks,
+                        nextColorIndex: defaultTasks.length
+                    };
+                    projects['建置期程規劃'] = defaultProjectData;
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+                    tasks = defaultTasks;
+                    nextColorIndex = defaultTasks.length;
+                } else {
+                    tasks = [];
+                }
+            }
+
+
+            function loadProject() {
+                const projectName = projectSelect.value;
+                if (!projectName) {
+                    newProject(false); 
+                    return;
+                }
+                const projects = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+                const projectData = projects[projectName];
+                if (projectData) {
+                    tasks = projectData.tasks;
+                    mainTitle.textContent = projectData.mainTitle;
+                    subTitle.textContent = projectData.subTitle;
+                    taskFlowHeaderText = projectData.taskFlowHeader || '任務 / 流程';
+                    editableDeadline.textContent = projectData.deadline;
+                    nextColorIndex = projectData.nextColorIndex || tasks.length;
+                    renderGanttChart();
+                    resetForm();
+                    saveProjectNameInput.value = projectName;
+                    showProjectMessage(`專案 "${projectName}" 已成功讀取！`);
+                } else {
+                    showProjectMessage(`找不到專案 "${projectName}"。`, 'error');
+                }
+            }
+
+            function deleteProject() {
+                const projectName = projectSelect.value;
+                if (!projectName) {
+                    showProjectMessage('請選擇要刪除的專案。', 'error');
+                    return;
+                }
+                const projects = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+                const currentlyLoadedProject = saveProjectNameInput.value.trim();
+                delete projects[projectName];
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+                populateProjectList();
+                showProjectMessage(`專案 "${projectName}" 已被刪除。`);
+                if (currentlyLoadedProject === projectName) {
+                    newProject();
+                }
+            }
+
+            function newProject(showMessage = true) {
+                tasks = [];
+                mainTitle.textContent = '新建置期程規劃';
+                subTitle.textContent = 'GANTT CHART';
+                taskFlowHeaderText = '任務 / 流程';
+                editableDeadline.textContent = '2026年4月30日上線';
+                nextColorIndex = 0;
+                saveProjectNameInput.value = '';
+                projectSelect.value = '';
+                renderGanttChart();
+                resetForm();
+                if(showMessage) showProjectMessage('已建立新專案。');
+            }
+
+            saveProjectBtn.addEventListener('click', saveProject);
+            projectSelect.addEventListener('change', loadProject);
+            deleteProjectBtn.addEventListener('click', deleteProject);
+            newProjectBtn.addEventListener('click', newProject);
+            
+            initializeDefaultProject();
+            populateProjectList();
+            populateColorPalette();
+            
+            const projects = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+            if(projects['建置期程規劃'] && tasks.length === 0) {
+                projectSelect.value = '建置期程規劃';
+                loadProject();
+            } else {
+                resetForm();
+                renderGanttChart();
+            }
+
+        });
+    </script>
+</body>
+</html>
+
