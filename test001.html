@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>充電站(樁)投資效益分析 (v13.0.0 - 精簡版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Noto Sans TC', 'Inter', sans-serif; background-color: #f8fafc; }
+        .input-field { background-color: white; color: #1f2937; border: 1px solid #d1d5db; border-radius: 0.5rem; padding: 0.65rem 0.85rem; text-align: center; width: 100%; transition: all 0.3s ease; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); }
+        .input-field:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25); }
+        .input-field.readonly, input:disabled { background-color: #e5e7eb; color: #6b7280; cursor: not-allowed; }
+        .label-text { font-weight: 600; color: #374151; }
+        .card { border-radius: 1rem; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.07); padding: 1.5rem; display: flex; flex-direction: column; }
+        .card:not(.fixed-height) { height: 100%; }
+        @media (min-width: 768px) { .card { padding: 2rem; } }
+        .summary-card { background: linear-gradient(135deg, #4f46e5, #3b82f6); color: white; border-radius: 1rem; padding: 1.5rem; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); height: 100%; }
+        .summary-value { font-size: 1.5rem; font-weight: 700; line-height: 1.2; display: flex; align-items: baseline; justify-content: center; white-space: nowrap; }
+        @media (min-width: 768px) { .summary-value { font-size: 1.625rem; } }
+        .summary-value .unit { font-size: 0.875rem; font-weight: 500; }
+        .summary-value .unit-prefix { margin-right: 0.5rem; }
+        .summary-value .unit-suffix { margin-left: 0.5rem; }
+        @media (min-width: 768px) { .summary-value .unit { font-size: 1rem; } }
+        .summary-label { font-size: 1rem; opacity: 0.9; font-weight: 500; margin-bottom: 0.75rem; }
+        @media (min-width: 768px) { .summary-label { font-size: 1.125rem; } }
+        .table-header { background-color: rgba(0,0,0,0.04); color: #374151; font-weight: 700; }
+        .table-cell { padding: 0.75rem; text-align: right; border-bottom: 1px solid #e5e7eb; }
+        @media (min-width: 768px) { .table-cell { padding: 0.9rem 1.2rem; } }
+        .table-cell-year { font-weight: 700; color: #1f2937; text-align: left; }
+        #pnlTableBody tr:nth-child(even), #kwhStatsTableBody tr:nth-child(even) { background-color: rgba(255, 255, 255, 0.6); }
+        #pnlTableBody tr.pnl-row:hover, #kwhStatsTableBody tr.kwh-row:hover { background-color: #eff6ff; transition: background-color 0.2s ease; }
+        #pnlTableBody tr.pnl-row, #kwhStatsTableBody tr.kwh-row { cursor: pointer; }
+        .details-row td { padding: 0; background-color: #f8fafc; border-bottom: 1px solid #e5e7eb; }
+        #pnlTableBody .details-row td { background-color: #f0fdf4; }
+        .details-container { padding: 1.5rem; max-width: 64rem; margin: auto; }
+        .details-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+        @media (min-width: 1024px) { .details-grid { grid-template-columns: 1fr 1fr; gap: 1rem 2.5rem; } }
+        .details-section h4 { font-weight: 700; color: #111827; margin-bottom: 0.75rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; }
+        .details-item { display: grid; grid-template-columns: auto 1fr; gap: 1rem; align-items: baseline; font-size: 0.875rem; padding: 0.3rem 0; }
+        .details-item span:first-child { color: #6b7280; text-align: left; }
+        .details-item span:last-child { color: #1f2937; font-weight: 500; text-align: right; }
+        .choice-label { display: inline-flex; align-items: center; cursor: pointer; margin-right: 1.25rem; user-select: none; }
+        .choice-label input { display: none; }
+        .choice-label span { padding: 0.4rem 1rem; border-radius: 9999px; background-color: #e5e7eb; color: #4b5563; transition: all 0.2s ease; font-weight: 500; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); }
+        .choice-label input:checked + span { background-color: #4f46e5; color: white; font-weight: 600; box-shadow: 0 2px 5px 0 rgba(79, 70, 229, 0.3); }
+        .choice-label input:disabled + span { background-color: #f3f4f6; color: #9ca3af; cursor: not-allowed; }
+        .hidden-section { display: none; }
+        .input-section { padding: 1rem; border-radius: 0.75rem; transition: background-color 0.3s ease; }
+        .input-section.bg-blue-50 { background-color: #eff6ff; }
+        .input-section.bg-green-50 { background-color: #f0fdf4; }
+        .input-section.bg-yellow-50 { background-color: #fefce8; }
+        .input-section.bg-purple-50 { background-color: #f5f3ff; }
+        .input-section.bg-slate-50 { background-color: #f8fafc; }
+        .input-section.bg-pink-50 { background-color: #fdf2f8; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.6); display: none; justify-content: center; align-items: center; z-index: 1000; animation: fadeIn 0.3s ease-out forwards; }
+        .modal-content { background-color: white; padding: 1.5rem; border-radius: 1rem; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); animation: slideIn 0.3s ease-out forwards; }
+        @media (min-width: 768px) { .modal-content { padding: 2rem; } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .modal-title { font-size: 1.25rem; font-weight: 700; color: #1f2937; }
+        @media (min-width: 768px) { .modal-title { font-size: 1.5rem; } }
+        .modal-close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #6b7280; transition: color 0.2s ease; line-height: 1; }
+        .modal-close-btn:hover { color: #374151; }
+        .modal-table-input { width: 100%; text-align: right; padding: 0.4rem; border: 1px solid #d1d5db; border-radius: 0.375rem; background-color: #f9fafb; }
+        .modal-table-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
+        .modal-table-input.readonly { background-color: #e5e7eb; color: #6b7280; cursor: not-allowed; }
+        .modal-action-button { background-color: #4f46e5; color: white; padding: 0.75rem 1.75rem; border-radius: 0.6rem; font-weight: 600; transition: background-color 0.2s ease, transform 0.1s ease; border: none; cursor: pointer; }
+        .modal-action-button:hover { background-color: #4338ca; transform: translateY(-1px); }
+        .modal-message { margin-top: 1rem; padding: 0.75rem; border-radius: 0.5rem; font-weight: 500; text-align: center; display: none; }
+        .modal-message.error { background-color: #fee2e2; color: #ef4444; }
+        .modal-message.success { background-color: #d1fae5; color: #10b981; }
+        .password-section-compact { font-size: 0.9rem; }
+        .password-section-compact .grid { gap: 0.5rem 1rem; }
+        .password-section-compact .input-field { padding: 0.5rem 0.75rem; }
+        .modal-tabs { border-bottom: 2px solid #e5e7eb; margin-bottom: 1.5rem; }
+        .modal-tab-btn { padding: 0.75rem 1.25rem; border: none; background: none; font-size: 1rem; font-weight: 600; color: #6b7280; cursor: pointer; transition: all 0.2s ease; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+        .modal-tab-btn.active { color: #4f46e5; border-bottom-color: #4f46e5; }
+        .modal-tab-content { display: none; }
+        .modal-tab-content.active { display: block; }
+        .salvage-display { color: #ef4444; font-weight: 500; vertical-align: middle; }
+        #explanationList li { align-items: baseline; }
+        #explanationList li[data-target] { cursor: pointer; transition: color 0.2s ease, background-color 0.2s ease; padding: 0.25rem 0.5rem; border-radius: 0.375rem; margin: 0 -0.5rem; }
+        #explanationList li[data-target]:hover { color: #4f46e5; background-color: #eef2ff; }
+        .explainer-grid { display: grid; grid-template-columns: auto 1fr auto; gap: 0 1.5rem; align-items: baseline; }
+        .explainer-grid > span { padding: 0.75rem 0; border-bottom: 1px solid #f3f4f6; }
+        .explainer-grid > span:nth-child(3n+1) { font-weight: 500; color: #374151; }
+        .explainer-grid > span:nth-child(3n+2) { color: #6b7280; font-size: 0.875rem; }
+        .explainer-grid > span:nth-child(3n+3) { font-weight: 600; text-align: right; }
+        .explainer-total-row { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: baseline; padding-top: 0.75rem; margin-top: 0.75rem; border-top: 2px solid #e5e7eb; font-weight: 700; font-size: 1.125rem; color: #111827; }
+        #touGridEditor { user-select: none; }
+        .tou-controls { display: flex; flex-direction: column; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; }
+        .tou-rate-type-label { padding: 0.5rem 1rem; border-radius: 0.5rem; cursor: pointer; font-weight: 600; border: 2px solid transparent; transition: all 0.2s ease; }
+        .tou-rate-type-label span { font-weight: 500; opacity: 0.8; }
+        .tou-rate-type-label.peak { background-color: #fee2e2; color: #b91c1c; }
+        .tou-rate-type-label.offpeak { background-color: #dcfce7; color: #166534; }
+        .tou-rate-type-label.holiday { background-color: #dbeafe; color: #1e40af; }
+        .tou-controls input[type="radio"] { display: none; }
+        input[name="touRateType"]:checked + .peak { border-color: #dc2626; }
+        input[name="touRateType"]:checked + .offpeak { border-color: #16a34a; }
+        input[name="touRateType"]:checked + .holiday { border-color: #2563eb; }
+        #touGridContainer { display: grid; grid-template-columns: 2.5rem repeat(7, minmax(35px, 1fr)); gap: 2px; min-width: 420px; }
+        .tou-grid-cell { background-color: #e5e7eb; cursor: pointer; transition: all 0.1s ease; text-align: center; font-size: 0.7rem; line-height: 1.5rem; border-radius: 4px; }
+        .tou-grid-header { font-weight: bold; text-align: center; padding: 0.5rem 0; background-color: #f3f4f6; border-radius: 4px;}
+        .tou-grid-time { font-size: 0.75rem; color: #6b7280; display: flex; align-items: center; justify-content: center; }
+        .tou-grid-cell.peak { background-color: #fecaca; }
+        .tou-grid-cell.offpeak { background-color: #bbf7d0; }
+        .tou-grid-cell.holiday { background-color: #bfdbfe; }
+        .tou-grid-cell.painting { transform: scale(0.9); filter: brightness(1.1); }
+        .equipment-row { display: grid; grid-template-columns: 1fr auto auto; gap: 0.5rem; align-items: center; }
+        .equipment-row .count-label { font-size: 0.875rem; text-align: right; padding-right: 0.5rem; }
+        .equipment-row .equipment-count { width: 60px; }
+        .remove-equip-btn { background: none; border: none; color: #ef4444; cursor: pointer; padding: 0.5rem; border-radius: 999px; line-height: 1; transition: background-color 0.2s; }
+        .remove-equip-btn:hover { background-color: #fee2e2; }
+        .header-actions button { background-color: #fff; border: 1px solid #d1d5db; color: #374151; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600; transition: all 0.2s ease; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); }
+        .header-actions button:hover { border-color: #4f46e5; color: #4f46e5; background-color: #eef2ff; }
+        .record-list-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border-radius: 0.5rem; transition: background-color 0.2s, box-shadow 0.2s; cursor: pointer; }
+        .record-list-item:nth-child(odd) { background-color: #f9fafb; }
+        .record-list-item:hover { background-color: #eff6ff; }
+        .record-list-item.selected { background-color: #e0e7ff; box-shadow: inset 4px 0 0 0 #4f46e5; }
+        .record-name { font-weight: 600; color: #374151; pointer-events: none; }
+        .load-btn { padding: 0.25rem 1rem !important; font-size: 0.875rem !important; font-weight: 600 !important; line-height: 1.25rem !important; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        #kwhTableIcon.rotate-180 { transform: rotate(180deg); }
+        .center-text-input { text-align: center !important; }
+    </style>
+    </head>
+<body class="p-4 md:p-8">
+    <div class="max-w-7xl mx-auto">
+        <header class="mb-10">
+            <div class="text-center">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-800 leading-tight">充電站(樁)投資效益分析</h1>
+                <p class="text-lg md:text-xl text-gray-600 mt-3">互動式損益評估工具 (v13.0.0 - 精簡版)</p>
+            </div>
+            <div class="flex flex-col sm:flex-row justify-between items-center mt-6 bg-amber-100 p-3 rounded-xl shadow-sm gap-4">
+                <div><h2 id="siteNameDisplay" class="text-lg sm:text-xl font-bold text-gray-700">未命名站點</h2></div>
+                <div class="flex gap-2 header-actions">
+                    <button id="saveBtn">儲存</button>
+                    <button id="recordsBtn">紀錄</button>
+                    <button id="newAnalysisBtn">重置分析</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-1 flex flex-col gap-6">
+                <div class="card bg-white">
+                    <div class="flex justify-between items-center mb-5 pb-3 border-b border-gray-200">
+                        <h2 class="text-xl md:text-2xl font-bold text-gray-800">設置參數</h2>
+                        <button id="addEquipmentBtn" class="text-sm bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-all duration-200 ease-in-out shadow-sm hover:shadow-md flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                            新增設備
+                        </button>
+                    </div>
+                    <div class="space-y-4">
+                        <div id="equipmentListContainer" class="space-y-3"></div>
+                        <hr class="border-gray-200 my-2"/>
+                        <div class="grid grid-cols-2 items-center gap-4">
+                            <span class="label-text">總槍數(車格)</span>
+                            <input type="number" id="parkingSpaces" class="input-field readonly" readonly>
+                        </div>
+                         <div class="grid grid-cols-2 items-center gap-4">
+                            <span class="label-text">設備費用(含稅)</span>
+                            <input type="text" id="equipmentCostDisplayMain" class="input-field readonly" readonly>
+                        </div>
+                        <div class="grid grid-cols-2 items-center gap-4">
+                            <span class="label-text">設備殘值</span>
+                            <input type="text" id="salvageValueDisplay" class="input-field readonly" readonly>
+                        </div>
+                        <div class="grid grid-cols-2 items-center gap-4">
+                            <span class="label-text">基礎設施工程</span>
+                            <input type="text" id="infrastructureCostMain" class="input-field" value="500,000">
+                        </div>
+                        <hr class="border-gray-200 my-2"/>
+                        <div>
+                            <label class="choice-label w-full justify-center"><input type="checkbox" id="financingToggle"><span>融資借貸</span></label>
+                            <div id="financingSection" class="hidden-section input-section bg-blue-50 space-y-4 mt-3">
+                                <div class="grid grid-cols-2 items-center gap-4">
+                                    <span class="label-text">貸款 (%)</span><input type="number" id="loanPercentage" class="input-field" value="70">
+                                </div>
+                                <div class="grid grid-cols-2 items-center gap-4">
+                                    <span class="label-text">利息 (%)</span><input type="number" id="interestRate" class="input-field" value="3.5" step="0.01">
+                                </div>
+                                <div class="grid grid-cols-2 items-center gap-4">
+                                    <span class="label-text">貸款年期</span><input type="number" id="loanTerm" class="input-field" value="7">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card bg-white">
+                    <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-5 pb-3 border-b border-gray-200">營運&成本設定</h2>
+                    <div class="space-y-4">
+                        <div id="acSettingsBlock" class="input-section bg-blue-50 space-y-4 hidden-section">
+                            <h3 class="text-xl font-bold text-gray-700 pb-2 border-b border-blue-200">AC 慢充設定</h3>
+                            <div>
+                                <h4 class="text-lg font-semibold text-gray-700 mb-2">收費方式</h4>
+                                <p class="text-sm text-red-600 mt-1 mb-2">AC不以尖離峰方式計費</p>
+                                <div class="grid grid-cols-2 items-center gap-4">
+                                    <span class="label-text">每度電收費 (元)</span>
+                                    <input type="number" id="chargeFeePerKwhAC" class="input-field" value="7.5" step="0.1">
+                                </div>
+                            </div>
+                            <div class="pt-4 mt-4 border-t border-blue-200">
+                                <h4 class="text-lg font-semibold text-gray-700 mb-2">基礎參數</h4>
+                                <div>
+                                    <div class="flex flex-wrap gap-3">
+                                        <label class="choice-label"><input type="radio" name="revenueMethodAC" value="byCars" checked><span>依車次</span></label>
+                                        <label class="choice-label"><input type="radio" name="revenueMethodAC" value="byKwh"><span>依度數</span></label>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 items-center gap-4 mt-3">
+                                    <div>
+                                        <span class="label-text">每日車次/槍</span>
+                                        <span class="block text-xs text-red-500 font-normal">(上限2車/次)</span>
+                                    </div>
+                                    <input type="number" id="carsPerGunPerDayAC" class="input-field" value="2" max="2" step="0.1">
+                                </div>
+                                <div class="grid grid-cols-2 items-center gap-4 mt-3">
+                                   <div>
+                                        <span class="label-text">每月度數/槍</span>
+                                        <span class="block text-xs text-red-500 font-normal">(上限1800度/月)</span>
+                                    </div>
+                                   <input type="number" id="kwhPerGunPerMonthAC" class="input-field" value="1800" max="1800" step="10">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="dcSettingsBlock" class="input-section bg-green-50 space-y-4 hidden-section">
+                            <h3 class="text-xl font-bold text-gray-700 pb-2 border-b border-green-200">DC 快充設定</h3>
+                            <div>
+                                <h4 class="text-lg font-semibold text-gray-700 mb-2">收費方式</h4>
+                                <div>
+                                    <div class="flex flex-wrap gap-3">
+                                        <label class="choice-label"><input type="radio" name="billingMethodDC" value="fixed" checked><span>固定費率</span></label>
+                                        <label class="choice-label"><input type="radio" name="billingMethodDC" value="tou"><span>尖離峰</span></label>
+                                    </div>
+                                </div>
+                                <div id="fixedRateSectionDC" class="grid grid-cols-2 items-center gap-4 mt-3">
+                                    <span class="label-text">每度電收費 (元)</span>
+                                    <input type="number" id="chargeFeePerKwhDC" class="input-field" value="10" step="0.1">
+                                </div>
+                                <div id="touRateSectionDC" class="hidden-section space-y-4 mt-3">
+                                    <div class="grid grid-cols-2 items-center gap-4">
+                                        <span class="label-text font-bold text-indigo-600">尖離峰均價</span>
+                                        <input type="text" id="avgTouRate" class="input-field readonly font-bold text-indigo-600" readonly>
+                                    </div>
+                                    <div class="grid grid-cols-2 items-center gap-4">
+                                        <div><span class="label-text block">尖峰費率 (元)</span></div>
+                                        <input type="number" id="peakRate" class="input-field" value="13.5" step="0.1">
+                                    </div>
+                                    <div class="grid grid-cols-2 items-center gap-4">
+                                        <div><span class="label-text block">離峰費率 (元)</span></div>
+                                        <input type="number" id="offPeakRate" class="input-field" value="6.9" step="0.1">
+                                    </div>
+                                    <div class="grid grid-cols-2 items-center gap-4">
+                                        <div><span class="label-text block">假日費率 (元)</span></div>
+                                        <input type="number" id="holidayRate" class="input-field" value="8.5" step="0.1">
+                                    </div>
+                                    <div class="flex items-center gap-4 mt-2">
+                                        <div id="touPieChartContainer" class="w-24 h-24 flex-shrink-0">
+                                            <canvas id="touPieChart"></canvas>
+                                        </div>
+                                        <div class="flex-grow space-y-2">
+                                            <div class="grid grid-cols-3 items-center gap-2">
+                                                <label for="peakUsageRatio" class="text-sm font-bold text-red-500">尖峰 %</label>
+                                                <input type="number" id="peakUsageRatio" class="input-field readonly col-span-2" value="18" readonly>
+                                            </div>
+                                            <div class="grid grid-cols-3 items-center gap-2">
+                                                <label for="offPeakUsageRatio" class="text-sm font-bold text-green-600">離峰 %</label>
+                                                <input type="number" id="offPeakUsageRatio" class="input-field readonly col-span-2" value="54" readonly>
+                                            </div>
+                                            <div class="grid grid-cols-3 items-center gap-2">
+                                                <label for="holidayUsageRatio" class="text-sm font-bold text-blue-500">假日 %</label>
+                                                <input type="number" id="holidayUsageRatio" class="input-field readonly col-span-2" value="28" readonly>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pt-4 mt-4 border-t border-green-200">
+                                <h4 class="text-lg font-semibold text-gray-700 mb-2">基礎參數</h4>
+                                <div>
+                                    <div class="flex flex-wrap gap-3">
+                                        <label class="choice-label"><input type="radio" name="revenueMethodDC" value="byCars" checked><span>依車次</span></label>
+                                        <label class="choice-label"><input type="radio" name="revenueMethodDC" value="byKwh"><span>依度數</span></label>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 items-center gap-4 mt-3">
+                                    <span class="label-text">每日車次/槍</span><input type="number" id="carsPerGunPerDayDC" class="input-field" value="3" step="0.5">
+                                </div>
+                                <div class="grid grid-cols-2 items-center gap-4 mt-3">
+                                   <span class="label-text">每月度數/槍</span><input type="text" id="kwhPerGunPerMonthDC" class="input-field" value="2,700">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="input-section bg-yellow-50 space-y-4">
+                            <div class="grid grid-cols-2 items-center gap-4">
+                                <span class="label-text">每車平均充電 (kWh)</span>
+                                <input type="number" id="avgKwhPerCar" class="input-field" value="30">
+                            </div>
+                            <div class="grid grid-cols-2 items-center gap-4">
+                                <span class="label-text">需求年增率 (%)</span><input type="number" id="demandGrowthRate" class="input-field" value="20">
+                            </div>
+                            <div class="grid grid-cols-2 items-center gap-4">
+                                <span class="label-text">預計營運期 (年)</span><input type="number" id="operationYears" class="input-field" value="15" min="1">
+                            </div>
+                        </div>
+                        
+                        <div class="input-section bg-purple-50 space-y-4">
+                            <div>
+                                <span class="label-text mb-3 block">設備折舊攤提</span>
+                                <div class="flex flex-wrap gap-3">
+                                    <label class="choice-label"><input type="radio" name="depreciationMethod" value="straightLine" checked><span>直線法</span></label>
+                                    <label class="choice-label"><input type="radio" name="depreciationMethod" value="syd"><span>年數合計法</span></label>
+                                    <label class="choice-label"><input type="radio" name="depreciationMethod" value="none"><span>淨利累計法</span></label>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 items-center gap-4">
+                                <span class="label-text">折舊攤提年限</span><input type="number" id="depreciationYears" class="input-field" value="5" min="1">
+                            </div>
+                        </div>
+
+                        <div class="input-section bg-slate-50 space-y-4">
+                            <div>
+                                <span class="label-text mb-3 block">租金&分潤</span>
+                                <div class="flex flex-wrap gap-3 mb-3">
+                                    <label class="choice-label"><input type="radio" name="rentMethod" value="bySpace" checked><span>依車格</span></label>
+                                    <label class="choice-label"><input type="radio" name="rentMethod" value="byLand"><span>依土地</span></label>
+                                    <label class="choice-label"><input type="radio" name="rentMethod" value="byKwhShare"><span>度電分潤</span></label>
+                                    <label class="choice-label"><input type="radio" name="rentMethod" value="byRevenueShare"><span>營收(%)分潤</span></label>
+                                    <label class="choice-label"><input type="radio" name="rentMethod" value="byKwhTier"><span>度電級距(分潤)</span></label>
+                                    <label class="choice-label"><input type="radio" name="rentMethod" value="none"><span>無</span></label>
+                                </div>
+                                <div class="space-y-4">
+                                    <div id="rentBySpaceSection" class="grid grid-cols-2 items-center gap-4">
+                                        <span class="label-text">車格租金/月</span><input type="text" id="rentPerSpace" class="input-field" value="500">
+                                    </div>
+                                    <div id="rentByLandSection" class="hidden-section grid grid-cols-2 items-center gap-4">
+                                        <span class="label-text">土地租金/月</span><input type="text" id="rentPerLand" class="input-field" value="15,000">
+                                    </div>
+                                    <div id="rentByKwhShareSection" class="hidden-section grid grid-cols-2 items-center gap-4">
+                                        <span class="label-text">每度電分潤 (元)</span><input type="number" id="rentPerKwh" class="input-field" value="1" step="0.1">
+                                    </div>
+                                    <div id="rentByRevenueShareSection" class="hidden-section grid grid-cols-2 items-center gap-4">
+                                        <span class="label-text">營收分潤 (%)</span><input type="number" id="rentPercentage" class="input-field" value="10" step="1">
+                                    </div>
+                                    <div id="rentByKwhTierSection" class="hidden-section space-y-3">
+                                        <div class="grid grid-cols-2 items-center gap-4">
+                                            <span class="label-text">度數門檻/月</span>
+                                            <input type="text" id="rentKwhThreshold" class="input-field" value="5,000">
+                                        </div>
+                                        <div class="p-3 border border-gray-200 rounded-lg space-y-2">
+                                            <span class="label-text text-sm text-green-600 block">▲ 當月總度數 > 門檻</span>
+                                            <div class="flex flex-wrap gap-3">
+                                                <label class="choice-label text-sm"><input type="radio" name="rentTierAboveType" value="byKwh" checked><span>依度電</span></label>
+                                                <label class="choice-label text-sm"><input type="radio" name="rentTierAboveType" value="byRevenue"><span>依營收</span></label>
+                                            </div>
+                                            <div id="rentTierAboveKwh" class="grid grid-cols-2 items-center gap-4">
+                                                <span class="label-text text-sm">每度電分潤 (元)</span>
+                                                <input type="number" id="rentTierAboveValueKwh" class="input-field" value="1.2" step="0.1">
+                                            </div>
+                                            <div id="rentTierAboveRevenue" class="hidden-section grid grid-cols-2 items-center gap-4">
+                                                <span class="label-text text-sm">營收分潤 (%)</span>
+                                                <input type="number" id="rentTierAboveValueRevenue" class="input-field" value="12" step="1">
+                                            </div>
+                                        </div>
+                                        <div class="p-3 border border-gray-200 rounded-lg space-y-2">
+                                            <span class="label-text text-sm text-red-600 block">▼ 當月總度數 <= 門檻</span>
+                                            <div class="flex flex-wrap gap-3">
+                                                <label class="choice-label text-sm"><input type="radio" name="rentTierBelowType" value="byKwh" checked><span>依度電</span></label>
+                                                <label class="choice-label text-sm"><input type="radio" name="rentTierBelowType" value="byRevenue"><span>依營收</span></label>
+                                            </div>
+                                            <div id="rentTierBelowKwh" class="grid grid-cols-2 items-center gap-4">
+                                                <span class="label-text text-sm">每度電分潤 (元)</span>
+                                                <input type="number" id="rentTierBelowValueKwh" class="input-field" value="0.8" step="0.1">
+                                            </div>
+                                            <div id="rentTierBelowRevenue" class="hidden-section grid grid-cols-2 items-center gap-4">
+                                                <span class="label-text text-sm">營收分潤 (%)</span>
+                                                <input type="number" id="rentTierBelowValueRevenue" class="input-field" value="8" step="1">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card bg-white">
+                    <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-5 pb-3 border-b border-gray-200">維運代管方式</h2>
+                    <div class="input-section bg-pink-50 space-y-4">
+                        <div>
+                            <span class="label-text mb-3 block">維運代管方式</span>
+                            <div class="flex flex-wrap gap-3 mb-3">
+                                <label class="choice-label"><input type="checkbox" id="profitShareByAmount"><span>依度電(元)</span></label>
+                                <label class="choice-label"><input type="checkbox" id="profitShareByPercentage"><span>依營收(%)</span></label>
+                                <label class="choice-label"><input type="checkbox" id="profitShareBySite"><span>站點計費</span></label>
+                                <label class="choice-label"><input type="checkbox" id="profitShareNone" checked><span>無</span></label>
+                            </div>
+                            <div class="space-y-3">
+                                <div id="profitShareByAmountSection" class="hidden-section grid grid-cols-2 items-center gap-4">
+                                    <span class="label-text">每度電分潤 (元)</span><input type="number" id="profitShareAmount" class="input-field center-text-input" value="1" step="0.1">
+                                </div>
+                                <div id="profitShareByPercentageSection" class="hidden-section grid grid-cols-2 items-center gap-4">
+                                    <span class="label-text">營收分潤 (%)</span><input type="number" id="profitSharePercentage" class="input-field center-text-input" value="10" step="1">
+                                </div>
+                                <div id="profitShareBySiteSection" class="hidden-section space-y-3">
+                                    <div class="grid grid-cols-2 items-center gap-4">
+                                        <span class="label-text">每站收費(月)</span><input type="number" id="siteFeeMonthly" class="input-field center-text-input" value="3000">
+                                    </div>
+                                    <div class="grid grid-cols-2 items-center gap-4">
+                                        <span class="label-text">槍數基準</span><input type="number" id="gunCountThreshold" class="input-field center-text-input" value="5">
+                                    </div>
+                                    <div class="grid grid-cols-2 items-center gap-4">
+                                        <span class="label-text">每槍計費(月)</span><input type="number" id="siteFeePerGunMonthly" class="input-field center-text-input" value="600">
+                                    </div>
+                                    <div id="siteFeeValidationMessage" class="text-xs text-red-600 mt-2"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 grid grid-cols-1 gap-6 auto-rows-min">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 grid-auto-rows-fr">
+                    <div class="summary-card"><div class="summary-label">總投資額</div><div id="totalInvestment" class="summary-value"></div></div>
+                    <div class="summary-card"><div class="summary-label">總充電營收</div><div id="totalRevenueSummary" class="summary-value"></div></div>
+                    <div class="summary-card"><div class="summary-label">總充電淨利</div><div id="totalNetProfitSummary" class="summary-value"></div></div>
+                    <div class="summary-card"><div class="summary-label">營運年期</div><div id="operationPeriodSummary" class="summary-value"></div></div>
+                    <div class="summary-card"><div class="summary-label">預計回收年限</div><div id="paybackPeriod" class="summary-value"></div></div>
+                    <div class="summary-card"><div class="summary-label">ROI (投資報酬率)</div><div id="roiSummary" class="summary-value"></div></div>
+                    <div class="summary-card"><div class="summary-label">融資總利息</div><div id="totalInterestSummary" class="summary-value"></div></div>
+                    <div class="summary-card"><div class="summary-label">ROE (股東權益報酬率)</div><div id="roeSummary" class="summary-value"></div></div>
+                    <div class="summary-card"><div class="summary-label">IRR (內部報酬率)</div><div id="irrSummary" class="summary-value"></div></div>
+                </div>
+                <div class="card bg-sky-50 fixed-height">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-2">
+                        <h2 class="text-xl md:text-2xl font-bold text-gray-800">累積損益趨勢</h2>
+                        <span class="text-sm font-medium text-gray-500 mt-1 sm:mt-0">單位：元</span>
+                    </div>
+                    <div id="cumulativePnlChartLegend" class="flex flex-wrap gap-x-4 gap-y-1 justify-center mb-3"></div>
+                    <div class="flex-grow h-80"><canvas id="cumulativePnlChart"></canvas></div>
+                </div>
+                <div class="card bg-sky-50 fixed-height">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-2">
+                        <h2 class="text-xl md:text-2xl font-bold text-gray-800">營收、成本、淨利(年)</h2>
+                        <span class="text-sm font-medium text-gray-500 mt-1 sm:mt-0">單位：元</span>
+                    </div>
+                    <div id="revenueCostChartLegend" class="flex flex-wrap gap-x-4 gap-y-1 justify-center mb-3"></div>
+                    <div class="flex-grow h-80"><canvas id="revenueCostChart"></canvas></div>
+                </div>
+                 <div class="card bg-sky-50 fixed-height">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-2">
+                        <h2 class="text-xl md:text-2xl font-bold text-gray-800">租金&分潤</h2>
+                        <span class="text-sm font-medium text-gray-500 mt-1 sm:mt-0">單位：元</span>
+                    </div>
+                    <div id="rentChartLegend" class="flex flex-wrap gap-x-4 gap-y-1 justify-center mb-3"></div>
+                    <div class="flex-grow h-80"><canvas id="rentChart"></canvas></div>
+                </div>
+                 <div class="card bg-sky-50 fixed-height">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-2">
+                        <h2 class="text-xl md:text-2xl font-bold text-gray-800">維運代管圖表</h2>
+                        <span class="text-sm font-medium text-gray-500 mt-1 sm:mt-0">單位：元</span>
+                    </div>
+                    <div id="managementChartLegend" class="flex flex-wrap gap-x-4 gap-y-1 justify-center mb-3"></div>
+                    <div class="flex-grow h-80"><canvas id="managementChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 space-y-8">
+            <div class="card bg-gradient-to-br from-blue-50 to-blue-100">
+                <div class="flex justify-between items-center cursor-pointer" id="toggleKwhTableBtn">
+                    <h2 class="text-xl md:text-2xl font-bold text-gray-800">預估充電度數</h2>
+                    <div class="flex items-center gap-4">
+                        <span class="text-sm font-medium text-gray-500">單位：kWh</span>
+                        <button class="p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <svg id="kwhTableIcon" class="w-6 h-6 text-gray-600 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                <div id="kwhTableContainer" class="overflow-hidden transition-all duration-500 ease-in-out" style="max-height: 0px;">
+                    <div class="overflow-x-auto rounded-lg border border-gray-200 mt-5">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="table-header"><tr><th class="table-cell text-left">年度</th><th class="table-cell">充電度數/日 (平均)</th><th class="table-cell">充電度數/月 (平均)</th><th class="table-cell">充電度數/年</th></tr></thead>
+                            <tbody id="kwhStatsTableBody" class="bg-white divide-y divide-gray-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card bg-gradient-to-br from-red-50 to-red-100">
+                <div class="flex justify-between items-center mb-5"><h2 class="text-xl md:text-2xl font-bold text-gray-800">充電收支/年</h2><span class="text-sm font-medium text-gray-500">單位：元</span></div>
+                <div class="overflow-x-auto rounded-lg border border-gray-200">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="table-header"><tr><th class="table-cell text-left">年度</th><th class="table-cell">總營收</th><th class="table-cell">總成本</th><th class="table-cell">充電淨利</th><th class="table-cell">累積稅前淨利</th></tr></thead>
+                        <tbody id="pnlTableBody" class="bg-white divide-y divide-gray-100"></tbody>
+                    </table>
+                </div>
+                <div class="mt-8 pt-5 border-t border-gray-200">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800 mb-3">計算方式說明</h3>
+                            <ul id="explanationList" class="text-gray-700 space-y-2">
+                                <li data-target="investment"><strong>總投資額：</strong><span id="explainerTotalInvestment" class="font-semibold text-blue-700"></span><span class="text-gray-500 text-sm ml-2">{建置充電站所需的所有初期花費。}</span></li>
+                                <li id="explainerEquityItem" class="hidden-section" data-target="equity"><strong>本金：</strong><span id="explainerEquity" class="font-semibold text-gray-700"></span><span class="text-gray-500 text-sm ml-2">{自有資金投入金額。}</span></li>
+                                <li id="explainerLoanItem" class="hidden-section" data-target="loan"><strong>融資：</strong><span id="explainerLoan" class="font-semibold text-gray-700"></span><span class="text-gray-500 text-sm ml-2">{貸款金額。}</span></li>
+                                <li id="explainerTotalInterestItem" class="hidden-section" data-target="interest"><strong>利息總額：</strong><span id="explainerTotalInterest" class="font-semibold text-red-700"></span><span class="text-gray-500 text-sm ml-2">{貸款期間需支付的總利息。}</span></li>
+                                <li data-target="revenue"><strong>總營收：</strong><span id="explainerTotalRevenue" class="font-semibold text-green-700"></span><span class="text-gray-500 text-sm ml-2">{營運期間的總收入。}</span></li>
+                                <li data-target="cost"><strong>總成本：</strong><span id="explainerTotalCost" class="font-semibold text-red-700"></span><span class="text-gray-500 text-sm ml-2">{營運期間的所有開銷。}</span></li>
+                                <li id="explainerTotalManagementCostItem" data-target="management"><strong>維運代管總成本：</strong><span id="explainerTotalManagementCost" class="font-semibold text-purple-700"></span><span class="text-gray-500 text-sm ml-2">{營運期間的維運代管總開銷。}</span></li>
+                                <li><strong>預計回收年限：</strong><span id="explainerPaybackPeriod" class="font-semibold text-gray-700"></span><span class="text-gray-500 text-sm ml-2">{「累積稅前淨利」由負轉正的年度。}</span></li>
+                            </ul>
+                        </div>
+                        <div class="text-right mt-2"><button id="openAdvancedModalBtn" class="text-sm bg-indigo-600 text-white px-5 py-2.5 rounded-lg hover:bg-indigo-700 transition-all duration-200 ease-in-out shadow-md hover:shadow-md">⚙️ 進階設定</button></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="advancedModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header"><h3 class="modal-title">進階設定</h3><button class="modal-close-btn">&times;</button></div>
+            <div id="advancedPasswordSection" class="space-y-4 password-section-compact max-w-sm mx-auto text-center">
+                <span class="label-text block mb-2">請輸入管理密碼</span>
+                <input type="password" id="advancedPassword" class="input-field" placeholder="預設密碼: 0000">
+                <button id="loginAdvancedBtn" class="modal-action-button w-full">登入</button>
+                <div id="advancedMessage" class="modal-message"></div>
+            </div>
+            <div id="advancedContentSection" class="hidden">
+                <div class="modal-tabs">
+                    <button class="modal-tab-btn active" data-tab="specs">設備規格</button>
+                    <button class="modal-tab-btn" data-tab="investment">建置成本</button>
+                    <button class="modal-tab-btn" data-tab="annual_costs">年度成本</button>
+                    <button class="modal-tab-btn" data-tab="tou">尖離峰時段</button>
+                    <button class="modal-tab-btn" data-tab="password">修改密碼</button>
+                </div>
+                <div id="tab-specs" class="modal-tab-content active">
+                    <div class="flex justify-between items-center mb-4"><h4 class="text-xl font-bold text-gray-800">設備價格設定</h4><span class="text-sm font-medium text-gray-500">單位：元</span></div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-sm border-collapse">
+                            <thead class="table-header"><tr><th class="p-2 text-left w-[20%]">規格名稱</th><th class="p-2 text-left w-[15%]">組件</th><th class="p-2 text-right w-[16%]">設備成本(未稅)</th><th class="p-2 text-right w-[16%]">設備成本 (含稅)</th><th class="p-2 text-right w-[16%]">設定殘值%</th><th class="p-2 text-right w-[17%]">預估殘值</th></tr></thead>
+                            <tbody id="specsModalTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div class="mt-4 text-left text-sm text-gray-500">
+                        <p><strong>說明：</strong>180kW 跟 360kW 比較：</p>
+                        <ul class="list-disc list-inside ml-4"><li>當設置小於等於3樁(6車格)時, 180kW較划算。</li><li>若超過3樁時則 360kW較划算。</li></ul>
+                    </div>
+                </div>
+                <div id="tab-investment" class="modal-tab-content"><h4 class="text-xl font-bold text-gray-800 mb-4">建置成本參數</h4><div id="investmentFormulaContainer" class="space-y-3"></div></div>
+                <div id="tab-annual_costs" class="modal-tab-content"><h4 class="text-xl font-bold text-gray-800 mb-4">年度成本參數</h4><div id="annualFormulaContainer" class="space-y-3"></div></div>
+                <div id="tab-tou" class="modal-tab-content">
+                    <div id="touGridEditor">
+                        <div class="tou-controls flex-col items-start">
+                            <div class="flex flex-wrap gap-4">
+                                <input type="radio" name="touRateType" value="peak" id="tou-type-peak" checked>
+                                <label for="tou-type-peak" class="tou-rate-type-label peak">尖峰 <span id="peakPercentDisplay" class="font-normal opacity-75"></span></label>
+                                <input type="radio" name="touRateType" value="offpeak" id="tou-type-offpeak">
+                                <label for="tou-type-offpeak" class="tou-rate-type-label offpeak">離峰 <span id="offpeakPercentDisplay" class="font-normal opacity-75"></span></label>
+                                <input type="radio" name="touRateType" value="holiday" id="tou-type-holiday">
+                                <label for="tou-type-holiday" class="tou-rate-type-label holiday">假日 <span id="holidayPercentDisplay" class="font-normal opacity-75"></span></label>
+                            </div>
+                            <span class="text-sm text-gray-500 w-full text-left mt-2">點選費率後，在下方格子上塗抹</span>
+                        </div>
+                        <div class="overflow-x-auto"><div id="touGridContainer"></div></div>
+                    </div>
+                    <div id="touEditorMessage" class="modal-message mt-2"></div>
+                </div>
+                <div id="tab-password" class="modal-tab-content">
+                    <h4 class="text-xl font-bold text-gray-800 mb-4">修改管理密碼</h4>
+                    <div class="space-y-4 password-section-compact max-w-md mx-auto">
+                        <div class="grid grid-cols-2 items-center gap-4"><span class="label-text">舊密碼</span><input type="password" id="oldPassword" class="input-field"></div>
+                        <div class="grid grid-cols-2 items-center gap-4"><span class="label-text">新密碼</span><input type="password" id="newPassword" class="input-field"></div>
+                        <div class="grid grid-cols-2 items-center gap-4"><span class="label-text">確認新密碼</span><input type="password" id="confirmNewPassword" class="input-field"></div>
+                        <div class="text-center"><button id="changePasswordBtn" class="modal-action-button bg-green-600 hover:bg-green-700">確認儲存新密碼</button></div>
+                        <div id="passwordChangeMessage" class="modal-message"></div>
+                    </div>
+                </div>
+                <div class="mt-8 text-right"><button id="saveAdvancedBtn" class="modal-action-button">儲存設定並關閉</button></div>
+            </div>
+        </div>
+    </div>
+    <div id="explanationModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header"><h3 id="explanationModalTitle" class="modal-title">計算方式說明</h3><button class="modal-close-btn">&times;</button></div>
+            <div id="explanationModalBody" class="mt-4 text-gray-700"></div>
+        </div>
+    </div>
+    <div id="saveRecordModal" class="modal-overlay">
+        <div class="modal-content max-w-sm">
+            <div class="modal-header"><h3 class="modal-title">儲存分析</h3><button class="modal-close-btn">&times;</button></div>
+            <p class="text-gray-600 mb-4">請輸入此分析表的站點名稱。</p>
+            <input type="text" id="recordNameInput" class="input-field w-full text-left" placeholder="例如：總部B1停車場 - 方案A">
+            <div id="saveRecordMessage" class="modal-message"></div>
+            <div class="mt-6 flex justify-end gap-3">
+                   <button id="cancelSaveBtn" class="header-actions">取消</button>
+                <button id="confirmSaveBtn" class="modal-action-button">確認儲存</button>
+            </div>
+        </div>
+    </div>
+    <div id="recordsModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header"><h3 class="modal-title">已儲存的紀錄</h3><button class="modal-close-btn">&times;</button></div>
+            <div id="recordsList" class="space-y-2"></div>
+        </div>
+    </div>
+    <div id="newAnalysisConfirmModal" class="modal-overlay">
+        <div class="modal-content max-w-sm text-center">
+            <h3 class="modal-title mb-4">確認重置</h3>
+            <p class="text-gray-600 mb-6">您確定要清空目前的分析表並開始一個新的分析嗎？所有未儲存的變更將會遺失。</p>
+            <div class="flex justify-center gap-4">
+                <button id="cancelNewAnalysisBtn" class="header-actions">取消</button>
+                <button id="confirmNewAnalysisBtn" class="modal-action-button bg-red-600 hover:bg-red-700">確認重置</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+document.addEventListener('DOMContentLoaded', () => {
+    (function() {
+        /**
+         * =================================================================
+         * APP MODULE: Main Controller
+         * =================================================================
+         */
+        const App = {
+            init() {
+                UI.init();
+                Persistence.init();
+                this.setupEventListeners();
+                this.update();
+            },
+
+            setupEventListeners() {
+                // Listen for any change on inputs/selects/checkboxes to trigger an update
+                document.querySelector('.lg\\:col-span-1').addEventListener('input', () => this.update());
+                document.querySelector('.lg\\:col-span-1').addEventListener('change', () => this.update());
+                
+                UI.elements.interestRate.addEventListener('blur', (e) => {
+                    const value = UI.getNumericValue(e.target, 3.5);
+                    e.target.value = value.toFixed(2);
+                });
+
+                // Specific button clicks
+                UI.elements.toggleKwhTableBtn.addEventListener('click', UI.toggleKwhTable);
+                UI.elements.pnlTableBody.addEventListener('click', (e) => { const row = e.target.closest('.pnl-row'); if (row) UI.togglePnlDetails(row, Calculator.getLastResults()); });
+                UI.elements.kwhStatsTableBody.addEventListener('click', (e) => { const row = e.target.closest('.kwh-row'); if (row) UI.toggleKwhDetails(row, Calculator.getLastResults()); });
+                UI.elements.explanationList.addEventListener('click', (e) => this.handleExplanationClick(e));
+                
+                // Header & Modal Actions
+                UI.elements.saveBtn.addEventListener('click', () => UI.openModal(UI.elements.saveRecordModal));
+                UI.elements.recordsBtn.addEventListener('click', () => { UI.renderRecordsList(); UI.openModal(UI.elements.recordsModal); });
+                UI.elements.newAnalysisBtn.addEventListener('click', () => UI.openModal(UI.elements.newAnalysisConfirmModal));
+                UI.elements.openAdvancedModalBtn.addEventListener('click', () => UI.openModal(UI.elements.advancedModal));
+                UI.elements.loginAdvancedBtn.addEventListener('click', () => this.handleAdvancedLogin());
+                UI.elements.advancedPassword.addEventListener('keydown', (e) => { if (e.key === 'Enter') this.handleAdvancedLogin(); });
+                UI.elements.saveAdvancedBtn.addEventListener('click', () => this.saveAdvancedSettings());
+                UI.elements.changePasswordBtn.addEventListener('click', () => this.changePassword());
+                UI.elements.confirmSaveBtn.addEventListener('click', () => this.saveRecord());
+                UI.elements.confirmNewAnalysisBtn.addEventListener('click', () => this.newAnalysis());
+
+                // Universal modal close buttons
+                document.querySelectorAll('.modal-close-btn, #cancelSaveBtn, #cancelNewAnalysisBtn').forEach(btn => {
+                    btn.addEventListener('click', () => UI.closeModal(btn.closest('.modal-overlay')));
+                });
+                document.querySelectorAll('.modal-overlay').forEach(modal => {
+                    modal.addEventListener('click', (e) => { if (e.target === modal) UI.closeModal(modal); });
+                });
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        document.querySelectorAll('.modal-overlay').forEach(modal => {
+                            if (modal.style.display === 'flex') UI.closeModal(modal);
+                        });
+                    }
+                });
+
+                // Special input formatting and constraints
+                ['infrastructureCostMain', 'rentPerSpace', 'rentPerLand', 'kwhPerGunPerMonthDC', 'rentKwhThreshold'].forEach(id => {
+                    UI.elements[id]?.addEventListener('input', (e) => UI.formatNumericInput(e.target));
+                });
+                const enforceMax = (el, max) => { if (UI.getNumericValue(el, 0) > max) el.value = max; };
+                UI.elements.carsPerGunPerDayAC.addEventListener('input', () => enforceMax(UI.elements.carsPerGunPerDayAC, 2));
+                UI.elements.kwhPerGunPerMonthAC.addEventListener('input', () => enforceMax(UI.elements.kwhPerGunPerMonthAC, 1800));
+            },
+
+            update() {
+                UI.updateUIVisibility();
+                let inputs = UI.getInputs();
+                UI.updateLinkedInputs(inputs);
+                
+                inputs = UI.getInputs(); // Re-fetch inputs after linking
+                const results = Calculator.run(inputs, Config.calculationParams, Config.deviceSpecs);
+                UI.updateDisplay(inputs, results);
+                Charts.update(inputs, results);
+                Persistence.saveSession();
+            },
+            
+            handleAdvancedLogin() {
+                if (UI.elements.advancedPassword.value === Config.passwords.advanced) {
+                    UI.showAdvancedContent(true);
+                    UI.populateSpecsModal(Config.deviceSpecs, Config.calculationParams);
+                    UI.populateFormulasModal(Config.calculationParams);
+                    TouEditor.init();
+                } else {
+                    UI.showModalMessage(UI.elements.advancedMessage, '密碼錯誤，請重試。');
+                }
+            },
+
+            saveAdvancedSettings() {
+                TouEditor.saveAndApply();
+                document.querySelectorAll('#specsModalTableBody input[data-power]').forEach(input => {
+                    const { power, type } = input.dataset;
+                    if (Config.deviceSpecs[power]?.[type] !== undefined) {
+                        Config.deviceSpecs[power][type] = UI.getNumericValue(input, 0);
+                    }
+                });
+                document.querySelectorAll('#investmentFormulaContainer input, #annualFormulaContainer input').forEach(input => {
+                    const { key } = input.dataset;
+                    const param = Config.calculationParams[key];
+                    if (!param) return;
+                    if (input.type === 'checkbox') {
+                        param.enabled = input.checked;
+                    } else if (input.type === 'text' && !param.readonly) {
+                        const numVal = UI.getNumericValue(input, 0);
+                        param.value = param.unit === '%' ? numVal / 100 : numVal;
+                    }
+                });
+                this.update();
+                UI.closeModal(UI.elements.advancedModal);
+            },
+            
+            changePassword() {
+                const { oldPassword, newPassword, confirmNewPassword, passwordChangeMessage } = UI.elements;
+                if (oldPassword.value !== Config.passwords.advanced) {
+                    UI.showModalMessage(passwordChangeMessage, '舊密碼不正確。');
+                    return;
+                }
+                if (!newPassword.value || newPassword.value.length < 4) {
+                    UI.showModalMessage(passwordChangeMessage, '新密碼長度至少需要4位數。');
+                    return;
+                }
+                if (newPassword.value !== confirmNewPassword.value) {
+                    UI.showModalMessage(passwordChangeMessage, '新密碼與確認密碼不相符。');
+                    return;
+                }
+                Config.passwords.advanced = newPassword.value;
+                UI.showModalMessage(passwordChangeMessage, '密碼已成功更新！', false);
+                setTimeout(() => {
+                    [oldPassword, newPassword, confirmNewPassword].forEach(el => el.value = '');
+                    UI.showModalMessage(passwordChangeMessage, '', false, true);
+                }, 2000);
+            },
+
+            handleExplanationClick(e) {
+                const targetLi = e.target.closest('li[data-target]');
+                if (targetLi) {
+                    UI.openExplanationModal(targetLi.dataset.target, Calculator.getLastResults(), UI.getInputs());
+                }
+            },
+
+            saveRecord() {
+                const name = UI.elements.recordNameInput.value.trim();
+                if (!name) {
+                    UI.showModalMessage(UI.elements.saveRecordMessage, '站點名稱不能為空。');
+                    return;
+                }
+                const allData = Persistence.getCurrentState();
+                allData.siteName = name;
+                Persistence.saveRecord(name, allData);
+                UI.elements.siteNameDisplay.textContent = name;
+                UI.closeModal(UI.elements.saveRecordModal);
+                UI.elements.recordNameInput.value = '';
+            },
+
+            newAnalysis() {
+                Persistence.deleteSession();
+                UI.resetForm();
+                this.update();
+                UI.closeModal(UI.elements.newAnalysisConfirmModal);
+            }
+        };
+
+        /**
+         * =================================================================
+         * CONFIG MODULE: Data and Parameters
+         * =================================================================
+         */
+        const Config = {
+            passwords: { advanced: '0000' },
+            deviceSpecs: {
+                '7': { name: 'AC 7kW Smart', cost: 29900, power: 7, type: 'AC', salvage: 2990 },
+                '30': { name: 'DC 30kW', cost: 310000, power: 30, type: 'DC', salvage: 31000 },
+                '120': { name: 'DC 120kW', cost: 810000, power: 120, type: 'DC', salvage: 81000 },
+                '180': { name: 'DC 180kW', cost: 950000, power: 180, type: 'DC', salvage: 95000 },
+                '360': { name: 'DC 360kW', power: 360, type: 'DC_360', cabinetCost: 1500000, terminalCost: 480000, cabinetSalvage: 150000, terminalSalvage: 48000 }
+            },
+            touSchedule: {}, // Will be populated
+            calculationParams: {
+                deviceCost: { value: 0, label: '設備總成本 (未稅)', unit: '元', description: '所有充電樁的未稅總成本 (自動計算)。', enabled: true, category: 'investment', readonly: true },
+                lineSubsidyPerKw: { value: 500, label: '台電線路補助費/kW', unit: '元', description: '台電線補費，每kW收取的一次性費用。', enabled: true, category: 'investment' },
+                technicianFee: { value: 150000, label: '技師簽證費', unit: '元', description: '台電外包技師費用(一次性)。', enabled: true, category: 'investment' },
+                distributionPanelFee: { value: 300000, label: '高/低壓配電盤', unit: '元', description: '高壓或低壓配電盤費用(一次性)。', enabled: true, category: 'investment' },
+                constructionFee: { value: 500000, label: '基礎設施工程', unit: '元', description: '場地土木、基礎、裝修等工程費用(一次性)。', enabled: true, category: 'investment', readonly: true },
+                meterFeeBase: { value: 12000, label: '電錶費用(基本)', unit: '元', description: '台電電表基本費用(僅DC樁, 一次性)。', enabled: true, category: 'investment' },
+                meterFeePerGun: { value: 700, label: '電錶費用/槍', unit: '元', description: '每增加一槍の電表費用(僅DC樁, 一次性)。', enabled: true, category: 'investment' },
+                taxRate: { value: 0.05, label: '營業稅率', unit: '%', description: '設備購買及相關服務の營業稅率。', enabled: true, category: 'investment' },
+                taipowerFee: { value: 4, label: '台電平均電費', unit: '元', description: '向台電購電の每度平均成本。', enabled: true, category: 'annual' },
+                electricalTechnicianFee: { value: 15000, label: '高壓用電技術人員/年', unit: '元', description: '每年收取一次技師檢定費。', enabled: true, category: 'annual' },
+                maintenanceFee: { value: 37000, label: '維運&客服/年', unit: '元', description: '年度場域維護與線上客服費用。', enabled: false, category: 'annual' },
+                transactionFeeRate: { value: 0.03, label: '金流手續費', unit: '%', description: '支付給金流服務商の每筆交易手續費率。', enabled: true, category: 'annual' },
+                insuranceFee: { value: 8500, label: '意外保險費/年', unit: '元', description: '場域年度意外險費用。', enabled: true, category: 'annual' },
+                electronicInvoiceFeePerTransaction: { value: 1.2, label: '電子發票/張', unit: '元', description: '每筆交易の電子發票成本。', enabled: true, category: 'annual' },
+                repairPartsRate: { value: 0.01, label: '設備維護備品', unit: '%', description: '年度維修備品費用，為設備含稅總成本の百分比。', enabled: true, category: 'annual' },
+                extendedWarrantyPerPile: { value: 0.02, label: '保固延保', unit: '%', description: '年度延長保固費用，為設備含稅總成本の百分比。', enabled: true, category: 'annual' },
+                extendedWarrantyStartYear: { value: 2, label: '保固起始年', unit: '年', description: '延長保固費用從第幾年開始計算。', enabled: true, category: 'annual' },
+                laborCost: { value: 60000, label: '勞務成本/年', unit: '元', description: '年度人力、巡檢等相關勞務成本。', enabled: false, category: 'annual' },
+                internetFee: { value: 500, label: '網路費/月', unit: '元', description: '場域每月の網路通訊費用。', enabled: true, category: 'annual' },
+                tdxUploadFee: { value: 299, label: 'TDX上傳費(槍/月)', unit: '元', description: '每支槍每月上傳資料至交通部TDX平台の費用。', enabled: false, category: 'annual' },
+                powerLossRate: { value: 0.05, label: '充電電損率', unit: '%', description: '電力在傳輸和轉換過程中の損耗率。', enabled: true, category: 'annual' },
+            }
+        };
+
+        /**
+         * =================================================================
+         * UI MODULE: DOM Manipulation and User Interface
+         * =================================================================
+         */
+        const UI = {
+            elements: {},
+            init() {
+                // Auto-cache all elements with an ID
+                document.querySelectorAll('[id]').forEach(el => this.elements[el.id] = el);
+                this.updateUIVisibility();
+                this.elements.addEquipmentBtn.addEventListener('click', () => { this.addEquipmentRow(); App.update(); });
+                document.querySelectorAll('.modal-tab-btn').forEach(btn => btn.addEventListener('click', this.handleTabSwitch));
+            },
+            getNumericValue(element, defaultValue = 0) {
+                if (!element) return defaultValue;
+                const value = parseFloat(String(element.value).replace(/,/g, ''));
+                return isNaN(value) ? defaultValue : value;
+            },
+            formatCurrency(value, precision = 0, shorthand = false, unitOnly = false) {
+                if (isNaN(value) || value === null) return 'N/A';
+                const num = Number(value);
+                if (shorthand && !unitOnly) {
+                    if (Math.abs(num) >= 1e6) return `NT$ ${(num / 1e6).toFixed(1)}M`;
+                    if (Math.abs(num) >= 1e3) return `NT$ ${(num / 1e3).toFixed(0)}K`;
+                }
+                const numberString = num.toLocaleString('en-US', { minimumFractionDigits: precision, maximumFractionDigits: precision });
+                return unitOnly ? numberString : `NT$ ${numberString}`;
+            },
+            formatNumericInput(element) {
+                const value = this.getNumericValue(element, null);
+                element.value = (value !== null) ? value.toLocaleString('en-US') : '';
+            },
+            getInputs() {
+                const getCheckedValue = (name) => document.querySelector(`input[name="${name}"]:checked`).value;
+                const equipmentList = Array.from(document.querySelectorAll('.equipment-row-wrapper')).map(wrapper => {
+                    const powerSelect = wrapper.querySelector('.device-power-select');
+                    const countInput = wrapper.querySelector('.equipment-count');
+                    const power = powerSelect.value;
+                    const spec = Config.deviceSpecs[power];
+                    const count = this.getNumericValue(countInput, 1);
+                    const pileCount = count;
+                    const gunCount = ((spec.type === 'DC' || spec.type === 'DC_360') && spec.power > 30) ? pileCount * 2 : pileCount;
+                    const cabinetCount = (spec.type === 'DC_360') ? Math.ceil(pileCount / 6) : 0;
+                    return { power, spec, count, pileCount, gunCount, parkingSpaces: gunCount, cabinetCount };
+                });
+
+                const financingEnabled = this.elements.financingToggle.checked;
+                const profitShareMethods = {
+                    byAmount: this.elements.profitShareByAmount.checked,
+                    byPercentage: this.elements.profitShareByPercentage.checked,
+                    bySite: this.elements.profitShareBySite.checked,
+                    none: this.elements.profitShareNone.checked,
+                };
+
+                return {
+                    equipmentList,
+                    chargeFeePerKwhAC: this.getNumericValue(this.elements.chargeFeePerKwhAC),
+                    billingMethodDC: getCheckedValue('billingMethodDC'),
+                    chargeFeePerKwhDC: this.getNumericValue(this.elements.chargeFeePerKwhDC),
+                    peakRate: this.getNumericValue(this.elements.peakRate),
+                    offPeakRate: this.getNumericValue(this.elements.offPeakRate),
+                    holidayRate: this.getNumericValue(this.elements.holidayRate),
+                    revenueMethodDC: getCheckedValue('revenueMethodDC'),
+                    carsPerGunPerDayDC: this.getNumericValue(this.elements.carsPerGunPerDayDC),
+                    kwhPerGunPerMonthDC: this.getNumericValue(this.elements.kwhPerGunPerMonthDC),
+                    revenueMethodAC: getCheckedValue('revenueMethodAC'),
+                    carsPerGunPerDayAC: this.getNumericValue(this.elements.carsPerGunPerDayAC),
+                    kwhPerGunPerMonthAC: this.getNumericValue(this.elements.kwhPerGunPerMonthAC),
+                    avgKwhPerCar: this.getNumericValue(this.elements.avgKwhPerCar),
+                    demandGrowthRate: this.getNumericValue(this.elements.demandGrowthRate) / 100,
+                    operationYears: this.getNumericValue(this.elements.operationYears, 1),
+                    depreciationYears: this.getNumericValue(this.elements.depreciationYears, 1),
+                    depreciationMethod: getCheckedValue('depreciationMethod'),
+                    infrastructureCostMain: this.getNumericValue(this.elements.infrastructureCostMain),
+                    rentMethod: getCheckedValue('rentMethod'),
+                    rentPerSpace: this.getNumericValue(this.elements.rentPerSpace),
+                    rentPerLand: this.getNumericValue(this.elements.rentPerLand),
+                    rentPerKwh: this.getNumericValue(this.elements.rentPerKwh),
+                    rentPercentage: this.getNumericValue(this.elements.rentPercentage) / 100,
+                    rentKwhThreshold: this.getNumericValue(this.elements.rentKwhThreshold),
+                    rentTierAboveType: getCheckedValue('rentTierAboveType'),
+                    rentTierAboveValue: getCheckedValue('rentTierAboveType') === 'byKwh' ? this.getNumericValue(this.elements.rentTierAboveValueKwh) : this.getNumericValue(this.elements.rentTierAboveValueRevenue) / 100,
+                    rentTierBelowType: getCheckedValue('rentTierBelowType'),
+                    rentTierBelowValue: getCheckedValue('rentTierBelowType') === 'byKwh' ? this.getNumericValue(this.elements.rentTierBelowValueKwh) : this.getNumericValue(this.elements.rentTierBelowValueRevenue) / 100,
+                    profitShareMethods,
+                    profitShareAmount: this.getNumericValue(this.elements.profitShareAmount),
+                    profitSharePercentage: this.getNumericValue(this.elements.profitSharePercentage) / 100,
+                    siteFeeMonthly: this.getNumericValue(this.elements.siteFeeMonthly),
+                    gunCountThreshold: this.getNumericValue(this.elements.gunCountThreshold),
+                    siteFeePerGunMonthly: this.getNumericValue(this.elements.siteFeePerGunMonthly),
+                    financingEnabled,
+                    loanPercentage: financingEnabled ? this.getNumericValue(this.elements.loanPercentage, 0) / 100 : 0,
+                    interestRate: financingEnabled ? this.getNumericValue(this.elements.interestRate, 0) / 100 : 0,
+                    loanTerm: financingEnabled ? this.getNumericValue(this.elements.loanTerm, 0) : 0,
+                    touRatios: {
+                        peak: this.getNumericValue(this.elements.peakUsageRatio) / 100,
+                        offpeak: this.getNumericValue(this.elements.offPeakUsageRatio) / 100,
+                        holiday: this.getNumericValue(this.elements.holidayUsageRatio) / 100,
+                    }
+                };
+            },
+            addEquipmentRow(config = {}) {
+                const container = this.elements.equipmentListContainer;
+                const wrapper = document.createElement('div');
+                wrapper.className = 'equipment-row-wrapper p-3 border border-gray-200 rounded-lg space-y-3';
+                const powerOptions = Object.entries(Config.deviceSpecs).map(([power, spec]) => `<option value="${power}" ${config.power === power ? 'selected' : ''}>${spec.name}</option>`).join('');
+
+                wrapper.innerHTML = `
+                    <div class="equipment-row">
+                        <select class="input-field device-power-select">${powerOptions}</select>
+                        <div class="flex items-center">
+                            <span class="count-label text-gray-600">數量</span>
+                            <input type="number" class="input-field equipment-count" value="${config.count || 1}" min="1">
+                        </div>
+                        <button class="remove-equip-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd" /></svg>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 items-center gap-4 cabinet-count-container" style="display: none;">
+                        <span class="label-text">能源櫃數量</span>
+                        <input type="number" class="input-field cabinet-count-display readonly" readonly>
+                    </div>`;
+
+                container.appendChild(wrapper);
+                wrapper.querySelector('.remove-equip-btn').onclick = () => {
+                    if (container.children.length > 1) {
+                        wrapper.remove();
+                        App.update();
+                    }
+                };
+                this.updateEquipmentRowUI(wrapper);
+            },
+            updateEquipmentRowUI(wrapper) {
+                const power = wrapper.querySelector('.device-power-select').value;
+                const count = this.getNumericValue(wrapper.querySelector('.equipment-count'), 1);
+                const spec = Config.deviceSpecs[power];
+                wrapper.querySelector('.count-label').textContent = spec.type === 'DC_360' ? '終端機數' : '充電樁數';
+                const cabinetRow = wrapper.querySelector('.cabinet-count-container');
+                if (spec.type === 'DC_360') {
+                    cabinetRow.style.display = 'grid';
+                    wrapper.querySelector('.cabinet-count-display').value = Math.ceil(count / 6);
+                } else {
+                    cabinetRow.style.display = 'none';
+                }
+            },
+            updateUIVisibility() {
+                const inputs = this.getInputs();
+                const hasAC = inputs.equipmentList.some(e => e.spec.type === 'AC');
+                const hasDC = inputs.equipmentList.some(e => e.spec.type !== 'AC');
+                
+                const toggleSection = (el, isVisible) => el.style.display = isVisible ? (el.tagName === 'DIV' ? 'block' : 'grid') : 'none';
+                
+                toggleSection(this.elements.acSettingsBlock, hasAC);
+                toggleSection(this.elements.dcSettingsBlock, hasDC);
+                this.elements.acSettingsBlock.closest('.card').style.display = (hasAC || hasDC) ? 'flex' : 'none';
+                
+                toggleSection(this.elements.fixedRateSectionDC, inputs.billingMethodDC === 'fixed');
+                toggleSection(this.elements.touRateSectionDC, inputs.billingMethodDC === 'tou');
+
+                this.elements.carsPerGunPerDayDC.readOnly = inputs.revenueMethodDC === 'byKwh';
+                this.elements.kwhPerGunPerMonthDC.readOnly = inputs.revenueMethodDC === 'byCars';
+                this.elements.carsPerGunPerDayAC.readOnly = inputs.revenueMethodAC === 'byKwh';
+                this.elements.kwhPerGunPerMonthAC.readOnly = inputs.revenueMethodAC === 'byCars';
+                ['carsPerGunPerDayDC', 'kwhPerGunPerMonthDC', 'carsPerGunPerDayAC', 'kwhPerGunPerMonthAC'].forEach(id => {
+                    this.elements[id].classList.toggle('readonly', this.elements[id].readOnly);
+                });
+
+                const rentVisibility = {
+                    bySpace: this.elements.rentBySpaceSection,
+                    byLand: this.elements.rentByLandSection,
+                    byKwhShare: this.elements.rentByKwhShareSection,
+                    byRevenueShare: this.elements.rentByRevenueShareSection,
+                    byKwhTier: this.elements.rentByKwhTierSection,
+                };
+                Object.values(rentVisibility).forEach(el => el.style.display = 'none');
+                if (rentVisibility[inputs.rentMethod]) rentVisibility[inputs.rentMethod].style.display = 'block';
+
+                if (inputs.rentMethod === 'byKwhTier') {
+                    toggleSection(this.elements.rentTierAboveKwh, inputs.rentTierAboveType === 'byKwh');
+                    toggleSection(this.elements.rentTierAboveRevenue, inputs.rentTierAboveType === 'byRevenue');
+                    toggleSection(this.elements.rentTierBelowKwh, inputs.rentTierBelowType === 'byKwh');
+                    toggleSection(this.elements.rentTierBelowRevenue, inputs.rentTierBelowType === 'byRevenue');
+                }
+
+                const depYearsInput = this.elements.depreciationYears;
+                depYearsInput.readOnly = inputs.depreciationMethod === 'none';
+                depYearsInput.classList.toggle('readonly', depYearsInput.readOnly);
+                if (depYearsInput.readOnly) depYearsInput.value = 0;
+                
+                toggleSection(this.elements.profitShareByAmountSection, inputs.profitShareMethods.byAmount);
+                toggleSection(this.elements.profitShareByPercentageSection, inputs.profitShareMethods.byPercentage);
+                toggleSection(this.elements.profitShareBySiteSection, inputs.profitShareMethods.bySite);
+                toggleSection(this.elements.financingSection, inputs.financingEnabled);
+                
+                this.validateSiteFeeInputs();
+            },
+            validateSiteFeeInputs() {
+                if (!this.elements.profitShareBySite.checked) {
+                    this.elements.siteFeeValidationMessage.textContent = '';
+                    return;
+                }
+                const threshold = this.getNumericValue(this.elements.gunCountThreshold);
+                const perGunFee = this.getNumericValue(this.elements.siteFeePerGunMonthly);
+                const siteFee = this.getNumericValue(this.elements.siteFeeMonthly);
+                this.elements.siteFeeValidationMessage.textContent = (threshold * perGunFee < siteFee) ? '警告：級距計費總額低於基本站點費。' : '';
+            },
+            updateLinkedInputs(inputs) {
+                if (inputs.revenueMethodDC === 'byCars') {
+                    this.elements.kwhPerGunPerMonthDC.value = this.formatCurrency(inputs.carsPerGunPerDayDC * inputs.avgKwhPerCar * 30, 0, false, true);
+                } else {
+                    this.elements.carsPerGunPerDayDC.value = inputs.avgKwhPerCar > 0 ? (this.getNumericValue(this.elements.kwhPerGunPerMonthDC) / 30 / inputs.avgKwhPerCar).toFixed(1) : 0;
+                }
+                if (inputs.revenueMethodAC === 'byCars') {
+                    this.elements.kwhPerGunPerMonthAC.value = Math.min(1800, Math.round(inputs.carsPerGunPerDayAC * inputs.avgKwhPerCar * 30));
+                } else {
+                    this.elements.carsPerGunPerDayAC.value = inputs.avgKwhPerCar > 0 ? Math.min(2, this.getNumericValue(this.elements.kwhPerGunPerMonthAC) / 30 / inputs.avgKwhPerCar).toFixed(1) : 0;
+                }
+            },
+            updateDisplay(inputs, results) {
+                const renderSummary = (el, value, unit = '') => { el.innerHTML = `<div>${value}<span class="unit unit-suffix">${unit}</span></div>`; };
+                const renderCurrency = (el, value) => { el.innerHTML = `<div>${this.formatCurrency(value, 0, false).replace('NT$', '<span class="unit unit-prefix">NT$</span>')}</div>`; };
+
+                renderCurrency(this.elements.totalInvestment, results.totalInvestment);
+                renderCurrency(this.elements.totalRevenueSummary, results.totalChargingRevenue);
+                renderCurrency(this.elements.totalNetProfitSummary, results.totalNetProfit);
+                renderSummary(this.elements.operationPeriodSummary, inputs.operationYears, ' 年');
+                this.elements.paybackPeriod.innerHTML = `<div>${results.paybackPeriod === 'N/A' ? '無法回收' : results.paybackPeriod.replace(' 年', `<span class="unit unit-suffix"> 年</span>`)}</div>`;
+                this.elements.roiSummary.innerHTML = `<div>${isNaN(results.roi) ? 'N/A' : `${results.roi.toFixed(1)}<span class="unit unit-suffix">%</span>`}</div>`;
+                renderCurrency(this.elements.totalInterestSummary, results.totalInterestPaid);
+                this.elements.roeSummary.innerHTML = `<div>${isNaN(results.roe) ? 'N/A' : `${results.roe.toFixed(1)}<span class="unit unit-suffix">%</span>`}</div>`;
+                this.elements.irrSummary.innerHTML = `<div>${isNaN(results.irr) ? 'N/A' : `${results.irr.toFixed(2)}<span class="unit unit-suffix">%</span>`}</div>`;
+
+                this.elements.parkingSpaces.value = inputs.equipmentList.reduce((sum, item) => sum + item.gunCount, 0);
+                if (inputs.billingMethodDC === 'tou') this.elements.avgTouRate.value = this.formatCurrency(results.avgChargeFeeDC, 2, false, true);
+                this.elements.equipmentCostDisplayMain.value = this.formatCurrency(results.costBreakdown.equipmentCost, 0, false, true);
+                this.elements.salvageValueDisplay.value = this.formatCurrency(results.costBreakdown.totalSalvageValue, 0, false, true);
+
+                this.populateTable(this.elements.kwhStatsTableBody, results.annualData, d => `<tr class="kwh-row" data-year="${d.year}"><td class="table-cell table-cell-year">第 ${d.year} 年</td><td class="table-cell text-green-600 font-semibold">${d.kwhPerDay.toLocaleString('en-US',{maximumFractionDigits:1})}</td><td class="table-cell text-blue-600 font-semibold">${d.kwhPerMonth.toLocaleString('en-US',{maximumFractionDigits:0})}</td><td class="table-cell text-red-600 font-semibold">${d.kwhPerYear.toLocaleString('en-US',{maximumFractionDigits:0})}</td></tr>`);
+                this.populateTable(this.elements.pnlTableBody, results.annualData, d => `<tr class="pnl-row" data-year="${d.year}"><td class="table-cell table-cell-year">第 ${d.year} 年</td><td class="table-cell">${this.formatCurrency(d.revenue,0,false,true)}</td><td class="table-cell">${this.formatCurrency(d.cost,0,false,true)}</td><td class="table-cell ${d.pnl>=0?'':'text-red-600'}">${this.formatCurrency(d.pnl,0,false,true)}</td><td class="table-cell font-semibold ${d.cumulativePnl>=0?'text-blue-600':'text-red-600'}">${this.formatCurrency(d.cumulativePnl,0,false,true)}</td></tr>`);
+
+                this.elements.explainerTotalInvestment.textContent = this.formatCurrency(results.totalInvestment);
+                this.elements.explainerTotalRevenue.textContent = this.formatCurrency(results.totalChargingRevenue);
+                this.elements.explainerTotalCost.textContent = this.formatCurrency(results.annualData.reduce((sum, d) => sum + d.cost, 0));
+                this.elements.explainerPaybackPeriod.textContent = results.paybackPeriod;
+                this.elements.explainerTotalManagementCost.textContent = this.formatCurrency(results.totalManagementCost);
+                
+                const showFinancingInfo = (show) => {
+                    this.elements.explainerEquityItem.classList.toggle('hidden-section', !show);
+                    this.elements.explainerLoanItem.classList.toggle('hidden-section', !show);
+                    this.elements.explainerTotalInterestItem.classList.toggle('hidden-section', !show);
+                };
+                showFinancingInfo(inputs.financingEnabled);
+                if (inputs.financingEnabled) {
+                    this.elements.explainerEquity.textContent = this.formatCurrency(results.equity);
+                    this.elements.explainerLoan.textContent = this.formatCurrency(results.loanAmount);
+                    this.elements.explainerTotalInterest.textContent = this.formatCurrency(results.totalInterestPaid);
+                }
+                this.elements.explainerTotalManagementCostItem.classList.toggle('hidden-section', inputs.profitShareMethods.none);
+            },
+            populateTable(tbody, data, rowTemplate) {
+                tbody.innerHTML = data.map(rowTemplate).join('');
+            },
+            toggleKwhTable() {
+                const c = UI.elements.kwhTableContainer;
+                UI.elements.kwhTableIcon.classList.toggle('rotate-180');
+                c.style.maxHeight = (c.style.maxHeight && c.style.maxHeight !== '0px') ? '0px' : c.scrollHeight + 'px';
+            },
+            toggleDetails(tbody, row, results, detailHtmlFunction) {
+                const year = parseInt(row.dataset.year);
+                tbody.querySelectorAll('.details-row').forEach(dr => dr.remove());
+                const existingDetailsRow = tbody.querySelector(`.details-row[data-year="${year}"]`);
+                if (existingDetailsRow) return;
+
+                const yearData = results.annualData.find(d => d.year === year);
+                if (yearData?.details) {
+                    const newRow = document.createElement('tr');
+                    newRow.className = 'details-row';
+                    newRow.dataset.year = year;
+                    newRow.innerHTML = detailHtmlFunction(yearData, results);
+                    row.after(newRow);
+                    setTimeout(() => newRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+                }
+            },
+            togglePnlDetails(row, results) {
+                this.toggleDetails(this.elements.pnlTableBody, row, results, (yearData, res) => `<td colspan="5">${this.createDetailsHtml(yearData, res)}</td>`);
+            },
+            toggleKwhDetails(row, results) {
+                this.toggleDetails(this.elements.kwhStatsTableBody, row, results, (yearData) => `<td colspan="4">${this.createKwhDetailsHtml(yearData, this.getInputs())}</td>`);
+            },
+            createKwhDetailsHtml(yearData, inputs) {
+                const { details, year } = yearData;
+                const acGuns = inputs.equipmentList.filter(e => e.spec.type === 'AC').reduce((s, e) => s + e.gunCount, 0);
+                const dcGuns = inputs.equipmentList.filter(e => e.spec.type !== 'AC').reduce((s, e) => s + e.gunCount, 0);
+                
+                const buildGrid = (items, total) => `
+                    <div class="explainer-grid">
+                        ${items.map(item => `
+                            <span>${item.label}</span>
+                            <span>${item.formula}</span>
+                            <span>${item.valueDisplay}</span>
+                        `).join('')}
+                    </div>
+                    <div class="explainer-total-row"><span>年度總度數</span><span>${this.formatCurrency(total, 0, false, true)} kWh</span></div>`;
+                
+                const items = [];
+                if (details.kwh.ac > 0) items.push({ label: 'AC 年度度數', formula: `${inputs.kwhPerGunPerMonthAC}kWh x ${acGuns}槍 x 12月`, valueDisplay: `${this.formatCurrency(details.kwh.ac, 0, false, true)} kWh` });
+                if (details.kwh.dc > 0) items.push({ label: 'DC 年度度數', formula: `${inputs.kwhPerGunPerMonthDC}kWh x ${dcGuns}槍 x 12月 x ${Math.pow(1 + inputs.demandGrowthRate, year - 1).toFixed(2)}`, valueDisplay: `${this.formatCurrency(details.kwh.dc, 0, false, true)} kWh` });
+
+                return `<div class="details-container"><div class="details-section"><h4>第 ${year} 年充電度數計算</h4>${buildGrid(items, yearData.kwhPerYear)}</div></div>`;
+            },
+            createDetailsHtml(yearData, results) {
+                const buildGrid = (items, total, totalLabel = '總計') => `
+                    <div class="explainer-grid">
+                        ${items.map(item => `
+                            <span>${item.label}</span>
+                            <span>${item.formula}</span>
+                            <span class="font-semibold ${item.value < 0 ? 'text-red-600' : 'text-gray-800'}">${this.formatCurrency(item.value, 0, false, true)}</span>
+                        `).join('')}
+                    </div>
+                    <div class="explainer-total-row"><span>${totalLabel}</span><span class="${total < 0 ? 'text-red-600' : 'text-gray-800'}">${this.formatCurrency(total, 0, false, true)}</span></div>`;
+
+                const revenueItems = Calculator.getRevenueBreakdown(yearData, this.getInputs(), results);
+                const revenueHtml = `<div class="details-section"><h4>總營收細項</h4>${buildGrid(revenueItems, yearData.revenue)}</div>`;
+                
+                let costItems = yearData.details.costBreakdownItems.filter(item => !(this.getInputs().financingEnabled && this.getInputs().depreciationMethod !== 'none' && item.key === 'principal'));
+                const costsHtml = `<div class="details-section"><h4>總成本細項</h4>${buildGrid(costItems.map(item => ({...item, value: -item.value})), -yearData.cost)}</div>`;
+
+                return `<div class="details-container"><div class="details-grid">${revenueHtml}${costsHtml}</div></div>`;
+            },
+            // Modal and other UI helpers
+            openModal(modal) { modal.style.display = 'flex'; },
+            closeModal(modal) {
+                if (!modal) return;
+                modal.style.display = 'none';
+                if (modal.id === 'advancedModal') {
+                    this.showAdvancedContent(false);
+                    this.elements.advancedPassword.value = '';
+                    this.showModalMessage(this.elements.advancedMessage, '', false, true);
+                }
+            },
+            showModalMessage(element, message, isError = true, hide = false) {
+                if (hide) { element.style.display = 'none'; return; }
+                element.textContent = message;
+                element.className = `modal-message ${isError ? 'error' : 'success'}`;
+                element.style.display = 'block';
+            },
+            showAdvancedContent(show) {
+                this.elements.advancedPasswordSection.style.display = show ? 'none' : 'block';
+                this.elements.advancedContentSection.style.display = show ? 'block' : 'none';
+            },
+            handleTabSwitch(event) {
+                const tabId = event.target.dataset.tab;
+                event.target.closest('.modal-tabs').querySelectorAll('.modal-tab-btn').forEach(btn => btn.classList.remove('active'));
+                event.target.closest('.modal-content').querySelectorAll('.modal-tab-content').forEach(content => content.classList.remove('active'));
+                event.target.classList.add('active');
+                document.getElementById(`tab-${tabId}`).classList.add('active');
+            },
+            populateSpecsModal(deviceSpecs, calculationParams) { /* Logic remains complex, kept as is */
+                 const tableBody = this.elements.specsModalTableBody; tableBody.innerHTML = ''; const taxRate = calculationParams.taxRate.enabled ? calculationParams.taxRate.value : 0;
+                Object.entries(deviceSpecs).forEach(([power, spec]) => {
+                    if (spec.type === 'DC_360') { const createRow = (component, cost, salvage) => { const costTaxed = cost * (1 + taxRate); const salvagePercentage = cost > 0 ? (salvage / cost * 100).toFixed(1) : 10; return `<td>${component}</td><td><input type="text" class="modal-table-input cost-input" data-power="${power}" data-type="${component.toLowerCase()}Cost" value="${cost.toLocaleString('en-US')}"></td><td class="text-right p-2 cost-taxed-display">${this.formatCurrency(costTaxed, 0, false, true)}</td><td><input type="number" class="modal-table-input salvage-percent-input" value="${salvagePercentage}"></td><td class="text-right salvage-display p-2" data-power="${power}" data-type="${component.toLowerCase()}Salvage">${salvage.toLocaleString('en-US')}</td>`; }; tableBody.insertAdjacentHTML('beforeend', `<tr><td class="font-semibold align-middle" rowspan="2">${spec.name}</td>${createRow('Cabinet', spec.cabinetCost, spec.cabinetSalvage)}</tr><tr>${createRow('Terminal', spec.terminalCost, spec.terminalSalvage)}</tr>`); } else { const costTaxed = spec.cost * (1 + taxRate); const salvagePercentage = spec.cost > 0 ? (spec.salvage / spec.cost * 100).toFixed(1) : 10; tableBody.insertAdjacentHTML('beforeend', `<tr><td class="font-semibold align-middle">${spec.name}</td><td>充電樁</td><td><input type="text" class="modal-table-input cost-input" data-power="${power}" data-type="cost" value="${spec.cost.toLocaleString('en-US')}"></td><td class="text-right p-2 cost-taxed-display">${this.formatCurrency(costTaxed, 0, false, true)}</td><td><input type="number" class="modal-table-input salvage-percent-input" value="${salvagePercentage}"></td><td class="text-right salvage-display p-2" data-power="${power}" data-type="salvage">${spec.salvage.toLocaleString('en-US')}</td></tr>`); }
+                });
+                this.addSpecInputListeners(tableBody);
+            },
+            addSpecInputListeners(tableBody) { /* Logic remains complex, kept as is */
+                const focusable = Array.from(tableBody.querySelectorAll('.cost-input, .salvage-percent-input'));
+                focusable.forEach((input, index) => {
+                    input.addEventListener('focus', (e) => e.target.dataset.originalValue = e.target.value);
+                    input.addEventListener('keydown', (e) => {
+                        switch (e.key) {
+                            case 'Enter': e.preventDefault(); e.target.blur(); break;
+                            case 'ArrowDown': e.preventDefault(); focusable[(index + 1) % focusable.length].select(); break;
+                            case 'ArrowUp': e.preventDefault(); focusable[(index - 1 + focusable.length) % focusable.length].select(); break;
+                            case 'Escape': e.preventDefault(); e.target.value = e.target.dataset.originalValue; e.target.blur(); break;
+                        }
+                    });
+                    input.addEventListener('input', (e) => {
+                        const row = e.target.closest('tr');
+                        const costInput = row.querySelector('.cost-input');
+                        const percentInput = row.querySelector('.salvage-percent-input');
+                        const salvageValueDisplay = row.querySelector('.salvage-display');
+                        const costTaxedDisplay = row.querySelector('.cost-taxed-display');
+                        if (costInput && percentInput && salvageValueDisplay && costTaxedDisplay) {
+                            const cost = parseFloat(costInput.value.replace(/,/g,'')) || 0;
+                            const percent = parseFloat(percentInput.value) || 0;
+                            salvageValueDisplay.textContent = Math.round((cost * percent) / 100).toLocaleString('en-US');
+                            const taxRate = Config.calculationParams.taxRate.enabled ? Config.calculationParams.taxRate.value : 0;
+                            costTaxedDisplay.textContent = UI.formatCurrency(cost * (1 + taxRate), 0, false, true);
+                        }
+                    });
+                    input.addEventListener('blur', (e) => { e.target.value = (parseFloat(e.target.value.replace(/,/g, '')) || 0).toLocaleString('en-US'); });
+                });
+            },
+            populateFormulasModal(calculationParams) { /* Logic remains complex, kept as is */
+                const investmentContainer = this.elements.investmentFormulaContainer;
+                const annualContainer = this.elements.annualFormulaContainer;
+                investmentContainer.innerHTML = '';
+                annualContainer.innerHTML = '';
+                const lastResults = Calculator.getLastResults();
+                const inputs = this.getInputs();
+
+                Object.entries(calculationParams).forEach(([key, param]) => {
+                    const container = param.category === 'investment' ? investmentContainer : annualContainer;
+                    if(container){
+                        const isPercentage = param.unit === '%';
+                        let formattedValue;
+                        if (key === 'deviceCost') formattedValue = this.formatCurrency(lastResults.costBreakdown?.totalDeviceCostUntaxed || 0, 0, false, true);
+                        else if (key === 'constructionFee') formattedValue = this.formatCurrency(inputs.infrastructureCostMain, 0, false, true);
+                        else {
+                            const displayValue = isPercentage ? param.value * 100 : param.value;
+                            formattedValue = displayValue.toLocaleString('en-US', {maximumFractionDigits: 2});
+                        }
+                        container.insertAdjacentHTML('beforeend', `<div class="grid grid-cols-1 md:grid-cols-12 items-center gap-2 border-b border-gray-100 py-3"><div class="md:col-span-4 flex items-center"><input type="checkbox" id="check_${key}" data-key="${key}" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-3" ${param.enabled ? 'checked' : ''}><label for="check_${key}" class="font-medium text-gray-800">${param.label}</label></div><div class="md:col-span-5"><p class="text-sm text-gray-500">${param.description}</p></div><div class="md:col-span-3 flex items-center"><input type="text" id="input_${key}" data-key="${key}" value="${formattedValue}" class="modal-table-input ${param.readonly ? 'readonly' : ''}" ${param.readonly ? 'readonly' : ''}><span class="ml-2 text-gray-600 w-10 text-left">${param.unit}</span></div></div>`);
+                    }
+                });
+            },
+            openExplanationModal(type, results, inputs) { /* Logic remains complex, kept as is */
+                const { calculationParams } = Config; const body = this.elements.explanationModalBody; let title = ''; let contentHtml = '';
+                const buildGrid = (items, total, title = '總計') => { let gridHtml = '<div class="explainer-grid">'; items.forEach(item => { gridHtml += `<span>${item.label}</span><span>${item.formula}</span><span class="font-semibold">${this.formatCurrency(item.value, 0, false, true)}</span>`; }); gridHtml += '</div>'; gridHtml += `<div class="explainer-total-row"><span>${title}</span><span>${this.formatCurrency(total, 0, false, true)}</span></div>`; return gridHtml; };
+                switch (type) {
+                    case 'investment': title = '總投資額 計算說明'; const investmentItems = Calculator.getInvestmentBreakdown(inputs, calculationParams); contentHtml = buildGrid(investmentItems, results.totalInvestment); break;
+                    case 'revenue': title = '總營收 計算說明 (營運期間總計)'; const totalRevenueItems = Calculator.getOverallRevenueBreakdown(results, inputs); contentHtml = buildGrid(totalRevenueItems, results.totalChargingRevenue); break;
+                    case 'cost': title = '總成本 計算說明 (營運期間總計)'; const totalCostItems = Calculator.getOverallCostBreakdown(results, inputs); const totalCost = results.annualData.reduce((sum, d) => sum + d.cost, 0); contentHtml = buildGrid(totalCostItems, totalCost); break;
+                    case 'equity': title = '本金 計算說明'; const equityItems = [ { label: '總投資額', value: results.totalInvestment, formula: '所有初期建置成本' }, { label: '融資金額', value: -results.loanAmount, formula: '僅針對設備費用貸款' } ]; contentHtml = buildGrid(equityItems, results.equity, '本金 (自有資金)'); break;
+                    case 'loan': title = '融資 計算說明'; let loanGridHtml = '<div class="explainer-grid">'; loanGridHtml += `<span>設備費用(含稅)</span><span>所有設備含稅總價</span><span class="font-semibold">${this.formatCurrency(results.costBreakdown.equipmentCost, 0, false, true)}</span>`; loanGridHtml += `<span>貸款比例</span><span>使用者設定</span><span class="font-semibold">${(inputs.loanPercentage * 100).toFixed(0)}%</span>`; loanGridHtml += '</div>'; loanGridHtml += `<div class="explainer-total-row"><span>融資金額</span><span>${this.formatCurrency(results.loanAmount, 0, false, true)}</span></div>`; contentHtml = loanGridHtml; break;
+                    case 'interest': title = '利息總額 計算說明'; const interestItems = []; let tempRemainingPrincipal = results.loanAmount; for (let year = 1; year <= inputs.loanTerm; year++) { if (tempRemainingPrincipal <= 0) break; const interestPayment = tempRemainingPrincipal * inputs.interestRate; const monthlyPayment = (tempRemainingPrincipal * (inputs.interestRate / 12)) / (1 - Math.pow(1 + (inputs.interestRate / 12), - (inputs.loanTerm - year + 1) * 12)); const annualPayment = monthlyPayment * 12; const principalPayment = annualPayment - interestPayment; const formattedInterestRate = parseFloat((inputs.interestRate * 100).toFixed(2)); interestItems.push({ label: `第 ${year} 年利息`, value: interestPayment, formula: `${this.formatCurrency(tempRemainingPrincipal, 0, false, true)} x ${formattedInterestRate}%` }); tempRemainingPrincipal -= principalPayment; } contentHtml = buildGrid(interestItems, results.totalInterestPaid, '利息總額'); break;
+                    case 'management': title = '維運代管總成本 計算說明'; const managementItems = Calculator.getOverallManagementCostBreakdown(results, inputs); contentHtml = buildGrid(managementItems, results.totalManagementCost); break;
+                }
+                this.elements.explanationModalTitle.textContent = title; body.innerHTML = contentHtml; this.openModal(this.elements.explanationModal);
+            },
+            renderRecordsList() {
+                const container = this.elements.recordsList;
+                const records = Persistence.getRecordList();
+                if (records.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500 text-center">尚無儲存紀錄。</p>';
+                    return;
+                }
+                container.innerHTML = records.map(name => `
+                    <div class="record-list-item" data-name="${name}">
+                        <span class="record-name">${name}</span>
+                        <div class="record-actions flex items-center gap-2">
+                            <button class="remove-equip-btn" data-name="${name}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                            </button>
+                        </div>
+                    </div>`).join('');
+                
+                container.querySelectorAll('.record-list-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (e.target.closest('.remove-equip-btn')) return;
+                        const isSelected = e.currentTarget.classList.contains('selected');
+                        container.querySelectorAll('.record-list-item').forEach(el => {
+                            el.classList.remove('selected');
+                            el.querySelector('.load-btn')?.remove();
+                        });
+                        if (!isSelected) {
+                            e.currentTarget.classList.add('selected');
+                            const loadBtn = document.createElement('button');
+                            loadBtn.textContent = '載入';
+                            loadBtn.className = 'load-btn modal-action-button';
+                            loadBtn.onclick = () => { Persistence.loadRecord(item.dataset.name); this.closeModal(this.elements.recordsModal); };
+                            e.currentTarget.querySelector('.record-actions').prepend(loadBtn);
+                        }
+                    });
+                    item.querySelector('.remove-equip-btn').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        Persistence.deleteRecord(e.currentTarget.dataset.name);
+                        this.renderRecordsList();
+                    });
+                });
+            },
+            resetForm() {
+                this.elements.siteNameDisplay.textContent = '未命名站點';
+                this.elements.equipmentListContainer.innerHTML = '';
+                // Reset simple inputs to their default values
+                const defaults = {
+                    infrastructureCostMain: '500,000', chargeFeePerKwhAC: 7.5, chargeFeePerKwhDC: 10, peakRate: 13.5, offPeakRate: 6.9, holidayRate: 8.5, carsPerGunPerDayDC: 3, kwhPerGunPerMonthDC: '2,700', carsPerGunPerDayAC: 2, kwhPerGunPerMonthAC: 1800, avgKwhPerCar: 30, demandGrowthRate: 20, operationYears: 15, depreciationYears: 5, rentPerSpace: '500', rentPerLand: '15,000', rentPerKwh: 1, rentPercentage: 10, rentKwhThreshold: '5,000', rentTierAboveValueKwh: 1.2, rentTierAboveValueRevenue: 12, rentTierBelowValueKwh: 0.8, rentTierBelowValueRevenue: 8, profitShareAmount: 1, profitSharePercentage: 10, siteFeeMonthly: 3000, gunCountThreshold: 5, siteFeePerGunMonthly: 600, loanPercentage: 70, interestRate: 3.5, loanTerm: 7
+                };
+                Object.entries(defaults).forEach(([id, value]) => { if (this.elements[id]) this.elements[id].value = value; });
+                // Reset radio/checkboxes
+                const radioDefaults = { billingMethodDC: 'fixed', revenueMethodAC: 'byCars', revenueMethodDC: 'byCars', depreciationMethod: 'straightLine', rentMethod: 'bySpace', rentTierAboveType: 'byKwh', rentTierBelowType: 'byKwh' };
+                Object.entries(radioDefaults).forEach(([name, value]) => document.querySelector(`input[name="${name}"][value="${value}"]`).checked = true);
+                ['profitShareByAmount', 'profitShareByPercentage', 'profitShareBySite', 'financingToggle'].forEach(id => this.elements[id].checked = false);
+                this.elements.profitShareNone.checked = true;
+                Persistence.loadDefaultState();
+            }
+        };
+
+        /**
+         * =================================================================
+         * CALCULATOR MODULE: Business Logic
+         * =================================================================
+         */
+        const Calculator = {
+            lastResults: {},
+            run(inputs, params, deviceSpecs) {
+                const results = { annualData: [], totalInvestment: 0, paybackPeriod: 'N/A', costBreakdown: {}, avgChargeFeeAC: 0, avgChargeFeeDC: 0, totalChargingRevenue: 0, totalNetProfit: 0, totalInterestPaid: 0, roi: NaN, roe: NaN, irr: NaN, totalManagementCost: 0 };
+                const investmentBreakdown = this.getInvestmentBreakdown(inputs, params);
+                results.totalInvestment = investmentBreakdown.reduce((sum, item) => sum + item.value, 0);
+                const equipmentCostItem = investmentBreakdown.find(i => i.key === 'deviceCost');
+                results.costBreakdown = { equipmentCost: equipmentCostItem?.value || 0, totalDeviceCostUntaxed: equipmentCostItem?.untaxedValue || 0, totalSalvageValue: this.calculateSalvageValue(inputs, deviceSpecs) };
+                
+                const loanAmount = inputs.financingEnabled ? results.costBreakdown.equipmentCost * inputs.loanPercentage : 0;
+                const equity = results.totalInvestment - loanAmount;
+                results.loanAmount = loanAmount;
+                results.equity = equity;
+
+                // ******** PAYBACK PERIOD MODIFICATION APPLIED HERE ********
+                let cumulativePnl = -results.totalInvestment;
+
+                let paybackFound = false;
+                const cashFlows = [-equity];
+                let remainingLoanPrincipal = loanAmount;
+
+                results.avgChargeFeeAC = inputs.chargeFeePerKwhAC;
+                results.avgChargeFeeDC = (inputs.billingMethodDC === 'fixed') ? inputs.chargeFeePerKwhDC : (inputs.peakRate * inputs.touRatios.peak) + (inputs.offPeakRate * inputs.touRatios.offpeak) + (inputs.holidayRate * inputs.touRatios.holiday);
+
+                for (let year = 1; year <= inputs.operationYears; year++) {
+                    const demandMultiplier = Math.pow(1 + inputs.demandGrowthRate, year - 1);
+                    const acGuns = inputs.equipmentList.reduce((sum, e) => e.spec.type === 'AC' ? sum + e.gunCount : sum, 0);
+                    const dcGuns = inputs.equipmentList.reduce((sum, e) => e.spec.type !== 'AC' ? sum + e.gunCount : sum, 0);
+
+                    const kwhAC = acGuns > 0 ? (inputs.kwhPerGunPerMonthAC * acGuns * 12) : 0;
+                    const kwhDC = dcGuns > 0 ? (inputs.kwhPerGunPerMonthDC * dcGuns * 12) : 0;
+                    const totalKwhSold = kwhAC + (kwhDC * demandMultiplier);
+                    const revenue = (kwhAC * results.avgChargeFeeAC) + (kwhDC * demandMultiplier * results.avgChargeFeeDC);
+                    
+                    const costBreakdown = this.getCostBreakdown(results, inputs, year, totalKwhSold, revenue, remainingLoanPrincipal);
+                    const principalPayment = costBreakdown.find(item => item.key === 'principal')?.value || 0;
+                    const depreciation = costBreakdown.find(item => item.key === 'depreciation')?.value || 0;
+                    
+                    let costItemsForPNL = costBreakdown.filter(item => !(inputs.financingEnabled && inputs.depreciationMethod !== 'none' && item.key === 'principal'));
+                    const totalAnnualCostForPNL = costItemsForPNL.reduce((sum, item) => sum + item.value, 0);
+                    const finalAnnualCostForDisplay = inputs.depreciationMethod === 'none' ? (totalAnnualCostForPNL - depreciation) : totalAnnualCostForPNL;
+                    const pnl = revenue - finalAnnualCostForDisplay;
+
+                    cumulativePnl += pnl;
+
+                    const interestPayment = costBreakdown.find(item => item.key === 'interest')?.value || 0;
+                    remainingLoanPrincipal -= principalPayment;
+                    const cashFlow = revenue - ((finalAnnualCostForDisplay - depreciation) + principalPayment);
+                    cashFlows.push(cashFlow);
+
+                    results.annualData.push({ year, revenue, cost: finalAnnualCostForDisplay, pnl, cumulativePnl, kwhPerYear: totalKwhSold, kwhPerMonth: totalKwhSold / 12, kwhPerDay: totalKwhSold / 365, details: { revenue: { '總營收': revenue }, kwh: { ac: kwhAC, dc: kwhDC * demandMultiplier }, costBreakdownItems: costBreakdown } });
+
+                    if (cumulativePnl >= 0 && !paybackFound) {
+                        const prevCumulativePnl = results.annualData[year - 2]?.cumulativePnl || -results.totalInvestment;
+                        const fractionOfYear = pnl > 0 ? (-prevCumulativePnl / pnl) : 0;
+                        results.paybackPeriod = `${(year - 1 + fractionOfYear).toFixed(1)} 年`;
+                        paybackFound = true;
+                    }
+                }
+
+                results.totalNetProfit = results.annualData.reduce((sum, d) => sum + d.pnl, 0);
+                results.totalChargingRevenue = results.annualData.reduce((sum, d) => sum + d.revenue, 0);
+                results.totalInterestPaid = cashFlows.length > 1 ? results.annualData.reduce((sum, d) => sum + (d.details.costBreakdownItems.find(i => i.key === 'interest')?.value || 0), 0) : 0;
+                results.totalManagementCost = results.annualData.reduce((sum, d) => sum + d.details.costBreakdownItems.filter(i => i.key.startsWith('management_')).reduce((s, i) => s + i.value, 0), 0);
+                if (results.totalInvestment > 0) results.roi = ((results.totalNetProfit + results.totalInterestPaid) / results.totalInvestment) * 100;
+                if (equity > 0) results.roe = (results.totalNetProfit / equity) * 100;
+                results.irr = this.calculateIRR(cashFlows) * 100;
+                
+                this.lastResults = results;
+                return results;
+            },
+            // Other calculator methods like calculateSalvageValue, getInvestmentBreakdown, etc. remain here...
+            // These functions are complex and less prone to simple line-count reduction without losing readability.
+            // The logic from the original file for these functions should be pasted here.
+            calculateSalvageValue(inputs, deviceSpecs) { return inputs.equipmentList.reduce((sum, item) => { const { spec, count, cabinetCount } = item; const salvage = (spec.type === 'DC_360') ? (cabinetCount * spec.cabinetSalvage) + (count * spec.terminalSalvage) : count * spec.salvage; return sum + salvage; }, 0); },
+            getInvestmentBreakdown(inputs, params) { const items = []; const taxRate = params.taxRate.enabled ? params.taxRate.value : 0; let totalDeviceCostUntaxed = 0, totalPowerKw = 0, totalGunCount = 0, hasAC = false, hasDC = false; inputs.equipmentList.forEach(item => { const { spec, count, pileCount, gunCount, cabinetCount } = item; if (spec.type === 'AC') hasAC = true; else hasDC = true; totalDeviceCostUntaxed += (spec.type === 'DC_360') ? (cabinetCount * spec.cabinetCost) + (count * spec.terminalCost) : pileCount * spec.cost; totalPowerKw += spec.power * (spec.type === 'DC_360' ? cabinetCount : pileCount); totalGunCount += gunCount; }); const totalDeviceCostTaxed = totalDeviceCostUntaxed * (1 + taxRate); if (params.deviceCost.enabled) items.push({ key: 'deviceCost', label: '設備總成本 (含稅)', value: totalDeviceCostTaxed, untaxedValue: totalDeviceCostUntaxed, formula: `(${UI.formatCurrency(totalDeviceCostUntaxed,0,false,true)}) x (1 + ${taxRate*100}%)`}); if (hasDC) { if (params.lineSubsidyPerKw.enabled) items.push({ key: 'lineSubsidyPerKw', label: params.lineSubsidyPerKw.label, value: params.lineSubsidyPerKw.value * totalPowerKw, formula: `${UI.formatCurrency(params.lineSubsidyPerKw.value,0,false,true)} x ${totalPowerKw} kW`}); if (params.technicianFee.enabled) items.push({ key: 'technicianFee', label: params.technicianFee.label, value: params.technicianFee.value, formula: '一次性費用' }); if (params.meterFeeBase.enabled) items.push({ key: 'meterFeeBase', label: params.meterFeeBase.label, value: params.meterFeeBase.value, formula: '一次性費用' }); if (params.meterFeePerGun.enabled) items.push({ key: 'meterFeePerGun', label: params.meterFeePerGun.label, value: params.meterFeePerGun.value * totalGunCount, formula: `${UI.formatCurrency(params.meterFeePerGun.value,0,false,true)} x ${totalGunCount} 槍` }); } if (params.distributionPanelFee.enabled) { const fee = hasAC && !hasDC ? 30000 : params.distributionPanelFee.value; items.push({ key: 'distributionPanelFee', label: params.distributionPanelFee.label, value: fee, formula: hasAC && !hasDC ? 'AC 專案費用' : '一次性費用' }); } if (params.constructionFee.enabled) items.push({ key: 'constructionFee', label: params.constructionFee.label, value: inputs.infrastructureCostMain, formula: '由主畫面輸入' }); return items; },
+            getRevenueBreakdown(yearData, inputs, results) { const items = []; const { details } = yearData; if (details.revenue['AC 充電服務費'] > 0) { items.push({ label: 'AC 充電服務費', value: details.revenue['AC 充電服務費'], formula: `${UI.formatCurrency(details.kwh.ac, 0, false, true)} kWh x ${UI.formatCurrency(results.avgChargeFeeAC, 2, false, true)}元` }); } if (details.revenue['DC 充電服務費'] > 0) { items.push({ label: 'DC 充電服務費', value: details.revenue['DC 充電服務費'], formula: `${UI.formatCurrency(details.kwh.dc, 0, false, true)} kWh x ${UI.formatCurrency(results.avgChargeFeeDC, 2, false, true)}元 (均價)` }); } return items; },
+            getOverallRevenueBreakdown(results, inputs) { const totalRevenueItems = { 'AC 充電服務費': { value: 0, totalKwh: 0 }, 'DC 充電服務費': { value: 0, totalKwh: 0 }, }; results.annualData.forEach(yearData => { totalRevenueItems['AC 充電服務費'].value += yearData.details.revenue['AC 充電服務費'] || 0; totalRevenueItems['AC 充電服務費'].totalKwh += yearData.details.kwh.ac || 0; totalRevenueItems['DC 充電服務費'].value += yearData.details.revenue['DC 充電服務費'] || 0; totalRevenueItems['DC 充電服務費'].totalKwh += yearData.details.kwh.dc || 0; }); const finalItems = []; if (totalRevenueItems['AC 充電服務費'].value > 0) { finalItems.push({ label: 'AC 充電服務費', value: totalRevenueItems['AC 充電服務費'].value, formula: `${UI.formatCurrency(totalRevenueItems['AC 充電服務費'].totalKwh, 0, false, true)} kWh x ${UI.formatCurrency(results.avgChargeFeeAC, 2, false, true)}元` }); } if (totalRevenueItems['DC 充電服務費'].value > 0) { finalItems.push({ label: 'DC 充電服務費', value: totalRevenueItems['DC 充電服務費'].value, formula: `${UI.formatCurrency(totalRevenueItems['DC 充電服務費'].totalKwh, 0, false, true)} kWh x ${UI.formatCurrency(results.avgChargeFeeDC, 2, false, true)}元 (均價)` }); } return finalItems; },
+            getOverallCostBreakdown(results, inputs) { const totalCostItemsMap = new Map(); const p = Config.calculationParams; const totalKwh = results.annualData.reduce((sum, d) => sum + d.kwhPerYear, 0); const totalTransactions = results.annualData.reduce((sum, d) => sum + (d.kwhPerYear / (inputs.avgKwhPerCar || 1)), 0); const totalRevenue = results.totalChargingRevenue; const totalGunCount = inputs.equipmentList.reduce((sum, item) => sum + item.gunCount, 0); results.annualData.forEach(yearData => { let costItems = yearData.details.costBreakdownItems; if (inputs.financingEnabled && inputs.depreciationMethod !== 'none') { costItems = costItems.filter(item => item.key !== 'principal'); } costItems.forEach(item => { if (totalCostItemsMap.has(item.label)) { totalCostItemsMap.get(item.label).value += item.value; } else { totalCostItemsMap.set(item.label, { value: item.value, formula: '' }); } }); }); return Array.from(totalCostItemsMap, ([label, data]) => ({ label, ...data })); },
+            getOverallManagementCostBreakdown(results, inputs) { const items = []; const totalKwh = results.annualData.reduce((sum, d) => sum + d.kwhPerYear, 0); const totalRevenue = results.totalChargingRevenue; if (inputs.profitShareMethods.byAmount) { items.push({ label: '維運代管 (依度電)', value: results.annualData.reduce((sum, d) => sum + (d.details.costBreakdownItems.find(item => item.key === 'management_byAmount')?.value || 0), 0), formula: `${UI.formatCurrency(totalKwh, 0, false, true)} kWh x ${inputs.profitShareAmount} 元` }); } if (inputs.profitShareMethods.byPercentage) { items.push({ label: '維運代管 (依營收%)', value: results.annualData.reduce((sum, d) => sum + (d.details.costBreakdownItems.find(item => item.key === 'management_byPercentage')?.value || 0), 0), formula: `${UI.formatCurrency(totalRevenue, 0, false, true)} x ${inputs.profitSharePercentage * 100}%` }); } if (inputs.profitShareMethods.bySite) { items.push({ label: '維運代管 (站點計費)', value: results.annualData.reduce((sum, d) => sum + (d.details.costBreakdownItems.find(item => item.key === 'management_bySite')?.value || 0), 0), formula: `各年度加總` }); } return items; },
+            getCostBreakdown(results, inputs, year, totalKwhSold, revenue, remainingLoanPrincipal) { const items = []; const p = Config.calculationParams; const numberOfTransactions = inputs.avgKwhPerCar > 0 ? totalKwhSold / inputs.avgKwhPerCar : 0; const totalGunCount = inputs.equipmentList.reduce((sum, item) => sum + item.gunCount, 0); const hasDC = inputs.equipmentList.some(item => item.spec.type !== 'AC'); if (p.taipowerFee.enabled) { items.push({ key: 'taipowerFee', label: p.taipowerFee.label, value: totalKwhSold * p.taipowerFee.value * (1 + (p.powerLossRate.enabled ? p.powerLossRate.value : 0)), formula: `...` }); } if (inputs.rentMethod !== 'none') { let rentCost = 0; switch(inputs.rentMethod) { case 'bySpace': rentCost = inputs.rentPerSpace * inputs.equipmentList.reduce((s, i) => s + i.parkingSpaces, 0) * 12; break; case 'byLand': rentCost = inputs.rentPerLand * 12; break; case 'byKwhShare': rentCost = totalKwhSold * inputs.rentPerKwh; break; case 'byRevenueShare': rentCost = revenue * inputs.rentPercentage; break; case 'byKwhTier': const monthlyKwh = totalKwhSold / 12; if (monthlyKwh > inputs.rentKwhThreshold) { rentCost = inputs.rentTierAboveType === 'byKwh' ? totalKwhSold * inputs.rentTierAboveValue : revenue * inputs.rentTierAboveValue; } else { rentCost = inputs.rentTierBelowType === 'byKwh' ? totalKwhSold * inputs.rentTierBelowValue : revenue * inputs.rentTierBelowValue; } break; } items.push({ key: 'rent', label: '租金', value: rentCost, formula: `...` }); } if (!inputs.profitShareMethods.none) { if (inputs.profitShareMethods.byAmount) items.push({ key: 'management_byAmount', label: '維運代管 (依度電)', value: totalKwhSold * inputs.profitShareAmount, formula: `...` }); if (inputs.profitShareMethods.byPercentage) items.push({ key: 'management_byPercentage', label: '維運代管 (依營收%)', value: revenue * inputs.profitSharePercentage, formula: `...` }); if (inputs.profitShareMethods.bySite) { let cost = (totalGunCount > inputs.gunCountThreshold) ? totalGunCount * inputs.siteFeePerGunMonthly * 12 : inputs.siteFeeMonthly * 12; items.push({ key: 'management_bySite', label: '維運代管 (站點計費)', value: cost, formula: `...` }); } } if (p.transactionFeeRate.enabled) items.push({ key: 'transactionFee', label: p.transactionFeeRate.label, value: revenue * p.transactionFeeRate.value, formula: `...` }); if (p.electronicInvoiceFeePerTransaction.enabled) items.push({ key: 'invoiceFee', label: p.electronicInvoiceFeePerTransaction.label, value: numberOfTransactions * p.electronicInvoiceFeePerTransaction.value, formula: `...` }); if (p.repairPartsRate.enabled) items.push({ key: 'repairFee', label: p.repairPartsRate.label, value: results.costBreakdown.equipmentCost * p.repairPartsRate.value, formula: `...` }); if (p.electricalTechnicianFee.enabled && hasDC) items.push({ key: 'electricalTechFee', label: p.electricalTechnicianFee.label, value: p.electricalTechnicianFee.value, formula: `...` }); if (p.maintenanceFee.enabled) items.push({ key: 'maintenanceFee', label: p.maintenanceFee.label, value: p.maintenanceFee.value, formula: `...` }); if (p.insuranceFee.enabled) items.push({ key: 'insuranceFee', label: p.insuranceFee.label, value: p.insuranceFee.value, formula: `...` }); if (p.extendedWarrantyPerPile.enabled && year >= p.extendedWarrantyStartYear.value) { items.push({ key: 'warrantyFee', label: p.extendedWarrantyPerPile.label, value: results.costBreakdown.equipmentCost * p.extendedWarrantyPerPile.value, formula: `...` }); } if (p.laborCost.enabled) items.push({ key: 'laborCost', label: p.laborCost.label, value: p.laborCost.value, formula: `...` }); if (p.internetFee.enabled) items.push({ key: 'internetFee', label: '網路費', value: p.internetFee.value * 12, formula: `...` }); if (p.tdxUploadFee.enabled) items.push({ key: 'tdxFee', label: 'TDX上傳費', value: p.tdxUploadFee.value * totalGunCount * 12, formula: `...` }); if (inputs.financingEnabled && year <= inputs.loanTerm && remainingLoanPrincipal > 0) { const interestPayment = remainingLoanPrincipal * inputs.interestRate; const monthlyPayment = (remainingLoanPrincipal * (inputs.interestRate / 12)) / (1 - Math.pow(1 + (inputs.interestRate / 12), - (inputs.loanTerm - year + 1) * 12)); const principalPayment = (monthlyPayment * 12) - interestPayment; items.push({ key: 'interest', label: '利息支出', value: interestPayment, formula: `...` }); items.push({ key: 'principal', label: '本金攤還', value: principalPayment, formula: `...` }); } if (inputs.depreciationMethod !== 'none' && year <= inputs.depreciationYears) { const depreciableBase = results.costBreakdown.equipmentCost - results.costBreakdown.totalSalvageValue; let depreciation = 0; if (inputs.depreciationMethod === 'straightLine') { depreciation = depreciableBase / inputs.depreciationYears; } else if (inputs.depreciationMethod === 'syd') { const n = inputs.depreciationYears; const sydDenominator = n * (n + 1) / 2; depreciation = depreciableBase * ((n - year + 1) / sydDenominator); } items.push({ key: 'depreciation', label: '折舊', value: depreciation, formula: `...` }); } return items; },
+            calculateIRR(cashFlows) { let guess = 0.1; for (let i = 0; i < 100; i++) { let npv = 0, derivative = 0; for (let t = 0; t < cashFlows.length; t++) { npv += cashFlows[t] / Math.pow(1 + guess, t); if (t > 0) derivative -= t * cashFlows[t] / Math.pow(1 + guess, t + 1); } if (Math.abs(derivative) < 1e-7) break; const newGuess = guess - npv / derivative; if (Math.abs(newGuess - guess) < 1e-7) return newGuess; guess = newGuess; } return NaN; },
+            getLastResults() { return this.lastResults; }
+        };
+
+        /**
+         * =================================================================
+         * CHARTS MODULE: Chart.js Integration
+         * =================================================================
+         */
+        const Charts = {
+            instances: {},
+            init() {
+                const yAxisTickFormatter = (v) => { if (isNaN(v)) return ''; const n = Number(v); if (Math.abs(n) >= 1e6) return `${(n / 1e6).toFixed(1)}M`; if (Math.abs(n) >= 1e3) return `${(n / 1e3).toFixed(0)}K`; return n.toLocaleString('en-US'); };
+                const commonOptions = { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${UI.formatCurrency(c.raw)}` } } } };
+                
+                this.instances.revenueCost = new Chart(UI.elements.revenueCostChart, { type: 'bar', data: {}, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
+                this.instances.management = new Chart(UI.elements.managementChart, { type: 'bar', data: {}, options: { ...commonOptions, scales: { x: { grid: { display: false }, stacked: true }, y: { ticks: { callback: yAxisTickFormatter }, stacked: true } } } });
+                this.instances.rent = new Chart(UI.elements.rentChart, { type: 'bar', data: {}, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
+                this.instances.cumulative = new Chart(UI.elements.cumulativePnlChart, { type: 'line', data: {}, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
+                this.instances.tou = new Chart(UI.elements.touPieChart, { type: 'doughnut', data: {}, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.label}: ${c.raw}%` } } } } });
+            },
+            generateLegend(chart, container) { /* Logic remains complex, kept as is */
+                if (!chart || !container) return; container.innerHTML = ''; const legendItems = chart.legend.legendItems; if (!legendItems) return;
+                legendItems.forEach((item) => {
+                    const li = document.createElement('div'); li.className = 'flex items-center cursor-pointer';
+                    const box = document.createElement('span'); box.className = 'h-3 w-3 rounded-sm mr-2';
+                    let color = item.fillStyle || item.strokeStyle; box.style.backgroundColor = color; box.style.borderColor = item.strokeStyle; box.style.borderWidth = item.lineWidth + 'px';
+                    const text = document.createElement('span'); text.className = 'text-gray-700 text-sm'; text.style.textDecoration = item.hidden ? 'line-through' : ''; text.innerText = item.text;
+                    li.append(box, text);
+                    li.onclick = () => { chart.isDatasetVisible(item.datasetIndex) ? chart.hide(item.datasetIndex) : chart.show(item.datasetIndex); this.generateLegend(chart, container); };
+                    container.appendChild(li);
+                });
+            },
+            update(inputs, results) {
+                if (!this.instances.revenueCost) this.init();
+                const labels = results.annualData.map(d => `第 ${d.year} 年`);
+                
+                // Revenue Cost Chart
+                this.instances.revenueCost.data = { labels, datasets: [ { type: 'bar', label: '總營收', data: results.annualData.map(d => d.revenue), backgroundColor: 'rgba(59, 130, 246, 0.6)', borderRadius: 5 }, { type: 'bar', label: '總成本', data: results.annualData.map(d => d.cost), backgroundColor: 'rgba(255, 159, 64, 0.6)', borderRadius: 5 }, { type: 'bar', label: '充電淨利', data: results.annualData.map(d => d.pnl), backgroundColor: 'rgba(239, 68, 68, 0.5)', borderRadius: 5 } ] };
+                this.instances.revenueCost.update();
+                this.generateLegend(this.instances.revenueCost, UI.elements.revenueCostChartLegend);
+
+                // Management Chart
+                const managementDatasets = [];
+                if (inputs.profitShareMethods.byAmount) managementDatasets.push({ label: '維運代管 (依度電)', data: results.annualData.map(d => d.details.costBreakdownItems.find(i => i.key === 'management_byAmount')?.value || 0), backgroundColor: 'rgba(168, 85, 247, 0.7)', borderRadius: 5 });
+                if (inputs.profitShareMethods.byPercentage) managementDatasets.push({ label: '維運代管 (依營收%)', data: results.annualData.map(d => d.details.costBreakdownItems.find(i => i.key === 'management_byPercentage')?.value || 0), backgroundColor: 'rgba(20, 184, 166, 0.7)', borderRadius: 5 });
+                if (inputs.profitShareMethods.bySite) managementDatasets.push({ label: '維運代管 (站點計費)', data: results.annualData.map(d => d.details.costBreakdownItems.find(i => i.key === 'management_bySite')?.value || 0), backgroundColor: 'rgba(249, 115, 22, 0.7)', borderRadius: 5 });
+                this.instances.management.data = { labels, datasets: managementDatasets };
+                this.instances.management.options.scales.x.stacked = false;
+                this.instances.management.options.scales.y.stacked = false;
+                this.instances.management.update();
+                this.generateLegend(this.instances.management, UI.elements.managementChartLegend);
+                UI.elements.managementChart.closest('.card').style.display = !inputs.profitShareMethods.none ? 'flex' : 'none';
+
+                // Rent Chart
+                const rentData = results.annualData.map(d => d.details.costBreakdownItems.find(item => item.key === 'rent')?.value || 0);
+                const rentLabel = results.annualData.find(d => d.details.costBreakdownItems.some(i => i.key === 'rent'))?.details.costBreakdownItems.find(i => i.key === 'rent').label || '租金&分潤';
+                this.instances.rent.data = { labels, datasets: [{ label: rentLabel, data: rentData, backgroundColor: 'rgba(34, 197, 94, 0.7)', borderRadius: 5 }] };
+                this.instances.rent.update();
+                this.generateLegend(this.instances.rent, UI.elements.rentChartLegend);
+                UI.elements.rentChart.closest('.card').style.display = rentData.some(d => d > 0) ? 'flex' : 'none';
+
+                // Cumulative PNL Chart
+                this.instances.cumulative.data = { labels: ['投資額', ...labels], datasets: [{ label: '累積稅前淨利', data: [-results.totalInvestment, ...results.annualData.map(d => d.cumulativePnl)], borderColor: 'rgba(54, 162, 235, 1)', tension: 0.1, fill: true, backgroundColor: (c) => { const { ctx, chartArea, scales } = c.chart; if (!chartArea) return null; const g = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom); const z = scales.y.getPixelForValue(0); const zp = (z - chartArea.top) / chartArea.height; if (!isFinite(zp)) return 'rgba(219, 234, 254, 0.6)'; const cz = Math.max(0, Math.min(1, zp)); g.addColorStop(0, 'rgba(219, 234, 254, 0.6)'); g.addColorStop(cz, 'rgba(219, 234, 254, 0.6)'); g.addColorStop(cz, 'rgba(254, 226, 226, 0.6)'); g.addColorStop(1, 'rgba(254, 226, 226, 0.6)'); return g; } }] };
+                this.instances.cumulative.update();
+                this.generateLegend(this.instances.cumulative, UI.elements.cumulativePnlChartLegend);
+                
+                // TOU Pie Chart
+                UI.elements.touPieChartContainer.style.display = inputs.billingMethodDC === 'tou' ? 'block' : 'none';
+                if (inputs.billingMethodDC === 'tou') {
+                    this.instances.tou.data = { labels: ['尖峰', '離峰', '假日'], datasets: [{ data: [inputs.touRatios.peak * 100, inputs.touRatios.offpeak * 100, inputs.touRatios.holiday * 100].map(v => v.toFixed(0)), backgroundColor: ['#ef4444', '#10b981', '#3b82f6'] }] };
+                    this.instances.tou.update();
+                }
+            }
+        };
+
+        /**
+         * =================================================================
+         * TOU EDITOR MODULE: Handles the 7-day Time-of-Use grid editor
+         * =================================================================
+         */
+        const TouEditor = {
+            isPainting: false, paintType: 'peak',
+            dayKeys: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'],
+            dayNames: { mon: '週一', tue: '週二', wed: '週三', thu: '週四', fri: '週五', sat: '週六', sun: '週日' },
+            init() { this.createGrid(); this.addEventListeners(); this.renderGrid(); this.updateDisplayPercentages(); },
+            createGrid() { const c = UI.elements.touGridContainer; c.innerHTML = `<div></div>${this.dayKeys.map(k => `<div class="tou-grid-header">${this.dayNames[k]}</div>`).join('')}`; for (let h = 0; h < 24; h++) { c.innerHTML += `<div class="tou-grid-time">${String(h).padStart(2,'0')}:00</div>${this.dayKeys.map(d => `<div class="tou-grid-cell" data-day="${d}" data-hour="${h}"></div>`).join('')}`; } },
+            addEventListeners() { const grid = UI.elements.touGridContainer; grid.addEventListener('mousedown', e => { e.preventDefault(); this.isPainting = true; this.paintType = document.querySelector('input[name="touRateType"]:checked').value; this.paintCell(e.target); }); grid.addEventListener('mouseover', e => { if (this.isPainting) this.paintCell(e.target); }); document.addEventListener('mouseup', () => this.isPainting = false); document.addEventListener('mouseleave', () => this.isPainting = false); },
+            paintCell(cell) { if (!cell.classList.contains('tou-grid-cell')) return; cell.className = `tou-grid-cell ${this.paintType} painting`; const { day, hour } = cell.dataset; Config.touSchedule[day][hour] = this.paintType; this.updateDisplayPercentages(); },
+            renderGrid() { for (const day of this.dayKeys) { for (let h = 0; h < 24; h++) { const cell = document.querySelector(`.tou-grid-cell[data-day="${day}"][data-hour="${h}"]`); if (cell) cell.className = `tou-grid-cell ${Config.touSchedule[day][h]}`; } } },
+            updateDisplayPercentages() { const { roundedPeak, roundedOffPeak, roundedHoliday } = this.calculatePercentages(); UI.elements.peakPercentDisplay.textContent = `(${roundedPeak}%)`; UI.elements.offpeakPercentDisplay.textContent = `(${roundedOffPeak}%)`; UI.elements.holidayPercentDisplay.textContent = `(${roundedHoliday}%)`; },
+            calculatePercentages() { let totalMinutes = { peak: 0, offpeak: 0, holiday: 0 }; this.dayKeys.forEach(day => Config.touSchedule[day].forEach(type => totalMinutes[type] += 60)); const totalWeekMinutes = 7 * 24 * 60; let peakPercent = (totalMinutes.peak / totalWeekMinutes) * 100; let offpeakPercent = (totalMinutes.offpeak / totalWeekMinutes) * 100; const roundedPeak = Math.round(peakPercent); const roundedOffPeak = Math.round(offpeakPercent); return { roundedPeak, roundedOffPeak, roundedHoliday: 100 - roundedPeak - roundedOffPeak }; },
+            saveAndApply() { const { roundedPeak, roundedOffPeak, roundedHoliday } = this.calculatePercentages(); UI.elements.peakUsageRatio.value = roundedPeak; UI.elements.offPeakUsageRatio.value = roundedOffPeak; UI.elements.holidayUsageRatio.value = roundedHoliday; return true; }
+        };
+
+        /**
+         * =================================================================
+         * PERSISTENCE MODULE: Local Storage Access
+         * =================================================================
+         */
+        const Persistence = {
+            STORAGE_KEY_PREFIX: 'chargingStationAnalysis_v13_',
+            init() {
+                const lastSession = localStorage.getItem(`${this.STORAGE_KEY_PREFIX}lastSession`);
+                lastSession ? this.applyState(JSON.parse(lastSession)) : this.loadDefaultState();
+            },
+            getCurrentState() { return { inputs: UI.getInputs(), siteName: UI.elements.siteNameDisplay.textContent, config: { deviceSpecs: Config.deviceSpecs, calculationParams: Config.calculationParams, passwords: Config.passwords, touSchedule: Config.touSchedule } }; },
+            saveSession() { localStorage.setItem(`${this.STORAGE_KEY_PREFIX}lastSession`, JSON.stringify(this.getCurrentState())); },
+            deleteSession() { localStorage.removeItem(`${this.STORAGE_KEY_PREFIX}lastSession`); },
+            saveRecord(name, data) { let list = this.getRecordList(); if (!list.includes(name)) list.push(name); localStorage.setItem(`${this.STORAGE_KEY_PREFIX}recordList`, JSON.stringify(list)); localStorage.setItem(`${this.STORAGE_KEY_PREFIX}record_${name}`, JSON.stringify(data)); },
+            loadRecord(name) { const data = localStorage.getItem(`${this.STORAGE_KEY_PREFIX}record_${name}`); if (data) { const parsed = JSON.parse(data); this.applyState(parsed); UI.elements.siteNameDisplay.textContent = parsed.siteName || name; App.update(); } },
+            deleteRecord(name) { let list = this.getRecordList(); const index = list.indexOf(name); if (index > -1) list.splice(index, 1); localStorage.setItem(`${this.STORAGE_KEY_PREFIX}recordList`, JSON.stringify(list)); localStorage.removeItem(`${this.STORAGE_KEY_PREFIX}record_${name}`); },
+            getRecordList() { return JSON.parse(localStorage.getItem(`${this.STORAGE_KEY_PREFIX}recordList`) || '[]'); },
+            loadDefaultState() {
+                UI.addEquipmentRow({ power: '7', count: 1 });
+                const weekday = Array(24).fill('offpeak');
+                for (let i = 15; i < 21; i++) weekday[i] = 'peak';
+                const holiday = Array(24).fill('holiday');
+                Config.touSchedule = { mon: [...weekday], tue: [...weekday], wed: [...weekday], thu: [...weekday], fri: [...weekday], sat: [...holiday], sun: [...holiday] };
+            },
+            applyState(state) {
+                if (state.config) {
+                    if (state.config.deviceSpecs) Object.assign(Config.deviceSpecs, state.config.deviceSpecs);
+                    if (state.config.calculationParams) Object.keys(Config.calculationParams).forEach(key => { if (state.config.calculationParams[key]) Object.assign(Config.calculationParams[key], state.config.calculationParams[key]); });
+                    if (state.config.passwords) Object.assign(Config.passwords, state.config.passwords);
+                    if (state.config.touSchedule) Config.touSchedule = state.config.touSchedule;
+                }
+                if (state.inputs) {
+                    const { inputs } = state;
+                    Object.keys(inputs).forEach(key => {
+                        const el = UI.elements[key];
+                        const val = inputs[key];
+                        if (el && typeof val !== 'object' && typeof val !== 'undefined') {
+                            if (el.type === 'checkbox') el.checked = val;
+                            else if (key.includes('Rate') || key.includes('Percentage')) el.value = val * 100;
+                            else el.value = val;
+                        } else if (key.startsWith('rentTier') && key.endsWith('Type')) {
+                            document.querySelector(`input[name="${key}"][value="${val}"]`).checked = true;
+                        }
+                    });
+                     // Radio buttons
+                    ['billingMethodDC', 'revenueMethodAC', 'revenueMethodDC', 'depreciationMethod', 'rentMethod'].forEach(name => {
+                        if (inputs[name]) document.querySelector(`input[name="${name}"][value="${inputs[name]}"]`).checked = true;
+                    });
+                    // Checkboxes
+                    if (inputs.profitShareMethods) Object.entries(inputs.profitShareMethods).forEach(([key, val]) => {
+                        const elId = `profitShare${key.charAt(0).toUpperCase() + key.slice(1)}`;
+                        if (UI.elements[elId]) UI.elements[elId].checked = val;
+                    });
+
+                    UI.elements.equipmentListContainer.innerHTML = '';
+                    if (inputs.equipmentList?.length > 0) {
+                        inputs.equipmentList.forEach(equip => UI.addEquipmentRow({ power: equip.power, count: equip.count }));
+                    } else {
+                        UI.addEquipmentRow({ power: '7', count: 1 });
+                    }
+                }
+                if (state.siteName) UI.elements.siteNameDisplay.textContent = state.siteName;
+            }
+        };
+
+        /**
+         * =================================================================
+         * APP INITIALIZATION
+         * =================================================================
+         */
+        App.init();
+
+    })();
+});
+    </script>
+</body>
+</html>
