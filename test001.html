@@ -69,6 +69,7 @@
         .modal-table-input.readonly { background-color: #e5e7eb; color: #6b7280; cursor: not-allowed; }
         .modal-action-button { background-color: #4f46e5; color: white; padding: 0.75rem 1.75rem; border-radius: 0.6rem; font-weight: 600; transition: background-color 0.2s ease, transform 0.1s ease; border: none; cursor: pointer; }
         .modal-action-button:hover { background-color: #4338ca; transform: translateY(-1px); }
+        .modal-action-button:disabled { background-color: #a5b4fc; cursor: not-allowed; }
         .modal-message { margin-top: 1rem; padding: 0.75rem; border-radius: 0.5rem; font-weight: 500; text-align: center; display: none; }
         .modal-message.error { background-color: #fee2e2; color: #ef4444; }
         .modal-message.success { background-color: #d1fae5; color: #10b981; }
@@ -667,11 +668,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 UI.elements.confirmSaveBtn.addEventListener('click', () => this.saveRecord());
                 UI.elements.confirmNewAnalysisBtn.addEventListener('click', () => this.newAnalysis());
 
+                // Add Enter key listener for password change
+                [UI.elements.oldPassword, UI.elements.newPassword, UI.elements.confirmNewPassword].forEach(el => {
+                    el.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            UI.elements.changePasswordBtn.click();
+                            e.target.blur();
+                        }
+                    });
+                });
+
                 // Universal modal close buttons
                 document.querySelectorAll('.modal-close-btn, #cancelSaveBtn, #cancelNewAnalysisBtn').forEach(btn => {
                     btn.addEventListener('click', () => UI.closeModal(btn.closest('.modal-overlay')));
                 });
-                document.querySelectorAll('.modal-overlay').forEach(modal => {
+                document.querySelectorAll('.modal-overlay:not(#advancedModal)').forEach(modal => {
                     modal.addEventListener('click', (e) => { if (e.target === modal) UI.closeModal(modal); });
                 });
                 document.addEventListener('keydown', (e) => {
@@ -714,7 +726,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             },
 
-            saveAdvancedSettings() {
+            saveAdvancedSettings(closeModal = true) {
                 TouEditor.saveAndApply();
                 document.querySelectorAll('#specsModalTableBody input[data-power]').forEach(input => {
                     const { power, type } = input.dataset;
@@ -734,7 +746,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
                 this.update();
-                UI.closeModal(UI.elements.advancedModal);
+                if (closeModal) {
+                    UI.closeModal(UI.elements.advancedModal);
+                }
+            },
+
+            handleAdvancedEnterSave() {
+                this.saveAdvancedSettings(false); // Pass false to not close the modal
+                const btn = UI.elements.saveAdvancedBtn;
+                const originalText = btn.textContent;
+                const originalClasses = btn.className;
+
+                btn.textContent = '已儲存 ✓';
+                btn.className = 'modal-action-button bg-green-600';
+                btn.disabled = true;
+
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.className = originalClasses;
+                    btn.disabled = false;
+                }, 1500);
             },
             
             changePassword() {
@@ -809,6 +840,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 technicianFee: { value: 150000, label: '技師簽證費', unit: '元', description: '台電外包技師費用(一次性)。', enabled: true, category: 'investment' },
                 distributionPanelFee: { value: 300000, label: '高/低壓配電盤', unit: '元', description: '高壓或低壓配電盤費用(一次性)。', enabled: true, category: 'investment' },
                 constructionFee: { value: 500000, label: '基礎設施工程', unit: '元', description: '場地土木、基礎、裝修等工程費用(一次性)。', enabled: true, category: 'investment', readonly: true },
+                laborCostInvestment: { value: 0.05, label: '建置人力成本', unit: '%', description: '建置所需的人力成本，為總投資額的百分比。', enabled: true, category: 'investment' },
+                miscCostInvestment: { value: 0.03, label: '建置雜項成本', unit: '%', description: '建置過程中的雜項開銷，為總投資額的百分比。', enabled: true, category: 'investment' },
+                contingencyInvestment: { value: 0.10, label: '建置專案裕度', unit: '%', description: '專案的風險準備金或裕度，為總投資額的百分比。', enabled: true, category: 'investment' },
                 meterFeeBase: { value: 12000, label: '電錶費用(基本)', unit: '元', description: '台電電表基本費用(僅DC樁, 一次性)。', enabled: true, category: 'investment' },
                 meterFeePerGun: { value: 700, label: '電錶費用/槍', unit: '元', description: '每增加一槍の電表費用(僅DC樁, 一次性)。', enabled: true, category: 'investment' },
                 taxRate: { value: 0.05, label: '營業稅率', unit: '%', description: '設備購買及相關服務の營業稅率。', enabled: true, category: 'investment' },
@@ -1096,27 +1130,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 UI.elements.kwhTableIcon.classList.toggle('rotate-180');
                 c.style.maxHeight = (c.style.maxHeight && c.style.maxHeight !== '0px') ? '0px' : c.scrollHeight + 'px';
             },
-            toggleDetails(tbody, row, results, detailHtmlFunction) {
+            toggleDetails(tbody, row, results, detailHtmlFunction, colspan) {
                 const year = parseInt(row.dataset.year);
-                tbody.querySelectorAll('.details-row').forEach(dr => dr.remove());
-                const existingDetailsRow = tbody.querySelector(`.details-row[data-year="${year}"]`);
-                if (existingDetailsRow) return;
+                const currentlyOpen = tbody.querySelector('.details-row');
+                const isClosingCurrent = currentlyOpen && parseInt(currentlyOpen.dataset.year) === year;
 
-                const yearData = results.annualData.find(d => d.year === year);
-                if (yearData?.details) {
-                    const newRow = document.createElement('tr');
-                    newRow.className = 'details-row';
-                    newRow.dataset.year = year;
-                    newRow.innerHTML = detailHtmlFunction(yearData, results);
-                    row.after(newRow);
-                    setTimeout(() => newRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+                if (currentlyOpen) {
+                    currentlyOpen.remove();
+                }
+
+                if (!isClosingCurrent) {
+                    const yearData = results.annualData.find(d => d.year === year);
+                    if (yearData?.details) {
+                        const newRow = document.createElement('tr');
+                        newRow.className = 'details-row';
+                        newRow.dataset.year = year;
+                        newRow.innerHTML = `<td colspan="${colspan}">${detailHtmlFunction(yearData, results)}</td>`;
+                        row.after(newRow);
+                    }
                 }
             },
             togglePnlDetails(row, results) {
-                this.toggleDetails(this.elements.pnlTableBody, row, results, (yearData, res) => `<td colspan="5">${this.createDetailsHtml(yearData, res)}</td>`);
+                this.toggleDetails(this.elements.pnlTableBody, row, results, (yearData, res) => this.createDetailsHtml(yearData, res), 5);
             },
             toggleKwhDetails(row, results) {
-                this.toggleDetails(this.elements.kwhStatsTableBody, row, results, (yearData) => `<td colspan="4">${this.createKwhDetailsHtml(yearData, this.getInputs())}</td>`);
+                this.toggleDetails(this.elements.kwhStatsTableBody, row, results, (yearData) => this.createKwhDetailsHtml(yearData, this.getInputs()), 4);
             },
             createKwhDetailsHtml(yearData, inputs) {
                 const { details, year } = yearData;
@@ -1186,20 +1224,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 event.target.classList.add('active');
                 document.getElementById(`tab-${tabId}`).classList.add('active');
             },
-            populateSpecsModal(deviceSpecs, calculationParams) { /* Logic remains complex, kept as is */
-                 const tableBody = this.elements.specsModalTableBody; tableBody.innerHTML = ''; const taxRate = calculationParams.taxRate.enabled ? calculationParams.taxRate.value : 0;
+            populateSpecsModal(deviceSpecs, calculationParams) {
+                const tableBody = this.elements.specsModalTableBody;
+                tableBody.innerHTML = '';
+                const taxRate = calculationParams.taxRate.enabled ? calculationParams.taxRate.value : 0;
                 Object.entries(deviceSpecs).forEach(([power, spec]) => {
-                    if (spec.type === 'DC_360') { const createRow = (component, cost, salvage) => { const costTaxed = cost * (1 + taxRate); const salvagePercentage = cost > 0 ? (salvage / cost * 100).toFixed(1) : 10; return `<td>${component}</td><td><input type="text" class="modal-table-input cost-input" data-power="${power}" data-type="${component.toLowerCase()}Cost" value="${cost.toLocaleString('en-US')}"></td><td class="text-right p-2 cost-taxed-display">${this.formatCurrency(costTaxed, 0, false, true)}</td><td><input type="number" class="modal-table-input salvage-percent-input" value="${salvagePercentage}"></td><td class="text-right salvage-display p-2" data-power="${power}" data-type="${component.toLowerCase()}Salvage">${salvage.toLocaleString('en-US')}</td>`; }; tableBody.insertAdjacentHTML('beforeend', `<tr><td class="font-semibold align-middle" rowspan="2">${spec.name}</td>${createRow('Cabinet', spec.cabinetCost, spec.cabinetSalvage)}</tr><tr>${createRow('Terminal', spec.terminalCost, spec.terminalSalvage)}</tr>`); } else { const costTaxed = spec.cost * (1 + taxRate); const salvagePercentage = spec.cost > 0 ? (spec.salvage / spec.cost * 100).toFixed(1) : 10; tableBody.insertAdjacentHTML('beforeend', `<tr><td class="font-semibold align-middle">${spec.name}</td><td>充電樁</td><td><input type="text" class="modal-table-input cost-input" data-power="${power}" data-type="cost" value="${spec.cost.toLocaleString('en-US')}"></td><td class="text-right p-2 cost-taxed-display">${this.formatCurrency(costTaxed, 0, false, true)}</td><td><input type="number" class="modal-table-input salvage-percent-input" value="${salvagePercentage}"></td><td class="text-right salvage-display p-2" data-power="${power}" data-type="salvage">${spec.salvage.toLocaleString('en-US')}</td></tr>`); }
+                    if (spec.type === 'DC_360') {
+                        const createRow = (component, cost, salvage) => {
+                            const costTaxed = cost * (1 + taxRate);
+                            const salvagePercentage = cost > 0 ? (salvage / cost * 100).toFixed(1) : 10;
+                            return `<td>${component}</td><td><input type="text" class="modal-table-input cost-input" data-power="${power}" data-type="${component.toLowerCase()}Cost" value="${cost.toLocaleString('en-US')}"></td><td class="text-right p-2 cost-taxed-display">${this.formatCurrency(costTaxed, 0, false, true)}</td><td><input type="number" class="modal-table-input salvage-percent-input" value="${salvagePercentage}"></td><td class="text-right salvage-display p-2" data-power="${power}" data-type="${component.toLowerCase()}Salvage">${salvage.toLocaleString('en-US')}</td>`;
+                        };
+                        tableBody.insertAdjacentHTML('beforeend', `<tr><td class="font-semibold align-middle" rowspan="2">${spec.name}</td>${createRow('Cabinet', spec.cabinetCost, spec.cabinetSalvage)}</tr><tr>${createRow('Terminal', spec.terminalCost, spec.terminalSalvage)}</tr>`);
+                    } else {
+                        const costTaxed = spec.cost * (1 + taxRate);
+                        const salvagePercentage = spec.cost > 0 ? (spec.salvage / spec.cost * 100).toFixed(1) : 10;
+                        tableBody.insertAdjacentHTML('beforeend', `<tr><td class="font-semibold align-middle">${spec.name}</td><td>充電樁</td><td><input type="text" class="modal-table-input cost-input" data-power="${power}" data-type="cost" value="${spec.cost.toLocaleString('en-US')}"></td><td class="text-right p-2 cost-taxed-display">${this.formatCurrency(costTaxed, 0, false, true)}</td><td><input type="number" class="modal-table-input salvage-percent-input" value="${salvagePercentage}"></td><td class="text-right salvage-display p-2" data-power="${power}" data-type="salvage">${spec.salvage.toLocaleString('en-US')}</td></tr>`);
+                    }
                 });
                 this.addSpecInputListeners(tableBody);
             },
-            addSpecInputListeners(tableBody) { /* Logic remains complex, kept as is */
+            addSpecInputListeners(tableBody) {
                 const focusable = Array.from(tableBody.querySelectorAll('.cost-input, .salvage-percent-input'));
                 focusable.forEach((input, index) => {
                     input.addEventListener('focus', (e) => e.target.dataset.originalValue = e.target.value);
                     input.addEventListener('keydown', (e) => {
                         switch (e.key) {
-                            case 'Enter': e.preventDefault(); e.target.blur(); break;
+                            case 'Enter': 
+                                e.preventDefault(); 
+                                App.handleAdvancedEnterSave();
+                                e.target.blur();
+                                break;
                             case 'ArrowDown': e.preventDefault(); focusable[(index + 1) % focusable.length].select(); break;
                             case 'ArrowUp': e.preventDefault(); focusable[(index - 1 + focusable.length) % focusable.length].select(); break;
                             case 'Escape': e.preventDefault(); e.target.value = e.target.dataset.originalValue; e.target.blur(); break;
@@ -1219,10 +1274,17 @@ document.addEventListener('DOMContentLoaded', () => {
                             costTaxedDisplay.textContent = UI.formatCurrency(cost * (1 + taxRate), 0, false, true);
                         }
                     });
-                    input.addEventListener('blur', (e) => { e.target.value = (parseFloat(e.target.value.replace(/,/g, '')) || 0).toLocaleString('en-US'); });
+                    input.addEventListener('blur', (e) => { 
+                        const value = parseFloat(e.target.value.replace(/,/g, '')) || 0;
+                        if (e.target.classList.contains('cost-input')) {
+                             e.target.value = value.toLocaleString('en-US');
+                        } else {
+                            e.target.value = value;
+                        }
+                    });
                 });
             },
-            populateFormulasModal(calculationParams) { /* Logic remains complex, kept as is */
+            populateFormulasModal(calculationParams) {
                 const investmentContainer = this.elements.investmentFormulaContainer;
                 const annualContainer = this.elements.annualFormulaContainer;
                 investmentContainer.innerHTML = '';
@@ -1243,6 +1305,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                         container.insertAdjacentHTML('beforeend', `<div class="grid grid-cols-1 md:grid-cols-12 items-center gap-2 border-b border-gray-100 py-3"><div class="md:col-span-4 flex items-center"><input type="checkbox" id="check_${key}" data-key="${key}" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-3" ${param.enabled ? 'checked' : ''}><label for="check_${key}" class="font-medium text-gray-800">${param.label}</label></div><div class="md:col-span-5"><p class="text-sm text-gray-500">${param.description}</p></div><div class="md:col-span-3 flex items-center"><input type="text" id="input_${key}" data-key="${key}" value="${formattedValue}" class="modal-table-input ${param.readonly ? 'readonly' : ''}" ${param.readonly ? 'readonly' : ''}><span class="ml-2 text-gray-600 w-10 text-left">${param.unit}</span></div></div>`);
                     }
+                });
+
+                document.querySelectorAll('#investmentFormulaContainer input[type="text"], #annualFormulaContainer input[type="text"]').forEach(input => {
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            App.handleAdvancedEnterSave();
+                            e.target.blur();
+                        }
+                    });
                 });
             },
             openExplanationModal(type, results, inputs) { /* Logic remains complex, kept as is */
@@ -1397,12 +1469,208 @@ document.addEventListener('DOMContentLoaded', () => {
             // These functions are complex and less prone to simple line-count reduction without losing readability.
             // The logic from the original file for these functions should be pasted here.
             calculateSalvageValue(inputs, deviceSpecs) { return inputs.equipmentList.reduce((sum, item) => { const { spec, count, cabinetCount } = item; const salvage = (spec.type === 'DC_360') ? (cabinetCount * spec.cabinetSalvage) + (count * spec.terminalSalvage) : count * spec.salvage; return sum + salvage; }, 0); },
-            getInvestmentBreakdown(inputs, params) { const items = []; const taxRate = params.taxRate.enabled ? params.taxRate.value : 0; let totalDeviceCostUntaxed = 0, totalPowerKw = 0, totalGunCount = 0, hasAC = false, hasDC = false; inputs.equipmentList.forEach(item => { const { spec, count, pileCount, gunCount, cabinetCount } = item; if (spec.type === 'AC') hasAC = true; else hasDC = true; totalDeviceCostUntaxed += (spec.type === 'DC_360') ? (cabinetCount * spec.cabinetCost) + (count * spec.terminalCost) : pileCount * spec.cost; totalPowerKw += spec.power * (spec.type === 'DC_360' ? cabinetCount : pileCount); totalGunCount += gunCount; }); const totalDeviceCostTaxed = totalDeviceCostUntaxed * (1 + taxRate); if (params.deviceCost.enabled) items.push({ key: 'deviceCost', label: '設備總成本 (含稅)', value: totalDeviceCostTaxed, untaxedValue: totalDeviceCostUntaxed, formula: `(${UI.formatCurrency(totalDeviceCostUntaxed,0,false,true)}) x (1 + ${taxRate*100}%)`}); if (hasDC) { if (params.lineSubsidyPerKw.enabled) items.push({ key: 'lineSubsidyPerKw', label: params.lineSubsidyPerKw.label, value: params.lineSubsidyPerKw.value * totalPowerKw, formula: `${UI.formatCurrency(params.lineSubsidyPerKw.value,0,false,true)} x ${totalPowerKw} kW`}); if (params.technicianFee.enabled) items.push({ key: 'technicianFee', label: params.technicianFee.label, value: params.technicianFee.value, formula: '一次性費用' }); if (params.meterFeeBase.enabled) items.push({ key: 'meterFeeBase', label: params.meterFeeBase.label, value: params.meterFeeBase.value, formula: '一次性費用' }); if (params.meterFeePerGun.enabled) items.push({ key: 'meterFeePerGun', label: params.meterFeePerGun.label, value: params.meterFeePerGun.value * totalGunCount, formula: `${UI.formatCurrency(params.meterFeePerGun.value,0,false,true)} x ${totalGunCount} 槍` }); } if (params.distributionPanelFee.enabled) { const fee = hasAC && !hasDC ? 30000 : params.distributionPanelFee.value; items.push({ key: 'distributionPanelFee', label: params.distributionPanelFee.label, value: fee, formula: hasAC && !hasDC ? 'AC 專案費用' : '一次性費用' }); } if (params.constructionFee.enabled) items.push({ key: 'constructionFee', label: params.constructionFee.label, value: inputs.infrastructureCostMain, formula: '由主畫面輸入' }); return items; },
-            getRevenueBreakdown(yearData, inputs, results) { const items = []; const { details } = yearData; if (details.revenue['AC 充電服務費'] > 0) { items.push({ label: 'AC 充電服務費', value: details.revenue['AC 充電服務費'], formula: `${UI.formatCurrency(details.kwh.ac, 0, false, true)} kWh x ${UI.formatCurrency(results.avgChargeFeeAC, 2, false, true)}元` }); } if (details.revenue['DC 充電服務費'] > 0) { items.push({ label: 'DC 充電服務費', value: details.revenue['DC 充電服務費'], formula: `${UI.formatCurrency(details.kwh.dc, 0, false, true)} kWh x ${UI.formatCurrency(results.avgChargeFeeDC, 2, false, true)}元 (均價)` }); } return items; },
-            getOverallRevenueBreakdown(results, inputs) { const totalRevenueItems = { 'AC 充電服務費': { value: 0, totalKwh: 0 }, 'DC 充電服務費': { value: 0, totalKwh: 0 }, }; results.annualData.forEach(yearData => { totalRevenueItems['AC 充電服務費'].value += yearData.details.revenue['AC 充電服務費'] || 0; totalRevenueItems['AC 充電服務費'].totalKwh += yearData.details.kwh.ac || 0; totalRevenueItems['DC 充電服務費'].value += yearData.details.revenue['DC 充電服務費'] || 0; totalRevenueItems['DC 充電服務費'].totalKwh += yearData.details.kwh.dc || 0; }); const finalItems = []; if (totalRevenueItems['AC 充電服務費'].value > 0) { finalItems.push({ label: 'AC 充電服務費', value: totalRevenueItems['AC 充電服務費'].value, formula: `${UI.formatCurrency(totalRevenueItems['AC 充電服務費'].totalKwh, 0, false, true)} kWh x ${UI.formatCurrency(results.avgChargeFeeAC, 2, false, true)}元` }); } if (totalRevenueItems['DC 充電服務費'].value > 0) { finalItems.push({ label: 'DC 充電服務費', value: totalRevenueItems['DC 充電服務費'].value, formula: `${UI.formatCurrency(totalRevenueItems['DC 充電服務費'].totalKwh, 0, false, true)} kWh x ${UI.formatCurrency(results.avgChargeFeeDC, 2, false, true)}元 (均價)` }); } return finalItems; },
-            getOverallCostBreakdown(results, inputs) { const totalCostItemsMap = new Map(); const p = Config.calculationParams; const totalKwh = results.annualData.reduce((sum, d) => sum + d.kwhPerYear, 0); const totalTransactions = results.annualData.reduce((sum, d) => sum + (d.kwhPerYear / (inputs.avgKwhPerCar || 1)), 0); const totalRevenue = results.totalChargingRevenue; const totalGunCount = inputs.equipmentList.reduce((sum, item) => sum + item.gunCount, 0); results.annualData.forEach(yearData => { let costItems = yearData.details.costBreakdownItems; if (inputs.financingEnabled && inputs.depreciationMethod !== 'none') { costItems = costItems.filter(item => item.key !== 'principal'); } costItems.forEach(item => { if (totalCostItemsMap.has(item.label)) { totalCostItemsMap.get(item.label).value += item.value; } else { totalCostItemsMap.set(item.label, { value: item.value, formula: '' }); } }); }); return Array.from(totalCostItemsMap, ([label, data]) => ({ label, ...data })); },
+            getInvestmentBreakdown(inputs, params) {
+                const baseItems = [];
+                const taxRate = params.taxRate.enabled ? params.taxRate.value : 0;
+                
+                // 1. Calculate base hardware and fixed fee costs
+                let totalDeviceCostUntaxed = 0, totalPowerKw = 0, totalGunCount = 0, hasAC = false, hasDC = false;
+                inputs.equipmentList.forEach(item => {
+                    const { spec, count, pileCount, gunCount, cabinetCount } = item;
+                    if (spec.type === 'AC') hasAC = true; else hasDC = true;
+                    totalDeviceCostUntaxed += (spec.type === 'DC_360') ? (cabinetCount * spec.cabinetCost) + (count * spec.terminalCost) : pileCount * spec.cost;
+                    totalPowerKw += spec.power * (spec.type === 'DC_360' ? cabinetCount : pileCount);
+                    totalGunCount += gunCount;
+                });
+
+                const totalDeviceCostTaxed = totalDeviceCostUntaxed * (1 + taxRate);
+                if (params.deviceCost.enabled) baseItems.push({ key: 'deviceCost', label: '設備總成本 (含稅)', value: totalDeviceCostTaxed, untaxedValue: totalDeviceCostUntaxed, formula: `(${UI.formatCurrency(totalDeviceCostUntaxed,0,false,true)}) x (1 + ${taxRate*100}%)`});
+
+                if (hasDC) {
+                    if (params.lineSubsidyPerKw.enabled) baseItems.push({ key: 'lineSubsidyPerKw', label: params.lineSubsidyPerKw.label, value: params.lineSubsidyPerKw.value * totalPowerKw, formula: `${UI.formatCurrency(params.lineSubsidyPerKw.value,0,false,true)} x ${totalPowerKw} kW`});
+                    if (params.technicianFee.enabled) baseItems.push({ key: 'technicianFee', label: params.technicianFee.label, value: params.technicianFee.value, formula: '一次性費用' });
+                    if (params.meterFeeBase.enabled) baseItems.push({ key: 'meterFeeBase', label: params.meterFeeBase.label, value: params.meterFeeBase.value, formula: '一次性費用' });
+                    if (params.meterFeePerGun.enabled) baseItems.push({ key: 'meterFeePerGun', label: params.meterFeePerGun.label, value: params.meterFeePerGun.value * totalGunCount, formula: `${UI.formatCurrency(params.meterFeePerGun.value,0,false,true)} x ${totalGunCount} 槍` });
+                }
+
+                if (params.distributionPanelFee.enabled) {
+                    const fee = hasAC && !hasDC ? 30000 : params.distributionPanelFee.value;
+                    baseItems.push({ key: 'distributionPanelFee', label: params.distributionPanelFee.label, value: fee, formula: hasAC && !hasDC ? 'AC 專案費用' : '一次性費用' });
+                }
+
+                if (params.constructionFee.enabled) baseItems.push({ key: 'constructionFee', label: params.constructionFee.label, value: inputs.infrastructureCostMain, formula: '由主畫面輸入' });
+
+                // 2. Sum up all base costs to get 'A'
+                const baseInvestmentSubtotal = baseItems.reduce((sum, item) => sum + item.value, 0);
+
+                // 3. Get the percentages for the new items
+                const laborPercent = params.laborCostInvestment.enabled ? params.laborCostInvestment.value : 0;
+                const miscPercent = params.miscCostInvestment.enabled ? params.miscCostInvestment.value : 0;
+                const contingencyPercent = params.contingencyInvestment.enabled ? params.contingencyInvestment.value : 0;
+                const totalPercent = laborPercent + miscPercent + contingencyPercent;
+
+                // 4. Calculate the final Total Investment
+                const finalTotalInvestment = (totalPercent < 1) ? baseInvestmentSubtotal / (1 - totalPercent) : baseInvestmentSubtotal;
+
+                // 5. Now calculate the actual values for the new percentage-based items and add them
+                const finalItems = [...baseItems];
+
+                if (params.laborCostInvestment.enabled) {
+                    const laborCost = finalTotalInvestment * laborPercent;
+                    finalItems.push({ key: 'laborCostInvestment', label: params.laborCostInvestment.label, value: laborCost, formula: `總投資額 x ${(laborPercent * 100).toFixed(0)}%` });
+                }
+                if (params.miscCostInvestment.enabled) {
+                    const miscCost = finalTotalInvestment * miscPercent;
+                    finalItems.push({ key: 'miscCostInvestment', label: params.miscCostInvestment.label, value: miscCost, formula: `總投資額 x ${(miscPercent * 100).toFixed(0)}%` });
+                }
+                if (params.contingencyInvestment.enabled) {
+                    const contingency = finalTotalInvestment * contingencyPercent;
+                    finalItems.push({ key: 'contingencyInvestment', label: params.contingencyInvestment.label, value: contingency, formula: `總投資額 x ${(contingencyPercent * 100).toFixed(0)}%` });
+                }
+
+                return finalItems;
+            },
+            getRevenueBreakdown(yearData, inputs, results) { const items = []; const { details } = yearData; if (details.kwh.ac > 0) { items.push({ label: 'AC 充電服務費', value: details.kwh.ac * results.avgChargeFeeAC, formula: `${UI.formatCurrency(details.kwh.ac, 0, false, true)} kWh x ${UI.formatCurrency(results.avgChargeFeeAC, 2, false, true)}元` }); } if (details.kwh.dc > 0) { items.push({ label: 'DC 充電服務費', value: details.kwh.dc * results.avgChargeFeeDC, formula: `${UI.formatCurrency(details.kwh.dc, 0, false, true)} kWh x ${UI.formatCurrency(results.avgChargeFeeDC, 2, false, true)}元 (均價)` }); } return items; },
+            getOverallRevenueBreakdown(results, inputs) { const totalRevenueItems = { 'AC 充電服務費': { value: 0, totalKwh: 0 }, 'DC 充電服務費': { value: 0, totalKwh: 0 }, }; results.annualData.forEach(yearData => { totalRevenueItems['AC 充電服務費'].value += (yearData.details.kwh.ac || 0) * results.avgChargeFeeAC; totalRevenueItems['AC 充電服務費'].totalKwh += yearData.details.kwh.ac || 0; totalRevenueItems['DC 充電服務費'].value += (yearData.details.kwh.dc || 0) * results.avgChargeFeeDC; totalRevenueItems['DC 充電服務費'].totalKwh += yearData.details.kwh.dc || 0; }); const finalItems = []; if (totalRevenueItems['AC 充電服務費'].value > 0) { finalItems.push({ label: 'AC 充電服務費', value: totalRevenueItems['AC 充電服務費'].value, formula: `${UI.formatCurrency(totalRevenueItems['AC 充電服務費'].totalKwh, 0, false, true)} kWh x ${UI.formatCurrency(results.avgChargeFeeAC, 2, false, true)}元` }); } if (totalRevenueItems['DC 充電服務費'].value > 0) { finalItems.push({ label: 'DC 充電服務費', value: totalRevenueItems['DC 充電服務費'].value, formula: `${UI.formatCurrency(totalRevenueItems['DC 充電服務費'].totalKwh, 0, false, true)} kWh x ${UI.formatCurrency(results.avgChargeFeeDC, 2, false, true)}元 (均價)` }); } return finalItems; },
+            getOverallCostBreakdown(results, inputs) { const totalCostItemsMap = new Map(); const p = Config.calculationParams; const totalKwh = results.annualData.reduce((sum, d) => sum + d.kwhPerYear, 0); const totalTransactions = results.annualData.reduce((sum, d) => sum + (d.kwhPerYear / (inputs.avgKwhPerCar || 1)), 0); const totalRevenue = results.totalChargingRevenue; const totalGunCount = inputs.equipmentList.reduce((sum, item) => sum + item.gunCount, 0); results.annualData.forEach(yearData => { let costItems = yearData.details.costBreakdownItems; if (inputs.financingEnabled && inputs.depreciationMethod !== 'none') { costItems = costItems.filter(item => item.key !== 'principal'); } costItems.forEach(item => { if (totalCostItemsMap.has(item.label)) { totalCostItemsMap.get(item.label).value += item.value; } else { totalCostItemsMap.set(item.label, { value: item.value, formula: item.formula }); } }); }); return Array.from(totalCostItemsMap, ([label, data]) => ({ label, ...data })); },
             getOverallManagementCostBreakdown(results, inputs) { const items = []; const totalKwh = results.annualData.reduce((sum, d) => sum + d.kwhPerYear, 0); const totalRevenue = results.totalChargingRevenue; if (inputs.profitShareMethods.byAmount) { items.push({ label: '維運代管 (依度電)', value: results.annualData.reduce((sum, d) => sum + (d.details.costBreakdownItems.find(item => item.key === 'management_byAmount')?.value || 0), 0), formula: `${UI.formatCurrency(totalKwh, 0, false, true)} kWh x ${inputs.profitShareAmount} 元` }); } if (inputs.profitShareMethods.byPercentage) { items.push({ label: '維運代管 (依營收%)', value: results.annualData.reduce((sum, d) => sum + (d.details.costBreakdownItems.find(item => item.key === 'management_byPercentage')?.value || 0), 0), formula: `${UI.formatCurrency(totalRevenue, 0, false, true)} x ${inputs.profitSharePercentage * 100}%` }); } if (inputs.profitShareMethods.bySite) { items.push({ label: '維運代管 (站點計費)', value: results.annualData.reduce((sum, d) => sum + (d.details.costBreakdownItems.find(item => item.key === 'management_bySite')?.value || 0), 0), formula: `各年度加總` }); } return items; },
-            getCostBreakdown(results, inputs, year, totalKwhSold, revenue, remainingLoanPrincipal) { const items = []; const p = Config.calculationParams; const numberOfTransactions = inputs.avgKwhPerCar > 0 ? totalKwhSold / inputs.avgKwhPerCar : 0; const totalGunCount = inputs.equipmentList.reduce((sum, item) => sum + item.gunCount, 0); const hasDC = inputs.equipmentList.some(item => item.spec.type !== 'AC'); if (p.taipowerFee.enabled) { items.push({ key: 'taipowerFee', label: p.taipowerFee.label, value: totalKwhSold * p.taipowerFee.value * (1 + (p.powerLossRate.enabled ? p.powerLossRate.value : 0)), formula: `...` }); } if (inputs.rentMethod !== 'none') { let rentCost = 0; switch(inputs.rentMethod) { case 'bySpace': rentCost = inputs.rentPerSpace * inputs.equipmentList.reduce((s, i) => s + i.parkingSpaces, 0) * 12; break; case 'byLand': rentCost = inputs.rentPerLand * 12; break; case 'byKwhShare': rentCost = totalKwhSold * inputs.rentPerKwh; break; case 'byRevenueShare': rentCost = revenue * inputs.rentPercentage; break; case 'byKwhTier': const monthlyKwh = totalKwhSold / 12; if (monthlyKwh > inputs.rentKwhThreshold) { rentCost = inputs.rentTierAboveType === 'byKwh' ? totalKwhSold * inputs.rentTierAboveValue : revenue * inputs.rentTierAboveValue; } else { rentCost = inputs.rentTierBelowType === 'byKwh' ? totalKwhSold * inputs.rentTierBelowValue : revenue * inputs.rentTierBelowValue; } break; } items.push({ key: 'rent', label: '租金', value: rentCost, formula: `...` }); } if (!inputs.profitShareMethods.none) { if (inputs.profitShareMethods.byAmount) items.push({ key: 'management_byAmount', label: '維運代管 (依度電)', value: totalKwhSold * inputs.profitShareAmount, formula: `...` }); if (inputs.profitShareMethods.byPercentage) items.push({ key: 'management_byPercentage', label: '維運代管 (依營收%)', value: revenue * inputs.profitSharePercentage, formula: `...` }); if (inputs.profitShareMethods.bySite) { let cost = (totalGunCount > inputs.gunCountThreshold) ? totalGunCount * inputs.siteFeePerGunMonthly * 12 : inputs.siteFeeMonthly * 12; items.push({ key: 'management_bySite', label: '維運代管 (站點計費)', value: cost, formula: `...` }); } } if (p.transactionFeeRate.enabled) items.push({ key: 'transactionFee', label: p.transactionFeeRate.label, value: revenue * p.transactionFeeRate.value, formula: `...` }); if (p.electronicInvoiceFeePerTransaction.enabled) items.push({ key: 'invoiceFee', label: p.electronicInvoiceFeePerTransaction.label, value: numberOfTransactions * p.electronicInvoiceFeePerTransaction.value, formula: `...` }); if (p.repairPartsRate.enabled) items.push({ key: 'repairFee', label: p.repairPartsRate.label, value: results.costBreakdown.equipmentCost * p.repairPartsRate.value, formula: `...` }); if (p.electricalTechnicianFee.enabled && hasDC) items.push({ key: 'electricalTechFee', label: p.electricalTechnicianFee.label, value: p.electricalTechnicianFee.value, formula: `...` }); if (p.maintenanceFee.enabled) items.push({ key: 'maintenanceFee', label: p.maintenanceFee.label, value: p.maintenanceFee.value, formula: `...` }); if (p.insuranceFee.enabled) items.push({ key: 'insuranceFee', label: p.insuranceFee.label, value: p.insuranceFee.value, formula: `...` }); if (p.extendedWarrantyPerPile.enabled && year >= p.extendedWarrantyStartYear.value) { items.push({ key: 'warrantyFee', label: p.extendedWarrantyPerPile.label, value: results.costBreakdown.equipmentCost * p.extendedWarrantyPerPile.value, formula: `...` }); } if (p.laborCost.enabled) items.push({ key: 'laborCost', label: p.laborCost.label, value: p.laborCost.value, formula: `...` }); if (p.internetFee.enabled) items.push({ key: 'internetFee', label: '網路費', value: p.internetFee.value * 12, formula: `...` }); if (p.tdxUploadFee.enabled) items.push({ key: 'tdxFee', label: 'TDX上傳費', value: p.tdxUploadFee.value * totalGunCount * 12, formula: `...` }); if (inputs.financingEnabled && year <= inputs.loanTerm && remainingLoanPrincipal > 0) { const interestPayment = remainingLoanPrincipal * inputs.interestRate; const monthlyPayment = (remainingLoanPrincipal * (inputs.interestRate / 12)) / (1 - Math.pow(1 + (inputs.interestRate / 12), - (inputs.loanTerm - year + 1) * 12)); const principalPayment = (monthlyPayment * 12) - interestPayment; items.push({ key: 'interest', label: '利息支出', value: interestPayment, formula: `...` }); items.push({ key: 'principal', label: '本金攤還', value: principalPayment, formula: `...` }); } if (inputs.depreciationMethod !== 'none' && year <= inputs.depreciationYears) { const depreciableBase = results.costBreakdown.equipmentCost - results.costBreakdown.totalSalvageValue; let depreciation = 0; if (inputs.depreciationMethod === 'straightLine') { depreciation = depreciableBase / inputs.depreciationYears; } else if (inputs.depreciationMethod === 'syd') { const n = inputs.depreciationYears; const sydDenominator = n * (n + 1) / 2; depreciation = depreciableBase * ((n - year + 1) / sydDenominator); } items.push({ key: 'depreciation', label: '折舊', value: depreciation, formula: `...` }); } return items; },
+            getCostBreakdown(results, inputs, year, totalKwhSold, revenue, remainingLoanPrincipal) {
+                const items = [];
+                const p = Config.calculationParams;
+                const numberOfTransactions = inputs.avgKwhPerCar > 0 ? totalKwhSold / inputs.avgKwhPerCar : 0;
+                const totalGunCount = inputs.equipmentList.reduce((sum, item) => sum + item.gunCount, 0);
+                const hasDC = inputs.equipmentList.some(item => item.spec.type !== 'AC');
+
+                if (p.taipowerFee.enabled) {
+                    const powerLoss = 1 + (p.powerLossRate.enabled ? p.powerLossRate.value : 0);
+                    items.push({
+                        key: 'taipowerFee',
+                        label: p.taipowerFee.label,
+                        value: totalKwhSold * p.taipowerFee.value * powerLoss,
+                        formula: `${UI.formatCurrency(totalKwhSold, 0, false, true)}kWh x ${UI.formatCurrency(p.taipowerFee.value, 2, false, true)}元 x ${powerLoss.toFixed(2)} (含電損)`
+                    });
+                }
+
+                if (inputs.rentMethod !== 'none') {
+                    let rentCost = 0;
+                    let formula = '';
+                    switch(inputs.rentMethod) {
+                        case 'bySpace':
+                            const parkingSpaces = inputs.equipmentList.reduce((s, i) => s + i.parkingSpaces, 0);
+                            rentCost = inputs.rentPerSpace * parkingSpaces * 12;
+                            formula = `${UI.formatCurrency(inputs.rentPerSpace)}/車格 x ${parkingSpaces}車格 x 12月`;
+                            break;
+                        case 'byLand':
+                            rentCost = inputs.rentPerLand * 12;
+                            formula = `${UI.formatCurrency(inputs.rentPerLand)}/月 x 12月`;
+                            break;
+                        case 'byKwhShare':
+                            rentCost = totalKwhSold * inputs.rentPerKwh;
+                            formula = `${UI.formatCurrency(totalKwhSold, 0, false, true)} kWh x ${UI.formatCurrency(inputs.rentPerKwh)}元`;
+                            break;
+                        case 'byRevenueShare':
+                            rentCost = revenue * inputs.rentPercentage;
+                            formula = `${UI.formatCurrency(revenue, 0, false, true)}元 x ${inputs.rentPercentage * 100}%`;
+                            break;
+                        case 'byKwhTier':
+                            const monthlyKwh = totalKwhSold / 12;
+                            if (monthlyKwh > inputs.rentKwhThreshold) {
+                                rentCost = inputs.rentTierAboveType === 'byKwh' ? totalKwhSold * inputs.rentTierAboveValue : revenue * inputs.rentTierAboveValue;
+                                formula = `度數>門檻, ${inputs.rentTierAboveType === 'byKwh' ? '依度電' : '依營收'}`;
+                            } else {
+                                rentCost = inputs.rentTierBelowType === 'byKwh' ? totalKwhSold * inputs.rentTierBelowValue : revenue * inputs.rentTierBelowValue;
+                                formula = `度數<=門檻, ${inputs.rentTierBelowType === 'byKwh' ? '依度電' : '依營收'}`;
+                            }
+                            break;
+                    }
+                    items.push({ key: 'rent', label: '租金', value: rentCost, formula });
+                }
+
+                if (!inputs.profitShareMethods.none) {
+                    if (inputs.profitShareMethods.byAmount) {
+                        items.push({
+                            key: 'management_byAmount',
+                            label: '維運代管 (依度電)',
+                            value: totalKwhSold * inputs.profitShareAmount,
+                            formula: `${UI.formatCurrency(totalKwhSold, 0, false, true)} kWh x ${inputs.profitShareAmount}元`
+                        });
+                    }
+                    if (inputs.profitShareMethods.byPercentage) {
+                        items.push({
+                            key: 'management_byPercentage',
+                            label: '維運代管 (依營收%)',
+                            value: revenue * inputs.profitSharePercentage,
+                            formula: `${UI.formatCurrency(revenue, 0, false, true)}元 x ${inputs.profitSharePercentage * 100}%`
+                        });
+                    }
+                    if (inputs.profitShareMethods.bySite) {
+                        let cost = (totalGunCount > inputs.gunCountThreshold) ? totalGunCount * inputs.siteFeePerGunMonthly * 12 : inputs.siteFeeMonthly * 12;
+                        let formula = (totalGunCount > inputs.gunCountThreshold) ? `${totalGunCount}槍 x ${UI.formatCurrency(inputs.siteFeePerGunMonthly)}/月 x 12月` : `基本月費 ${UI.formatCurrency(inputs.siteFeeMonthly)} x 12月`;
+                        items.push({
+                            key: 'management_bySite',
+                            label: '維運代管 (站點計費)',
+                            value: cost,
+                            formula
+                        });
+                    }
+                }
+                
+                if (p.transactionFeeRate.enabled) {
+                    items.push({ key: 'transactionFee', label: p.transactionFeeRate.label, value: revenue * p.transactionFeeRate.value, formula: `${UI.formatCurrency(revenue, 0, false, true)}元 x ${p.transactionFeeRate.value * 100}%` });
+                }
+                if (p.electronicInvoiceFeePerTransaction.enabled) {
+                    items.push({ key: 'invoiceFee', label: p.electronicInvoiceFeePerTransaction.label, value: numberOfTransactions * p.electronicInvoiceFeePerTransaction.value, formula: `${Math.round(numberOfTransactions)}張 x ${UI.formatCurrency(p.electronicInvoiceFeePerTransaction.value, 1)}元` });
+                }
+                if (p.repairPartsRate.enabled) {
+                    items.push({ key: 'repairFee', label: p.repairPartsRate.label, value: results.costBreakdown.equipmentCost * p.repairPartsRate.value, formula: `${UI.formatCurrency(results.costBreakdown.equipmentCost, 0, false, true)}元 x ${p.repairPartsRate.value * 100}%` });
+                }
+                if (p.electricalTechnicianFee.enabled && hasDC) {
+                    items.push({ key: 'electricalTechFee', label: p.electricalTechnicianFee.label, value: p.electricalTechnicianFee.value, formula: '年度固定費用' });
+                }
+                if (p.maintenanceFee.enabled) {
+                    items.push({ key: 'maintenanceFee', label: p.maintenanceFee.label, value: p.maintenanceFee.value, formula: '年度固定費用' });
+                }
+                if (p.insuranceFee.enabled) {
+                    items.push({ key: 'insuranceFee', label: p.insuranceFee.label, value: p.insuranceFee.value, formula: '年度固定費用' });
+                }
+                if (p.extendedWarrantyPerPile.enabled && year >= p.extendedWarrantyStartYear.value) {
+                    items.push({ key: 'warrantyFee', label: p.extendedWarrantyPerPile.label, value: results.costBreakdown.equipmentCost * p.extendedWarrantyPerPile.value, formula: `${UI.formatCurrency(results.costBreakdown.equipmentCost, 0, false, true)}元 x ${p.extendedWarrantyPerPile.value * 100}%` });
+                }
+                if (p.laborCost.enabled) {
+                    items.push({ key: 'laborCost', label: p.laborCost.label, value: p.laborCost.value, formula: '年度固定費用' });
+                }
+                if (p.internetFee.enabled) {
+                    items.push({ key: 'internetFee', label: '網路費', value: p.internetFee.value * 12, formula: `${UI.formatCurrency(p.internetFee.value)}元/月 x 12月` });
+                }
+                if (p.tdxUploadFee.enabled) {
+                    items.push({ key: 'tdxFee', label: 'TDX上傳費', value: p.tdxUploadFee.value * totalGunCount * 12, formula: `${UI.formatCurrency(p.tdxUploadFee.value)}元/槍 x ${totalGunCount}槍 x 12月` });
+                }
+                
+                if (inputs.financingEnabled && year <= inputs.loanTerm && remainingLoanPrincipal > 0) {
+                    const interestPayment = remainingLoanPrincipal * inputs.interestRate;
+                    const monthlyPayment = (remainingLoanPrincipal * (inputs.interestRate / 12)) / (1 - Math.pow(1 + (inputs.interestRate / 12), -(inputs.loanTerm - year + 1) * 12));
+                    const principalPayment = (monthlyPayment * 12) - interestPayment;
+                    items.push({ key: 'interest', label: '利息支出', value: interestPayment, formula: `剩餘本金 ${UI.formatCurrency(remainingLoanPrincipal, 0, false, true)} x ${inputs.interestRate * 100}%` });
+                    items.push({ key: 'principal', label: '本金攤還', value: principalPayment, formula: '年度總還款 - 年度利息' });
+                }
+                
+                if (inputs.depreciationMethod !== 'none' && year <= inputs.depreciationYears) {
+                    const depreciableBase = results.costBreakdown.equipmentCost - results.costBreakdown.totalSalvageValue;
+                    let depreciation = 0;
+                    let formula = '';
+                    if (inputs.depreciationMethod === 'straightLine') {
+                        depreciation = depreciableBase / inputs.depreciationYears;
+                        formula = `(設備成本 - 殘值) / ${inputs.depreciationYears}年`;
+                    } else if (inputs.depreciationMethod === 'syd') {
+                        const n = inputs.depreciationYears;
+                        const sydDenominator = n * (n + 1) / 2;
+                        depreciation = depreciableBase * ((n - year + 1) / sydDenominator);
+                        formula = `年數合計法計算`;
+                    }
+                    items.push({ key: 'depreciation', label: '折舊', value: depreciation, formula });
+                }
+                return items;
+            },
             calculateIRR(cashFlows) { let guess = 0.1; for (let i = 0; i < 100; i++) { let npv = 0, derivative = 0; for (let t = 0; t < cashFlows.length; t++) { npv += cashFlows[t] / Math.pow(1 + guess, t); if (t > 0) derivative -= t * cashFlows[t] / Math.pow(1 + guess, t + 1); } if (Math.abs(derivative) < 1e-7) break; const newGuess = guess - npv / derivative; if (Math.abs(newGuess - guess) < 1e-7) return newGuess; guess = newGuess; } return NaN; },
             getLastResults() { return this.lastResults; }
         };
@@ -1576,3 +1844,4 @@ document.addEventListener('DOMContentLoaded', () => {
     </script>
 </body>
 </html>
+
