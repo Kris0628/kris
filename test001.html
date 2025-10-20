@@ -359,12 +359,12 @@
                                             <span class="label-text">度數門檻/月</span>
                                             <input type="text" id="rentKwhThreshold" class="input-field" value="5,000">
                                         </div>
+                                         <div class="flex flex-wrap gap-3 mt-3">
+                                            <label class="choice-label text-sm"><input type="radio" name="rentTierType" value="byKwh" checked><span>依度電</span></label>
+                                            <label class="choice-label text-sm"><input type="radio" name="rentTierType" value="byRevenue"><span>依營收</span></label>
+                                        </div>
                                         <div class="p-3 border border-gray-200 rounded-lg space-y-2">
                                             <span class="label-text text-sm text-green-600 block">▲ 當月總度數 > 門檻</span>
-                                            <div class="flex flex-wrap gap-3">
-                                                <label class="choice-label text-sm"><input type="radio" name="rentTierAboveType" value="byKwh" checked><span>依度電</span></label>
-                                                <label class="choice-label text-sm"><input type="radio" name="rentTierAboveType" value="byRevenue"><span>依營收</span></label>
-                                            </div>
                                             <div id="rentTierAboveKwh" class="grid grid-cols-2 items-center gap-4">
                                                 <span class="label-text text-sm">每度電分潤 (元)</span>
                                                 <input type="number" id="rentTierAboveValueKwh" class="input-field" value="1.2" step="0.1">
@@ -375,11 +375,7 @@
                                             </div>
                                         </div>
                                         <div class="p-3 border border-gray-200 rounded-lg space-y-2">
-                                            <span class="label-text text-sm text-red-600 block">▼ 當月總度數 <= 門檻</span>
-                                            <div class="flex flex-wrap gap-3">
-                                                <label class="choice-label text-sm"><input type="radio" name="rentTierBelowType" value="byKwh" checked><span>依度電</span></label>
-                                                <label class="choice-label text-sm"><input type="radio" name="rentTierBelowType" value="byRevenue"><span>依營收</span></label>
-                                            </div>
+                                            <span class="label-text text-sm text-red-600 block">▼ 當月總度數 &lt;= 門檻</span>
                                             <div id="rentTierBelowKwh" class="grid grid-cols-2 items-center gap-4">
                                                 <span class="label-text text-sm">每度電分潤 (元)</span>
                                                 <input type="number" id="rentTierBelowValueKwh" class="input-field" value="0.8" step="0.1">
@@ -970,10 +966,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     rentPerKwh: this.getNumericValue(this.elements.rentPerKwh),
                     rentPercentage: this.getNumericValue(this.elements.rentPercentage) / 100,
                     rentKwhThreshold: this.getNumericValue(this.elements.rentKwhThreshold),
-                    rentTierAboveType: getCheckedValue('rentTierAboveType'),
-                    rentTierAboveValue: getCheckedValue('rentTierAboveType') === 'byKwh' ? this.getNumericValue(this.elements.rentTierAboveValueKwh) : this.getNumericValue(this.elements.rentTierAboveValueRevenue) / 100,
-                    rentTierBelowType: getCheckedValue('rentTierBelowType'),
-                    rentTierBelowValue: getCheckedValue('rentTierBelowType') === 'byKwh' ? this.getNumericValue(this.elements.rentTierBelowValueKwh) : this.getNumericValue(this.elements.rentTierBelowValueRevenue) / 100,
+                    rentTierType: getCheckedValue('rentTierType'),
+                    rentTierAboveValue: getCheckedValue('rentTierType') === 'byKwh' ? this.getNumericValue(this.elements.rentTierAboveValueKwh) : this.getNumericValue(this.elements.rentTierAboveValueRevenue) / 100,
+                    rentTierBelowValue: getCheckedValue('rentTierType') === 'byKwh' ? this.getNumericValue(this.elements.rentTierBelowValueKwh) : this.getNumericValue(this.elements.rentTierBelowValueRevenue) / 100,
                     profitShareMethods,
                     profitShareAmount: this.getNumericValue(this.elements.profitShareAmount),
                     profitSharePercentage: this.getNumericValue(this.elements.profitSharePercentage) / 100,
@@ -1068,10 +1063,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (rentVisibility[inputs.rentMethod]) rentVisibility[inputs.rentMethod].style.display = 'block';
 
                 if (inputs.rentMethod === 'byKwhTier') {
-                    toggleSection(this.elements.rentTierAboveKwh, inputs.rentTierAboveType === 'byKwh');
-                    toggleSection(this.elements.rentTierAboveRevenue, inputs.rentTierAboveType === 'byRevenue');
-                    toggleSection(this.elements.rentTierBelowKwh, inputs.rentTierBelowType === 'byKwh');
-                    toggleSection(this.elements.rentTierBelowRevenue, inputs.rentTierBelowType === 'byRevenue');
+                    toggleSection(this.elements.rentTierAboveKwh, inputs.rentTierType === 'byKwh');
+                    toggleSection(this.elements.rentTierAboveRevenue, inputs.rentTierType === 'byRevenue');
+                    toggleSection(this.elements.rentTierBelowKwh, inputs.rentTierType === 'byKwh');
+                    toggleSection(this.elements.rentTierBelowRevenue, inputs.rentTierType === 'byRevenue');
                 }
 
                 const depYearsInput = this.elements.depreciationYears;
@@ -1464,8 +1459,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
                 Object.entries(defaults).forEach(([id, value]) => { if (this.elements[id]) this.elements[id].value = value; });
                 // Reset radio/checkboxes
-                const radioDefaults = { billingMethodDC: 'fixed', revenueMethodAC: 'byCars', revenueMethodDC: 'byCars', depreciationMethod: 'straightLine', rentMethod: 'bySpace', rentTierAboveType: 'byKwh', rentTierBelowType: 'byKwh' };
-                Object.entries(radioDefaults).forEach(([name, value]) => document.querySelector(`input[name="${name}"][value="${value}"]`).checked = true);
+                const radioDefaults = {
+                    billingMethodDC: 'fixed', revenueMethodAC: 'byCars', revenueMethodDC: 'byCars', depreciationMethod: 'straightLine', rentMethod: 'bySpace', rentTierType: 'byKwh'
+                };
+                Object.entries(radioDefaults).forEach(([name, value]) => {
+                    const el = document.querySelector(`input[name="${name}"][value="${value}"]`);
+                    if (el) el.checked = true;
+                });
                 ['profitShareByAmount', 'profitShareByPercentage', 'profitShareBySite', 'financingToggle'].forEach(id => this.elements[id].checked = false);
                 this.elements.profitShareNone.checked = true;
                 Persistence.loadDefaultState();
@@ -1661,11 +1661,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         case 'byKwhTier':
                             const monthlyKwh = totalKwhSold / 12;
                             if (monthlyKwh > inputs.rentKwhThreshold) {
-                                rentCost = inputs.rentTierAboveType === 'byKwh' ? totalKwhSold * inputs.rentTierAboveValue : revenue * inputs.rentTierAboveValue;
-                                formula = `度數>門檻, ${inputs.rentTierAboveType === 'byKwh' ? '依度電' : '依營收'}`;
+                                rentCost = inputs.rentTierType === 'byKwh' ? totalKwhSold * inputs.rentTierAboveValue : revenue * inputs.rentTierAboveValue;
+                                formula = `度數>門檻, ${inputs.rentTierType === 'byKwh' ? '依度電' : '依營收'}`;
                             } else {
-                                rentCost = inputs.rentTierBelowType === 'byKwh' ? totalKwhSold * inputs.rentTierBelowValue : revenue * inputs.rentTierBelowValue;
-                                formula = `度數<=門檻, ${inputs.rentTierBelowType === 'byKwh' ? '依度電' : '依營收'}`;
+                                rentCost = inputs.rentTierType === 'byKwh' ? totalKwhSold * inputs.rentTierBelowValue : revenue * inputs.rentTierBelowValue;
+                                formula = `度數<=門檻, ${inputs.rentTierType === 'byKwh' ? '依度電' : '依營收'}`;
                             }
                             break;
                     }
@@ -1894,12 +1894,15 @@ document.addEventListener('DOMContentLoaded', () => {
                             else if (key.includes('Rate') || key.includes('Percentage')) el.value = val * 100;
                             else el.value = val;
                         } else if (key.startsWith('rentTier') && key.endsWith('Type')) {
-                            document.querySelector(`input[name="${key}"][value="${val}"]`).checked = true;
+                            // This is now obsolete, handled by the loop below
                         }
                     });
                      // Radio buttons
-                    ['billingMethodDC', 'revenueMethodAC', 'revenueMethodDC', 'depreciationMethod', 'rentMethod'].forEach(name => {
-                        if (inputs[name]) document.querySelector(`input[name="${name}"][value="${inputs[name]}"]`).checked = true;
+                    ['billingMethodDC', 'revenueMethodAC', 'revenueMethodDC', 'depreciationMethod', 'rentMethod', 'rentTierType'].forEach(name => {
+                        if (inputs[name]) {
+                            const el = document.querySelector(`input[name="${name}"][value="${inputs[name]}"]`);
+                            if(el) el.checked = true;
+                        }
                     });
                     // Checkboxes
                     if (inputs.profitShareMethods) Object.entries(inputs.profitShareMethods).forEach(([key, val]) => {
