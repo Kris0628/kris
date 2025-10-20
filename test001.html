@@ -164,7 +164,7 @@
                             <input type="number" id="parkingSpaces" class="input-field readonly" readonly>
                         </div>
                          <div class="grid grid-cols-2 items-center gap-4">
-                            <span class="label-text">設備費用(含稅)</span>
+                            <span class="label-text">設備費用(未稅)</span>
                             <input type="text" id="equipmentCostDisplayMain" class="input-field readonly" readonly>
                         </div>
                         <div class="grid grid-cols-2 items-center gap-4">
@@ -310,6 +310,9 @@
                             </div>
                             <div class="grid grid-cols-2 items-center gap-4">
                                 <span class="label-text">預計營運期 (年)</span><input type="number" id="operationYears" class="input-field" value="15" min="1">
+                            </div>
+                            <div class="grid grid-cols-2 items-center gap-4">
+                                <span class="label-text">建置期 (月)</span><input type="number" id="constructionPeriod" class="input-field" value="6" min="0">
                             </div>
                         </div>
                         
@@ -516,7 +519,7 @@
                                 <li data-target="revenue"><strong>總營收：</strong><span id="explainerTotalRevenue" class="font-semibold text-green-700"></span><span class="text-gray-500 text-sm ml-2">{營運期間的總收入。}</span></li>
                                 <li data-target="cost"><strong>總成本：</strong><span id="explainerTotalCost" class="font-semibold text-red-700"></span><span class="text-gray-500 text-sm ml-2">{營運期間的所有開銷。}</span></li>
                                 <li id="explainerTotalManagementCostItem" data-target="management"><strong>維運代管總成本：</strong><span id="explainerTotalManagementCost" class="font-semibold text-purple-700"></span><span class="text-gray-500 text-sm ml-2">{營運期間的維運代管總開銷。}</span></li>
-                                <li><strong>預計回收年限：</strong><span id="explainerPaybackPeriod" class="font-semibold text-gray-700"></span><span class="text-gray-500 text-sm ml-2">{「累積稅前淨利」由負轉正的年度。}</span></li>
+                                <li data-target="payback"><strong>預計回收年限：</strong><span id="explainerPaybackPeriod" class="font-semibold text-gray-700"></span><span class="text-gray-500 text-sm ml-2">{含建置期，從專案啟動到回本的總時間。}</span></li>
                             </ul>
                         </div>
                         <div class="text-right mt-2"><button id="openAdvancedModalBtn" class="text-sm bg-indigo-600 text-white px-5 py-2.5 rounded-lg hover:bg-indigo-700 transition-all duration-200 ease-in-out shadow-md hover:shadow-md">⚙️ 進階設定</button></div>
@@ -728,12 +731,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
             saveAdvancedSettings(closeModal = true) {
                 TouEditor.saveAndApply();
-                document.querySelectorAll('#specsModalTableBody input[data-power]').forEach(input => {
-                    const { power, type } = input.dataset;
-                    if (Config.deviceSpecs[power]?.[type] !== undefined) {
-                        Config.deviceSpecs[power][type] = UI.getNumericValue(input, 0);
+                document.querySelectorAll('#specsModalTableBody input.cost-input, #specsModalTableBody input.salvage-percent-input').forEach(input => {
+                    const row = input.closest('tr');
+                    const costInput = row.querySelector('.cost-input');
+                    const percentInput = row.querySelector('.salvage-percent-input');
+                    
+                    const { power, type } = costInput.dataset;
+                    const spec = Config.deviceSpecs[power];
+                    
+                    if (type === 'cost' && spec) {
+                        spec.cost = UI.getNumericValue(costInput, 0);
+                    } else if (type === 'cabinetCost' && spec) {
+                        spec.cabinetCost = UI.getNumericValue(costInput, 0);
+                    } else if (type === 'terminalCost' && spec) {
+                        spec.terminalCost = UI.getNumericValue(costInput, 0);
+                    }
+
+                    const cost = (type === 'cabinetCost') ? spec.cabinetCost : (type === 'terminalCost') ? spec.terminalCost : spec.cost;
+                    const percent = UI.getNumericValue(percentInput, 10);
+                    const newSalvage = Math.round((cost * percent) / 100);
+                    
+                    if (type === 'cost' && spec) {
+                        spec.salvage = newSalvage;
+                    } else if (type === 'cabinetCost' && spec) {
+                        spec.cabinetSalvage = newSalvage;
+                    } else if (type === 'terminalCost' && spec) {
+                        spec.terminalSalvage = newSalvage;
                     }
                 });
+
                 document.querySelectorAll('#investmentFormulaContainer input, #annualFormulaContainer input').forEach(input => {
                     const { key } = input.dataset;
                     const param = Config.calculationParams[key];
@@ -845,7 +871,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 contingencyInvestment: { value: 0.10, label: '建置專案裕度', unit: '%', description: '專案的風險準備金或裕度，為總投資額的百分比。', enabled: true, category: 'investment' },
                 meterFeeBase: { value: 12000, label: '電錶費用(基本)', unit: '元', description: '台電電表基本費用(僅DC樁, 一次性)。', enabled: true, category: 'investment' },
                 meterFeePerGun: { value: 700, label: '電錶費用/槍', unit: '元', description: '每增加一槍の電表費用(僅DC樁, 一次性)。', enabled: true, category: 'investment' },
-                taxRate: { value: 0.05, label: '營業稅率', unit: '%', description: '設備購買及相關服務の營業稅率。', enabled: true, category: 'investment' },
+                taxRate: { value: 0.05, label: '營業稅率', unit: '%', description: '設備購買及相關服務の營業稅率。', enabled: false, category: 'investment' },
                 taipowerFee: { value: 4, label: '台電平均電費', unit: '元', description: '向台電購電の每度平均成本。', enabled: true, category: 'annual' },
                 electricalTechnicianFee: { value: 15000, label: '高壓用電技術人員/年', unit: '元', description: '每年收取一次技師檢定費。', enabled: true, category: 'annual' },
                 maintenanceFee: { value: 37000, label: '維運&客服/年', unit: '元', description: '年度場域維護與線上客服費用。', enabled: false, category: 'annual' },
@@ -934,6 +960,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     avgKwhPerCar: this.getNumericValue(this.elements.avgKwhPerCar),
                     demandGrowthRate: this.getNumericValue(this.elements.demandGrowthRate) / 100,
                     operationYears: this.getNumericValue(this.elements.operationYears, 1),
+                    constructionPeriod: this.getNumericValue(this.elements.constructionPeriod, 6),
                     depreciationYears: this.getNumericValue(this.elements.depreciationYears, 1),
                     depreciationMethod: getCheckedValue('depreciationMethod'),
                     infrastructureCostMain: this.getNumericValue(this.elements.infrastructureCostMain),
@@ -1097,7 +1124,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 this.elements.parkingSpaces.value = inputs.equipmentList.reduce((sum, item) => sum + item.gunCount, 0);
                 if (inputs.billingMethodDC === 'tou') this.elements.avgTouRate.value = this.formatCurrency(results.avgChargeFeeDC, 2, false, true);
-                this.elements.equipmentCostDisplayMain.value = this.formatCurrency(results.costBreakdown.equipmentCost, 0, false, true);
+                this.elements.equipmentCostDisplayMain.value = this.formatCurrency(results.costBreakdown.totalDeviceCostUntaxed, 0, false, true);
                 this.elements.salvageValueDisplay.value = this.formatCurrency(results.costBreakdown.totalSalvageValue, 0, false, true);
 
                 this.populateTable(this.elements.kwhStatsTableBody, results.annualData, d => `<tr class="kwh-row" data-year="${d.year}"><td class="table-cell table-cell-year">第 ${d.year} 年</td><td class="table-cell text-green-600 font-semibold">${d.kwhPerDay.toLocaleString('en-US',{maximumFractionDigits:1})}</td><td class="table-cell text-blue-600 font-semibold">${d.kwhPerMonth.toLocaleString('en-US',{maximumFractionDigits:0})}</td><td class="table-cell text-red-600 font-semibold">${d.kwhPerYear.toLocaleString('en-US',{maximumFractionDigits:0})}</td></tr>`);
@@ -1227,7 +1254,7 @@ document.addEventListener('DOMContentLoaded', () => {
             populateSpecsModal(deviceSpecs, calculationParams) {
                 const tableBody = this.elements.specsModalTableBody;
                 tableBody.innerHTML = '';
-                const taxRate = calculationParams.taxRate.enabled ? calculationParams.taxRate.value : 0;
+                const taxRate = calculationParams.taxRate.value;
                 Object.entries(deviceSpecs).forEach(([power, spec]) => {
                     if (spec.type === 'DC_360') {
                         const createRow = (component, cost, salvage) => {
@@ -1270,7 +1297,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             const cost = parseFloat(costInput.value.replace(/,/g,'')) || 0;
                             const percent = parseFloat(percentInput.value) || 0;
                             salvageValueDisplay.textContent = Math.round((cost * percent) / 100).toLocaleString('en-US');
-                            const taxRate = Config.calculationParams.taxRate.enabled ? Config.calculationParams.taxRate.value : 0;
+                            const taxRate = Config.calculationParams.taxRate.value; // taxRate is always enabled now, just hidden.
                             costTaxedDisplay.textContent = UI.formatCurrency(cost * (1 + taxRate), 0, false, true);
                         }
                     });
@@ -1293,6 +1320,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const inputs = this.getInputs();
 
                 Object.entries(calculationParams).forEach(([key, param]) => {
+                    if (key === 'taxRate') return; 
                     const container = param.category === 'investment' ? investmentContainer : annualContainer;
                     if(container){
                         const isPercentage = param.unit === '%';
@@ -1317,9 +1345,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 });
             },
-            openExplanationModal(type, results, inputs) { /* Logic remains complex, kept as is */
+            openExplanationModal(type, results, inputs) {
                 const { calculationParams } = Config; const body = this.elements.explanationModalBody; let title = ''; let contentHtml = '';
-                const buildGrid = (items, total, title = '總計') => { let gridHtml = '<div class="explainer-grid">'; items.forEach(item => { gridHtml += `<span>${item.label}</span><span>${item.formula}</span><span class="font-semibold">${this.formatCurrency(item.value, 0, false, true)}</span>`; }); gridHtml += '</div>'; gridHtml += `<div class="explainer-total-row"><span>${title}</span><span>${this.formatCurrency(total, 0, false, true)}</span></div>`; return gridHtml; };
+                const buildGrid = (items, total, title = '總計') => { let gridHtml = '<div class="explainer-grid">'; items.forEach(item => { gridHtml += `<span>${item.label}</span><span>${item.formula}</span><span class="font-semibold ${item.value < 0 ? 'text-red-500' : ''}">${this.formatCurrency(item.value, 0, false, true)}</span>`; }); gridHtml += '</div>'; gridHtml += `<div class="explainer-total-row"><span>${title}</span><span>${this.formatCurrency(total, 0, false, true)}</span></div>`; return gridHtml; };
                 switch (type) {
                     case 'investment': title = '總投資額 計算說明'; const investmentItems = Calculator.getInvestmentBreakdown(inputs, calculationParams); contentHtml = buildGrid(investmentItems, results.totalInvestment); break;
                     case 'revenue': title = '總營收 計算說明 (營運期間總計)'; const totalRevenueItems = Calculator.getOverallRevenueBreakdown(results, inputs); contentHtml = buildGrid(totalRevenueItems, results.totalChargingRevenue); break;
@@ -1328,6 +1356,61 @@ document.addEventListener('DOMContentLoaded', () => {
                     case 'loan': title = '融資 計算說明'; let loanGridHtml = '<div class="explainer-grid">'; loanGridHtml += `<span>設備費用(含稅)</span><span>所有設備含稅總價</span><span class="font-semibold">${this.formatCurrency(results.costBreakdown.equipmentCost, 0, false, true)}</span>`; loanGridHtml += `<span>貸款比例</span><span>使用者設定</span><span class="font-semibold">${(inputs.loanPercentage * 100).toFixed(0)}%</span>`; loanGridHtml += '</div>'; loanGridHtml += `<div class="explainer-total-row"><span>融資金額</span><span>${this.formatCurrency(results.loanAmount, 0, false, true)}</span></div>`; contentHtml = loanGridHtml; break;
                     case 'interest': title = '利息總額 計算說明'; const interestItems = []; let tempRemainingPrincipal = results.loanAmount; for (let year = 1; year <= inputs.loanTerm; year++) { if (tempRemainingPrincipal <= 0) break; const interestPayment = tempRemainingPrincipal * inputs.interestRate; const monthlyPayment = (tempRemainingPrincipal * (inputs.interestRate / 12)) / (1 - Math.pow(1 + (inputs.interestRate / 12), - (inputs.loanTerm - year + 1) * 12)); const annualPayment = monthlyPayment * 12; const principalPayment = annualPayment - interestPayment; const formattedInterestRate = parseFloat((inputs.interestRate * 100).toFixed(2)); interestItems.push({ label: `第 ${year} 年利息`, value: interestPayment, formula: `${this.formatCurrency(tempRemainingPrincipal, 0, false, true)} x ${formattedInterestRate}%` }); tempRemainingPrincipal -= principalPayment; } contentHtml = buildGrid(interestItems, results.totalInterestPaid, '利息總額'); break;
                     case 'management': title = '維運代管總成本 計算說明'; const managementItems = Calculator.getOverallManagementCostBreakdown(results, inputs); contentHtml = buildGrid(managementItems, results.totalManagementCost); break;
+                    case 'payback':
+                        title = '預計回收年限 計算說明';
+                        const paybackItems = [];
+                        let cumulativePnl = -results.totalInvestment;
+                        let lastNegativeCumulativePnl = cumulativePnl;
+                        let paybackYear = 0;
+                        let pnlInPaybackYear = 0;
+
+                        paybackItems.push({ label: '初期總投資額', value: cumulativePnl, formula: '作為期初的累積虧損' });
+                        
+                        for (const yearData of results.annualData) {
+                            lastNegativeCumulativePnl = cumulativePnl; 
+                            
+                            paybackItems.push({ label: `第 ${yearData.year} 年淨利`, value: yearData.pnl, formula: '當年度營收 - 成本' });
+                            cumulativePnl += yearData.pnl;
+                            paybackItems.push({ label: `第 ${yearData.year} 年累積淨利`, value: cumulativePnl, formula: `前一年累積 + 當年淨利` });
+
+                            if (cumulativePnl >= 0 && paybackYear === 0) {
+                                paybackYear = yearData.year;
+                                pnlInPaybackYear = yearData.pnl;
+                            }
+                        }
+
+                        if (results.paybackPeriod === 'N/A') {
+                            contentHtml = buildGrid(paybackItems.map(item => ({...item})), cumulativePnl, `營運期結束後累積淨利`);
+                            contentHtml += `<div class="mt-6 p-4 bg-red-50 rounded-lg">
+                                <h4 class="font-bold text-lg text-red-800 mb-2">無法回收原因分析</h4>
+                                <p class="text-gray-700">初期總投資額為 ${this.formatCurrency(results.totalInvestment, 0)}。</p>
+                                <p class="text-gray-700">在營運 ${inputs.operationYears} 年後，累積淨利為 <span class="font-bold text-red-600">${this.formatCurrency(cumulativePnl, 0)}</span>。</p>
+                                <p class="text-gray-700 mt-2">由於營運期結束時累積淨利仍為負數，表示總利潤尚不足以彌補初期投資，因此無法在此期間內回收成本。</p>
+                                <p class="text-gray-700 mt-1">尚有 <strong class="text-red-600">${this.formatCurrency(Math.abs(cumulativePnl), 0)}</strong> 的虧損未彌補。</p>
+                            </div>`;
+                        } else {
+                            const displayItems = paybackItems.slice(0, paybackItems.findIndex(item => item.label.includes(`第 ${paybackYear} 年累積淨利`)) + 1);
+                            const finalCumulativePnl = displayItems[displayItems.length - 1].value;
+                            contentHtml = buildGrid(displayItems, finalCumulativePnl, `第 ${paybackYear} 年累積淨利`);
+
+                            const fractionOfYear = pnlInPaybackYear > 0 ? (-lastNegativeCumulativePnl / pnlInPaybackYear) : 0;
+                            const operatingPayback = paybackYear - 1 + fractionOfYear;
+                            const constructionPeriodInYears = inputs.constructionPeriod / 12;
+                            const finalTotalPayback = operatingPayback + constructionPeriodInYears;
+
+                            contentHtml += `<div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                                <h4 class="font-bold text-lg text-blue-800 mb-2">最終計算</h4>
+                                <p class="text-gray-700">在第 ${paybackYear - 1} 年底時，仍虧損 ${this.formatCurrency(Math.abs(lastNegativeCumulativePnl), 0)}。</p>
+                                <p class="text-gray-700">第 ${paybackYear} 年的淨利為 ${this.formatCurrency(pnlInPaybackYear, 0)}。</p>
+                                <p class="text-gray-700 mt-2">因此，在第 ${paybackYear} 年中需要的營運時間為：</p>
+                                <p class="text-center font-mono text-lg my-2 p-2 bg-white rounded">${this.formatCurrency(Math.abs(lastNegativeCumulativePnl), 0)} / ${this.formatCurrency(pnlInPaybackYear, 0)} = ${fractionOfYear.toFixed(2)} 年</p>
+                                <hr class="my-3 border-blue-200">
+                                <p class="text-gray-700">營運回收年限 = ${paybackYear - 1} + ${fractionOfYear.toFixed(2)} = ${operatingPayback.toFixed(2)} 年</p>
+                                <p class="text-gray-700">加上建置期 ${inputs.constructionPeriod} 個月 (${constructionPeriodInYears.toFixed(2)} 年)</p>
+                                <p class="font-bold text-gray-800 mt-2">總回收年限 = ${operatingPayback.toFixed(2)} + ${constructionPeriodInYears.toFixed(2)} = ${finalTotalPayback.toFixed(1)} 年</p>
+                            </div>`;
+                        }
+                        break;
                 }
                 this.elements.explanationModalTitle.textContent = title; body.innerHTML = contentHtml; this.openModal(this.elements.explanationModal);
             },
@@ -1377,7 +1460,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.elements.equipmentListContainer.innerHTML = '';
                 // Reset simple inputs to their default values
                 const defaults = {
-                    infrastructureCostMain: '500,000', chargeFeePerKwhAC: 7.5, chargeFeePerKwhDC: 10, peakRate: 13.5, offPeakRate: 6.9, holidayRate: 8.5, carsPerGunPerDayDC: 3, kwhPerGunPerMonthDC: '2,700', carsPerGunPerDayAC: 2, kwhPerGunPerMonthAC: 1800, avgKwhPerCar: 30, demandGrowthRate: 20, operationYears: 15, depreciationYears: 5, rentPerSpace: '500', rentPerLand: '15,000', rentPerKwh: 1, rentPercentage: 10, rentKwhThreshold: '5,000', rentTierAboveValueKwh: 1.2, rentTierAboveValueRevenue: 12, rentTierBelowValueKwh: 0.8, rentTierBelowValueRevenue: 8, profitShareAmount: 1, profitSharePercentage: 10, siteFeeMonthly: 3000, gunCountThreshold: 5, siteFeePerGunMonthly: 600, loanPercentage: 70, interestRate: 3.5, loanTerm: 7
+                    infrastructureCostMain: '500,000', chargeFeePerKwhAC: 7.5, chargeFeePerKwhDC: 10, peakRate: 13.5, offPeakRate: 6.9, holidayRate: 8.5, carsPerGunPerDayDC: 3, kwhPerGunPerMonthDC: '2,700', carsPerGunPerDayAC: 2, kwhPerGunPerMonthAC: 1800, avgKwhPerCar: 30, demandGrowthRate: 20, operationYears: 15, constructionPeriod: 6, depreciationYears: 5, rentPerSpace: '500', rentPerLand: '15,000', rentPerKwh: 1, rentPercentage: 10, rentKwhThreshold: '5,000', rentTierAboveValueKwh: 1.2, rentTierAboveValueRevenue: 12, rentTierBelowValueKwh: 0.8, rentTierBelowValueRevenue: 8, profitShareAmount: 1, profitSharePercentage: 10, siteFeeMonthly: 3000, gunCountThreshold: 5, siteFeePerGunMonthly: 600, loanPercentage: 70, interestRate: 3.5, loanTerm: 7
                 };
                 Object.entries(defaults).forEach(([id, value]) => { if (this.elements[id]) this.elements[id].value = value; });
                 // Reset radio/checkboxes
@@ -1449,7 +1532,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (cumulativePnl >= 0 && !paybackFound) {
                         const prevCumulativePnl = results.annualData[year - 2]?.cumulativePnl || -results.totalInvestment;
                         const fractionOfYear = pnl > 0 ? (-prevCumulativePnl / pnl) : 0;
-                        results.paybackPeriod = `${(year - 1 + fractionOfYear).toFixed(1)} 年`;
+                        const operatingPayback = year - 1 + fractionOfYear;
+                        const constructionPeriodInYears = inputs.constructionPeriod / 12;
+                        const totalPayback = operatingPayback + constructionPeriodInYears;
+                        results.paybackPeriod = `${totalPayback.toFixed(1)} 年`;
                         paybackFound = true;
                     }
                 }
@@ -1471,7 +1557,7 @@ document.addEventListener('DOMContentLoaded', () => {
             calculateSalvageValue(inputs, deviceSpecs) { return inputs.equipmentList.reduce((sum, item) => { const { spec, count, cabinetCount } = item; const salvage = (spec.type === 'DC_360') ? (cabinetCount * spec.cabinetSalvage) + (count * spec.terminalSalvage) : count * spec.salvage; return sum + salvage; }, 0); },
             getInvestmentBreakdown(inputs, params) {
                 const baseItems = [];
-                const taxRate = params.taxRate.enabled ? params.taxRate.value : 0;
+                const taxRate = params.taxRate.value;
                 
                 // 1. Calculate base hardware and fixed fee costs
                 let totalDeviceCostUntaxed = 0, totalPowerKw = 0, totalGunCount = 0, hasAC = false, hasDC = false;
