@@ -208,6 +208,7 @@
                             </div>
                             <div class="pt-4 mt-4 border-t border-blue-200">
                                 <h4 class="text-lg font-semibold text-gray-700 mb-2">基礎參數</h4>
+                                <p class="text-sm text-gray-500 mb-3">* 僅當「每日車次/槍」初始設定低於2時，才會套用需求年增率，且成長上限為2台車。</p>
                                 <div>
                                     <div class="flex flex-wrap gap-3">
                                         <label class="choice-label"><input type="radio" name="revenueMethodAC" value="byCars" checked><span>依車次</span></label>
@@ -1255,13 +1256,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         const createRow = (component, cost, salvage) => {
                             const costTaxed = cost * (1 + taxRate);
                             const salvagePercentage = cost > 0 ? (salvage / cost * 100).toFixed(1) : 10;
-                            return `<td>${component}</td><td><input type="text" class="modal-table-input cost-input" data-power="${power}" data-type="${component.toLowerCase()}Cost" value="${cost.toLocaleString('en-US')}"></td><td class="text-right p-2 cost-taxed-display">${this.formatCurrency(costTaxed, 0, false, true)}</td><td><input type="number" class="modal-table-input salvage-percent-input" value="${salvagePercentage}"></td><td class="text-right salvage-display p-2" data-power="${power}" data-type="${component.toLowerCase()}Salvage">${salvage.toLocaleString('en-US')}</td>`;
+                            return `<td>${component}</td><td><input type="text" class="modal-table-input cost-input" data-power="${power}" data-type="${component.toLowerCase()}Cost" value="${cost.toLocaleString('en-US')}"></td><td class="text-right p-2 cost-taxed-display">${this.formatCurrency(costTaxed, 0, false, true)}</td><td><div class="flex items-center"><input type="number" class="modal-table-input salvage-percent-input" value="${salvagePercentage}"><span class="ml-2 text-gray-500">%</span></div></td><td class="text-right salvage-display p-2" data-power="${power}" data-type="${component.toLowerCase()}Salvage">${salvage.toLocaleString('en-US')}</td>`;
                         };
                         tableBody.insertAdjacentHTML('beforeend', `<tr><td class="font-semibold align-middle" rowspan="2">${spec.name}</td>${createRow('Cabinet', spec.cabinetCost, spec.cabinetSalvage)}</tr><tr>${createRow('Terminal', spec.terminalCost, spec.terminalSalvage)}</tr>`);
                     } else {
                         const costTaxed = spec.cost * (1 + taxRate);
                         const salvagePercentage = spec.cost > 0 ? (spec.salvage / spec.cost * 100).toFixed(1) : 10;
-                        tableBody.insertAdjacentHTML('beforeend', `<tr><td class="font-semibold align-middle">${spec.name}</td><td>充電樁</td><td><input type="text" class="modal-table-input cost-input" data-power="${power}" data-type="cost" value="${spec.cost.toLocaleString('en-US')}"></td><td class="text-right p-2 cost-taxed-display">${this.formatCurrency(costTaxed, 0, false, true)}</td><td><input type="number" class="modal-table-input salvage-percent-input" value="${salvagePercentage}"></td><td class="text-right salvage-display p-2" data-power="${power}" data-type="salvage">${spec.salvage.toLocaleString('en-US')}</td></tr>`);
+                        tableBody.insertAdjacentHTML('beforeend', `<tr><td class="font-semibold align-middle">${spec.name}</td><td>充電樁</td><td><input type="text" class="modal-table-input cost-input" data-power="${power}" data-type="cost" value="${spec.cost.toLocaleString('en-US')}"></td><td class="text-right p-2 cost-taxed-display">${this.formatCurrency(costTaxed, 0, false, true)}</td><td><div class="flex items-center"><input type="number" class="modal-table-input salvage-percent-input" value="${salvagePercentage}"><span class="ml-2 text-gray-500">%</span></div></td><td class="text-right salvage-display p-2" data-power="${power}" data-type="salvage">${spec.salvage.toLocaleString('en-US')}</td></tr>`);
                     }
                 });
                 this.addSpecInputListeners(tableBody);
@@ -1326,7 +1327,14 @@ document.addEventListener('DOMContentLoaded', () => {
                             const displayValue = isPercentage ? param.value * 100 : param.value;
                             formattedValue = displayValue.toLocaleString('en-US', {maximumFractionDigits: 2});
                         }
-                        container.insertAdjacentHTML('beforeend', `<div class="grid grid-cols-1 md:grid-cols-12 items-center gap-2 border-b border-gray-100 py-3"><div class="md:col-span-4 flex items-center"><input type="checkbox" id="check_${key}" data-key="${key}" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-3" ${param.enabled ? 'checked' : ''}><label for="check_${key}" class="font-medium text-gray-800">${param.label}</label></div><div class="md:col-span-5"><p class="text-sm text-gray-500">${param.description}</p></div><div class="md:col-span-3 flex items-center"><input type="text" id="input_${key}" data-key="${key}" value="${formattedValue}" class="modal-table-input ${param.readonly ? 'readonly' : ''}" ${param.readonly ? 'readonly' : ''}><span class="ml-2 text-gray-600 w-10 text-left">${param.unit}</span></div></div>`);
+                        
+                        const unitText = isPercentage ? '%' : param.unit;
+                        const inputHtml = `
+                                <input type="text" id="input_${key}" data-key="${key}" value="${formattedValue}" class="modal-table-input ${param.readonly ? 'readonly' : ''}" ${param.readonly ? 'readonly' : ''}>
+                                <span class="ml-2 text-gray-600 w-10 text-left">${unitText}</span>
+                            `;
+
+                        container.insertAdjacentHTML('beforeend', `<div class="grid grid-cols-1 md:grid-cols-12 items-center gap-2 border-b border-gray-100 py-3"><div class="md:col-span-4 flex items-center"><input type="checkbox" id="check_${key}" data-key="${key}" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-3" ${param.enabled ? 'checked' : ''}><label for="check_${key}" class="font-medium text-gray-800">${param.label}</label></div><div class="md:col-span-5"><p class="text-sm text-gray-500">${param.description}</p></div><div class="md:col-span-3 flex items-center">${inputHtml}</div></div>`);
                     }
                 });
 
@@ -1506,10 +1514,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     const acGuns = inputs.equipmentList.reduce((sum, e) => e.spec.type === 'AC' ? sum + e.gunCount : sum, 0);
                     const dcGuns = inputs.equipmentList.reduce((sum, e) => e.spec.type !== 'AC' ? sum + e.gunCount : sum, 0);
 
-                    const kwhAC = acGuns > 0 ? (inputs.kwhPerGunPerMonthAC * acGuns * 12) : 0;
-                    const kwhDC = dcGuns > 0 ? (inputs.kwhPerGunPerMonthDC * dcGuns * 12) : 0;
-                    const totalKwhSold = kwhAC + (kwhDC * demandMultiplier);
-                    const revenue = (kwhAC * results.avgChargeFeeAC) + (kwhDC * demandMultiplier * results.avgChargeFeeDC);
+                    // AC Calculation with conditional growth
+                    let kwhAC = acGuns > 0 ? (inputs.kwhPerGunPerMonthAC * acGuns * 12) : 0;
+                    // Apply growth rate only if the initial setting is below the max of 2 cars/day
+                    if (inputs.carsPerGunPerDayAC < 2) {
+                        // Calculate the max kwh equivalent to 2 cars/day
+                        const maxKwhAC = (2 * inputs.avgKwhPerCar * 30) * acGuns * 12;
+                        // Apply multiplier and then cap it at the max
+                        kwhAC = Math.min(kwhAC * demandMultiplier, maxKwhAC);
+                    }
+                    
+                    // DC Calculation with growth
+                    const kwhDC = dcGuns > 0 ? (inputs.kwhPerGunPerMonthDC * dcGuns * 12 * demandMultiplier) : 0;
+
+                    const totalKwhSold = kwhAC + kwhDC;
+                    const revenue = (kwhAC * results.avgChargeFeeAC) + (kwhDC * results.avgChargeFeeDC);
                     
                     const costBreakdown = this.getCostBreakdown(results, inputs, year, totalKwhSold, revenue, remainingLoanPrincipal);
                     const principalPayment = costBreakdown.find(item => item.key === 'principal')?.value || 0;
@@ -1933,4 +1952,8 @@ document.addEventListener('DOMContentLoaded', () => {
     </script>
 </body>
 </html>
+
+
+
+
 
