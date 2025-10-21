@@ -898,6 +898,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.updateUIVisibility();
                 this.elements.addEquipmentBtn.addEventListener('click', () => { this.addEquipmentRow(); App.update(); });
                 document.querySelectorAll('.modal-tab-btn').forEach(btn => btn.addEventListener('click', this.handleTabSwitch));
+                
+                // Management checkboxes logic
+                const managementCheckboxes = [this.elements.profitShareByAmount, this.elements.profitShareByPercentage, this.elements.profitShareBySite];
+                const noneCheckbox = this.elements.profitShareNone;
+
+                managementCheckboxes.forEach(checkbox => {
+                    checkbox.addEventListener('change', () => {
+                        if (checkbox.checked) {
+                            noneCheckbox.checked = false;
+                        } else if (!managementCheckboxes.some(cb => cb.checked)) {
+                            noneCheckbox.checked = true;
+                        }
+                        App.update();
+                    });
+                });
+
+                noneCheckbox.addEventListener('change', () => {
+                    if (noneCheckbox.checked) {
+                        managementCheckboxes.forEach(cb => cb.checked = false);
+                    } else if (!managementCheckboxes.some(cb => cb.checked)) {
+                        noneCheckbox.checked = true;
+                    }
+                    App.update();
+                });
             },
             getNumericValue(element, defaultValue = 0) {
                 if (!element) return defaultValue;
@@ -2005,5 +2029,4 @@ document.addEventListener('DOMContentLoaded', () => {
     </script>
 </body>
 </html>
-
 
