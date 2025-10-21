@@ -1256,13 +1256,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         const createRow = (component, cost, salvage) => {
                             const costTaxed = cost * (1 + taxRate);
                             const salvagePercentage = cost > 0 ? (salvage / cost * 100).toFixed(1) : 10;
-                            return `<td>${component}</td><td><input type="text" class="modal-table-input cost-input" data-power="${power}" data-type="${component.toLowerCase()}Cost" value="${cost.toLocaleString('en-US')}"></td><td class="text-right p-2 cost-taxed-display">${this.formatCurrency(costTaxed, 0, false, true)}</td><td><div class="flex items-center"><input type="number" class="modal-table-input salvage-percent-input" value="${salvagePercentage}"><span class="ml-2 text-gray-500">%</span></div></td><td class="text-right salvage-display p-2" data-power="${power}" data-type="${component.toLowerCase()}Salvage">${salvage.toLocaleString('en-US')}</td>`;
+                            return `<td>${component}</td><td><input type="text" class="modal-table-input cost-input" data-power="${power}" data-type="${component.toLowerCase()}Cost" value="${cost.toLocaleString('en-US')}"></td><td class="text-right p-2 cost-taxed-display">${this.formatCurrency(costTaxed, 0, false, true)}</td><td><div class="flex items-center justify-end"><input type="number" class="modal-table-input salvage-percent-input w-20" value="${salvagePercentage}"><span class="ml-2 text-gray-500">%</span></div></td><td class="text-right salvage-display p-2" data-power="${power}" data-type="${component.toLowerCase()}Salvage">${salvage.toLocaleString('en-US')}</td>`;
                         };
                         tableBody.insertAdjacentHTML('beforeend', `<tr><td class="font-semibold align-middle" rowspan="2">${spec.name}</td>${createRow('Cabinet', spec.cabinetCost, spec.cabinetSalvage)}</tr><tr>${createRow('Terminal', spec.terminalCost, spec.terminalSalvage)}</tr>`);
                     } else {
                         const costTaxed = spec.cost * (1 + taxRate);
                         const salvagePercentage = spec.cost > 0 ? (spec.salvage / spec.cost * 100).toFixed(1) : 10;
-                        tableBody.insertAdjacentHTML('beforeend', `<tr><td class="font-semibold align-middle">${spec.name}</td><td>充電樁</td><td><input type="text" class="modal-table-input cost-input" data-power="${power}" data-type="cost" value="${spec.cost.toLocaleString('en-US')}"></td><td class="text-right p-2 cost-taxed-display">${this.formatCurrency(costTaxed, 0, false, true)}</td><td><div class="flex items-center"><input type="number" class="modal-table-input salvage-percent-input" value="${salvagePercentage}"><span class="ml-2 text-gray-500">%</span></div></td><td class="text-right salvage-display p-2" data-power="${power}" data-type="salvage">${spec.salvage.toLocaleString('en-US')}</td></tr>`);
+                        tableBody.insertAdjacentHTML('beforeend', `<tr><td class="font-semibold align-middle">${spec.name}</td><td>充電樁</td><td><input type="text" class="modal-table-input cost-input" data-power="${power}" data-type="cost" value="${spec.cost.toLocaleString('en-US')}"></td><td class="text-right p-2 cost-taxed-display">${this.formatCurrency(costTaxed, 0, false, true)}</td><td><div class="flex items-center justify-end"><input type="number" class="modal-table-input salvage-percent-input w-20" value="${salvagePercentage}"><span class="ml-2 text-gray-500">%</span></div></td><td class="text-right salvage-display p-2" data-power="${power}" data-type="salvage">${spec.salvage.toLocaleString('en-US')}</td></tr>`);
                     }
                 });
                 this.addSpecInputListeners(tableBody);
@@ -1361,29 +1361,55 @@ document.addEventListener('DOMContentLoaded', () => {
                     case 'management': title = '維運代管總成本 計算說明'; const managementItems = Calculator.getOverallManagementCostBreakdown(results, inputs); contentHtml = buildGrid(managementItems, results.totalManagementCost); break;
                     case 'payback':
                         title = '預計回收年限 計算說明';
-                        const paybackItems = [];
                         let cumulativePnl = -results.totalInvestment;
                         let lastNegativeCumulativePnl = cumulativePnl;
                         let paybackYear = 0;
                         let pnlInPaybackYear = 0;
+                        let paybackFound = results.paybackPeriod !== 'N/A';
 
-                        paybackItems.push({ label: '初期總投資額', value: cumulativePnl, formula: '作為期初的累積虧損' });
-                        
+                        let yearByYearHtml = `
+                            <div class="space-y-2" id="paybackExplanationBody">
+                                <div class="flex justify-between items-baseline p-3 bg-gray-100 rounded-lg">
+                                    <span class="font-bold">期初 (總投資額)</span>
+                                    <span class="font-bold text-red-600 text-lg">${this.formatCurrency(cumulativePnl, 0)}</span>
+                                </div>
+                        `;
+
                         for (const yearData of results.annualData) {
-                            lastNegativeCumulativePnl = cumulativePnl; 
-                            
-                            paybackItems.push({ label: `第 ${yearData.year} 年淨利`, value: yearData.pnl, formula: '當年度營收 - 成本' });
+                            lastNegativeCumulativePnl = cumulativePnl;
                             cumulativePnl += yearData.pnl;
-                            paybackItems.push({ label: `第 ${yearData.year} 年累積淨利`, value: cumulativePnl, formula: `前一年累積 + 當年淨利` });
 
+                            yearByYearHtml += `
+                                <div class="p-3 border border-gray-200 rounded-lg payback-year-row cursor-pointer transition-colors hover:bg-gray-50" data-year="${yearData.year}">
+                                    <div class="flex justify-between items-baseline font-bold text-gray-800">
+                                        <span>第 ${yearData.year} 年</span>
+                                        <span class="font-bold text-lg ${cumulativePnl >= 0 ? 'text-blue-600' : 'text-red-600'}">${this.formatCurrency(cumulativePnl, 0)}</span>
+                                    </div>
+                                    <div class="pl-4 mt-2 border-l-2 border-gray-200 space-y-1 text-sm payback-details" style="display: none;">
+                                         <div class="flex justify-between items-baseline">
+                                            <span class="text-gray-500">前期累積:</span>
+                                            <span class="font-mono">${this.formatCurrency(lastNegativeCumulativePnl, 0)}</span>
+                                        </div>
+                                        <div class="flex justify-between items-baseline">
+                                            <span class="text-gray-500">年度淨利:</span>
+                                            <span class="font-mono font-semibold ${yearData.pnl >= 0 ? 'text-green-600' : 'text-red-600'}">${this.formatCurrency(yearData.pnl, 0)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            
                             if (cumulativePnl >= 0 && paybackYear === 0) {
                                 paybackYear = yearData.year;
                                 pnlInPaybackYear = yearData.pnl;
+                                if (paybackFound) break; 
                             }
                         }
+                        
+                        yearByYearHtml += '</div>';
+                        contentHtml = yearByYearHtml;
 
-                        if (results.paybackPeriod === 'N/A') {
-                            contentHtml = buildGrid(paybackItems.map(item => ({...item})), cumulativePnl, `營運期結束後累積淨利`);
+
+                        if (!paybackFound) {
                             contentHtml += `<div class="mt-6 p-4 bg-red-50 rounded-lg">
                                 <h4 class="font-bold text-lg text-red-800 mb-2">無法回收原因分析</h4>
                                 <p class="text-gray-700">初期總投資額為 ${this.formatCurrency(results.totalInvestment, 0)}。</p>
@@ -1392,10 +1418,6 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <p class="text-gray-700 mt-1">尚有 <strong class="text-red-600">${this.formatCurrency(Math.abs(cumulativePnl), 0)}</strong> 的虧損未彌補。</p>
                             </div>`;
                         } else {
-                            const displayItems = paybackItems.slice(0, paybackItems.findIndex(item => item.label.includes(`第 ${paybackYear} 年累積淨利`)) + 1);
-                            const finalCumulativePnl = displayItems[displayItems.length - 1].value;
-                            contentHtml = buildGrid(displayItems, finalCumulativePnl, `第 ${paybackYear} 年累積淨利`);
-
                             const fractionOfYear = pnlInPaybackYear > 0 ? (-lastNegativeCumulativePnl / pnlInPaybackYear) : 0;
                             const operatingPayback = paybackYear - 1 + fractionOfYear;
                             const constructionPeriodInYears = inputs.constructionPeriod / 12;
@@ -1413,9 +1435,33 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <p class="font-bold text-gray-800 mt-2">總回收年限 = ${operatingPayback.toFixed(2)} + ${constructionPeriodInYears.toFixed(2)} = ${finalTotalPayback.toFixed(1)} 年</p>
                             </div>`;
                         }
+                        this.elements.explanationModalTitle.textContent = title; 
+                        body.innerHTML = contentHtml;
+
+                        body.querySelector('#paybackExplanationBody').addEventListener('click', (e) => {
+                            const row = e.target.closest('.payback-year-row');
+                            if (!row) return;
+
+                            const details = row.querySelector('.payback-details');
+                            const isOpening = details.style.display === 'none';
+                            
+                            // Close any currently open details
+                            body.querySelectorAll('.payback-details').forEach(d => d.style.display = 'none');
+                            
+                            // Toggle the clicked one
+                            if (isOpening) {
+                                details.style.display = 'block';
+                            }
+                        });
+
+                        this.openModal(this.elements.explanationModal);
                         break;
                 }
-                this.elements.explanationModalTitle.textContent = title; body.innerHTML = contentHtml; this.openModal(this.elements.explanationModal);
+                if (type !== 'payback') {
+                    this.elements.explanationModalTitle.textContent = title; 
+                    body.innerHTML = contentHtml; 
+                    this.openModal(this.elements.explanationModal);
+                }
             },
             renderRecordsList() {
                 const container = this.elements.recordsList;
@@ -1959,14 +2005,5 @@ document.addEventListener('DOMContentLoaded', () => {
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
 
 
