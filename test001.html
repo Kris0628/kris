@@ -220,7 +220,7 @@
                                         <span class="label-text">每日車次/槍</span>
                                         <span class="block text-xs text-red-500 font-normal">(上限2車/次)</span>
                                     </div>
-                                    <input type="number" id="carsPerGunPerDayAC" class="input-field" value="2" max="2" step="0.1">
+                                    <input type="number" id="carsPerGunPerDayAC" class="input-field" value="0.5" max="2" step="0.1">
                                 </div>
                                 <div class="grid grid-cols-2 items-center gap-4 mt-3">
                                    <div>
@@ -869,19 +869,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 meterFeeBase: { value: 12000, label: '電錶費用(基本)', unit: '元', description: '台電電表基本費用(僅DC樁, 一次性)。', enabled: true, category: 'investment' },
                 meterFeePerGun: { value: 700, label: '電錶費用/槍', unit: '元', description: '每增加一槍の電表費用(僅DC樁, 一次性)。', enabled: true, category: 'investment' },
                 taxRate: { value: 0.05, label: '營業稅率', unit: '%', description: '設備購買及相關服務の營業稅率。', enabled: false, category: 'investment' },
-                taipowerFee: { value: 4, label: '台電平均電費', unit: '元', description: '向台電購電の每度平均成本。', enabled: true, category: 'annual' },
-                electricalTechnicianFee: { value: 15000, label: '高壓用電技術人員/年', unit: '元', description: '每年收取一次技師檢定費。', enabled: true, category: 'annual' },
+                taipowerFee: { value: 4.2, label: '台電平均電費', unit: '元', description: '向台電購電の每度平均成本。', enabled: true, category: 'annual' },
+                electricalTechnicianFee: { value: 20000, label: '高壓用電技術人員/年', unit: '元', description: '每年收取一次技師檢定費。', enabled: true, category: 'annual' },
                 maintenanceFee: { value: 37000, label: '維運&客服/年', unit: '元', description: '年度場域維護與線上客服費用。', enabled: false, category: 'annual' },
                 transactionFeeRate: { value: 0.03, label: '金流手續費', unit: '%', description: '支付給金流服務商の每筆交易手續費率。', enabled: true, category: 'annual' },
                 insuranceFee: { value: 8500, label: '意外保險費/年', unit: '元', description: '場域年度意外險費用。', enabled: true, category: 'annual' },
-                electronicInvoiceFeePerTransaction: { value: 1.2, label: '電子發票/張', unit: '元', description: '每筆交易の電子發票成本。', enabled: true, category: 'annual' },
-                repairPartsRate: { value: 0.01, label: '設備維護備品', unit: '%', description: '年度維修備品費用，為設備含稅總成本の百分比。', enabled: true, category: 'annual' },
-                extendedWarrantyPerPile: { value: 0.02, label: '保固延保', unit: '%', description: '年度延長保固費用，為設備含稅總成本の百分比。', enabled: true, category: 'annual' },
+                electronicInvoiceFeePerTransaction: { value: 1.5, label: '電子發票/張', unit: '元', description: '每筆交易の電子發票成本。', enabled: true, category: 'annual' },
+                repairPartsRate: { value: 0.01, label: '設備維護備品', unit: '%', description: '年度維修備品費用，為設備未稅總成本の百分比。', enabled: true, category: 'annual' },
+                extendedWarrantyPerPile: { value: 0.02, label: '保固延保', unit: '%', description: '年度延長保固費用，為設備未稅總成本の百分比。', enabled: true, category: 'annual' },
                 extendedWarrantyStartYear: { value: 2, label: '保固起始年', unit: '年', description: '延長保固費用從第幾年開始計算。', enabled: true, category: 'annual' },
                 laborCost: { value: 60000, label: '勞務成本/年', unit: '元', description: '年度人力、巡檢等相關勞務成本。', enabled: false, category: 'annual' },
                 internetFee: { value: 500, label: '網路費/月', unit: '元', description: '場域每月の網路通訊費用。', enabled: true, category: 'annual' },
                 tdxUploadFee: { value: 299, label: 'TDX上傳費(槍/月)', unit: '元', description: '每支槍每月上傳資料至交通部TDX平台の費用。', enabled: false, category: 'annual' },
-                powerLossRate: { value: 0.05, label: '充電電損率', unit: '%', description: '電力在傳輸和轉換過程中の損耗率。', enabled: true, category: 'annual' },
+                powerLossRate: { value: 0.10, label: '充電電損率', unit: '%', description: '電力在傳輸和轉換過程中の損耗率。', enabled: true, category: 'annual' },
             }
         };
 
@@ -1356,7 +1356,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     case 'revenue': title = '總營收 計算說明 (營運期間總計)'; const totalRevenueItems = Calculator.getOverallRevenueBreakdown(results, inputs); contentHtml = buildGrid(totalRevenueItems, results.totalChargingRevenue); break;
                     case 'cost': title = '總成本 計算說明 (營運期間總計)'; const totalCostItems = Calculator.getOverallCostBreakdown(results, inputs); const totalCost = results.annualData.reduce((sum, d) => sum + d.cost, 0); contentHtml = buildGrid(totalCostItems, totalCost); break;
                     case 'equity': title = '本金 計算說明'; const equityItems = [ { label: '總投資額', value: results.totalInvestment, formula: '所有初期建置成本' }, { label: '融資金額', value: -results.loanAmount, formula: '僅針對設備費用貸款' } ]; contentHtml = buildGrid(equityItems, results.equity, '本金 (自有資金)'); break;
-                    case 'loan': title = '融資 計算說明'; let loanGridHtml = '<div class="explainer-grid">'; loanGridHtml += `<span>設備費用(含稅)</span><span>所有設備含稅總價</span><span class="font-semibold">${this.formatCurrency(results.costBreakdown.equipmentCost, 0, false, true)}</span>`; loanGridHtml += `<span>貸款比例</span><span>使用者設定</span><span class="font-semibold">${(inputs.loanPercentage * 100).toFixed(0)}%</span>`; loanGridHtml += '</div>'; loanGridHtml += `<div class="explainer-total-row"><span>融資金額</span><span>${this.formatCurrency(results.loanAmount, 0, false, true)}</span></div>`; contentHtml = loanGridHtml; break;
+                    case 'loan': title = '融資 計算說明'; let loanGridHtml = '<div class="explainer-grid">'; loanGridHtml += `<span>設備費用(未稅)</span><span>所有設備未稅總價</span><span class="font-semibold">${this.formatCurrency(results.costBreakdown.equipmentCost, 0, false, true)}</span>`; loanGridHtml += `<span>貸款比例</span><span>使用者設定</span><span class="font-semibold">${(inputs.loanPercentage * 100).toFixed(0)}%</span>`; loanGridHtml += '</div>'; loanGridHtml += `<div class="explainer-total-row"><span>融資金額</span><span>${this.formatCurrency(results.loanAmount, 0, false, true)}</span></div>`; contentHtml = loanGridHtml; break;
                     case 'interest': title = '利息總額 計算說明'; const interestItems = []; let tempRemainingPrincipal = results.loanAmount; for (let year = 1; year <= inputs.loanTerm; year++) { if (tempRemainingPrincipal <= 0) break; const interestPayment = tempRemainingPrincipal * inputs.interestRate; const monthlyPayment = (tempRemainingPrincipal * (inputs.interestRate / 12)) / (1 - Math.pow(1 + (inputs.interestRate / 12), - (inputs.loanTerm - year + 1) * 12)); const annualPayment = monthlyPayment * 12; const principalPayment = annualPayment - interestPayment; const formattedInterestRate = parseFloat((inputs.interestRate * 100).toFixed(2)); interestItems.push({ label: `第 ${year} 年利息`, value: interestPayment, formula: `${this.formatCurrency(tempRemainingPrincipal, 0, false, true)} x ${formattedInterestRate}%` }); tempRemainingPrincipal -= principalPayment; } contentHtml = buildGrid(interestItems, results.totalInterestPaid, '利息總額'); break;
                     case 'management': title = '維運代管總成本 計算說明'; const managementItems = Calculator.getOverallManagementCostBreakdown(results, inputs); contentHtml = buildGrid(managementItems, results.totalManagementCost); break;
                     case 'payback':
@@ -1463,7 +1463,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.elements.equipmentListContainer.innerHTML = '';
                 // Reset simple inputs to their default values
                 const defaults = {
-                    infrastructureCostMain: '500,000', chargeFeePerKwhAC: 7.5, chargeFeePerKwhDC: 10, peakRate: 13.5, offPeakRate: 6.9, holidayRate: 8.5, carsPerGunPerDayDC: 3, kwhPerGunPerMonthDC: '2,700', carsPerGunPerDayAC: 2, kwhPerGunPerMonthAC: 1800, avgKwhPerCar: 30, demandGrowthRate: 20, operationYears: 15, constructionPeriod: 6, depreciationYears: 5, rentPerSpace: '500', rentPerLand: '15,000', rentPerKwh: 1, rentPercentage: 10, rentKwhThreshold: '5,000', rentTierAboveValueKwh: 1.2, rentTierAboveValueRevenue: 12, rentTierBelowValueKwh: 0.8, rentTierBelowValueRevenue: 8, profitShareAmount: 1, profitSharePercentage: 10, siteFeeMonthly: 3000, gunCountThreshold: 5, siteFeePerGunMonthly: 600, loanPercentage: 70, interestRate: 3.5, loanTerm: 7
+                    infrastructureCostMain: '500,000', chargeFeePerKwhAC: 7.5, chargeFeePerKwhDC: 10, peakRate: 13.5, offPeakRate: 6.9, holidayRate: 8.5, carsPerGunPerDayDC: 3, kwhPerGunPerMonthDC: '2,700', carsPerGunPerDayAC: 0.5, kwhPerGunPerMonthAC: 1800, avgKwhPerCar: 30, demandGrowthRate: 20, operationYears: 15, constructionPeriod: 6, depreciationYears: 5, rentPerSpace: '500', rentPerLand: '15,000', rentPerKwh: 1, rentPercentage: 10, rentKwhThreshold: '5,000', rentTierAboveValueKwh: 1.2, rentTierAboveValueRevenue: 12, rentTierBelowValueKwh: 0.8, rentTierBelowValueRevenue: 8, profitShareAmount: 1, profitSharePercentage: 10, siteFeeMonthly: 3000, gunCountThreshold: 5, siteFeePerGunMonthly: 600, loanPercentage: 70, interestRate: 3.5, loanTerm: 7
                 };
                 Object.entries(defaults).forEach(([id, value]) => { if (this.elements[id]) this.elements[id].value = value; });
                 // Reset radio/checkboxes
@@ -1576,34 +1576,41 @@ document.addEventListener('DOMContentLoaded', () => {
             calculateSalvageValue(inputs, deviceSpecs) { return inputs.equipmentList.reduce((sum, item) => { const { spec, count, cabinetCount } = item; const salvage = (spec.type === 'DC_360') ? (cabinetCount * spec.cabinetSalvage) + (count * spec.terminalSalvage) : count * spec.salvage; return sum + salvage; }, 0); },
             getInvestmentBreakdown(inputs, params) {
                 const baseItems = [];
-                const taxRate = params.taxRate.value;
                 
                 // 1. Calculate base hardware and fixed fee costs
                 let totalDeviceCostUntaxed = 0, totalPowerKw = 0, totalGunCount = 0, hasAC = false, hasDC = false;
+                let deviceCostFormulaParts = [];
                 inputs.equipmentList.forEach(item => {
                     const { spec, count, pileCount, gunCount, cabinetCount } = item;
                     if (spec.type === 'AC') hasAC = true; else hasDC = true;
-                    totalDeviceCostUntaxed += (spec.type === 'DC_360') ? (cabinetCount * spec.cabinetCost) + (count * spec.terminalCost) : pileCount * spec.cost;
+                    let itemCost = 0;
+                    if (spec.type === 'DC_360') {
+                        itemCost = (cabinetCount * spec.cabinetCost) + (count * spec.terminalCost);
+                        deviceCostFormulaParts.push(`(${UI.formatCurrency(spec.cabinetCost, 0, false, true)} x ${cabinetCount}櫃 + ${UI.formatCurrency(spec.terminalCost, 0, false, true)} x ${count}樁)`);
+                    } else {
+                        itemCost = pileCount * spec.cost;
+                        deviceCostFormulaParts.push(`(${UI.formatCurrency(spec.cost, 0, false, true)} x ${count}樁)`);
+                    }
+                    totalDeviceCostUntaxed += itemCost;
                     totalPowerKw += spec.power * (spec.type === 'DC_360' ? cabinetCount : pileCount);
                     totalGunCount += gunCount;
                 });
 
-                const totalDeviceCostTaxed = totalDeviceCostUntaxed * (1 + taxRate);
-                if (params.deviceCost.enabled) baseItems.push({ key: 'deviceCost', label: '設備總成本 (含稅)', value: totalDeviceCostTaxed, untaxedValue: totalDeviceCostUntaxed, formula: `(${UI.formatCurrency(totalDeviceCostUntaxed,0,false,true)}) x (1 + ${taxRate*100}%)`});
+                if (params.deviceCost.enabled) baseItems.push({ key: 'deviceCost', label: '設備總成本 (未稅)', value: totalDeviceCostUntaxed, untaxedValue: totalDeviceCostUntaxed, formula: deviceCostFormulaParts.join(' + ') || '無設備'});
 
                 if (hasDC) {
                     if (params.lineSubsidyPerKw.enabled) baseItems.push({ key: 'lineSubsidyPerKw', label: params.lineSubsidyPerKw.label, value: params.lineSubsidyPerKw.value * totalPowerKw, formula: `${UI.formatCurrency(params.lineSubsidyPerKw.value,0,false,true)} x ${totalPowerKw} kW`});
-                    if (params.technicianFee.enabled) baseItems.push({ key: 'technicianFee', label: params.technicianFee.label, value: params.technicianFee.value, formula: '一次性費用' });
-                    if (params.meterFeeBase.enabled) baseItems.push({ key: 'meterFeeBase', label: params.meterFeeBase.label, value: params.meterFeeBase.value, formula: '一次性費用' });
+                    if (params.technicianFee.enabled) baseItems.push({ key: 'technicianFee', label: params.technicianFee.label, value: params.technicianFee.value, formula: `${UI.formatCurrency(params.technicianFee.value,0,false,true)}` });
+                    if (params.meterFeeBase.enabled) baseItems.push({ key: 'meterFeeBase', label: params.meterFeeBase.label, value: params.meterFeeBase.value, formula: `${UI.formatCurrency(params.meterFeeBase.value,0,false,true)}` });
                     if (params.meterFeePerGun.enabled) baseItems.push({ key: 'meterFeePerGun', label: params.meterFeePerGun.label, value: params.meterFeePerGun.value * totalGunCount, formula: `${UI.formatCurrency(params.meterFeePerGun.value,0,false,true)} x ${totalGunCount} 槍` });
                 }
 
                 if (params.distributionPanelFee.enabled) {
                     const fee = hasAC && !hasDC ? 30000 : params.distributionPanelFee.value;
-                    baseItems.push({ key: 'distributionPanelFee', label: params.distributionPanelFee.label, value: fee, formula: hasAC && !hasDC ? 'AC 專案費用' : '一次性費用' });
+                    baseItems.push({ key: 'distributionPanelFee', label: params.distributionPanelFee.label, value: fee, formula: `${UI.formatCurrency(fee,0,false,true)}` });
                 }
 
-                if (params.constructionFee.enabled) baseItems.push({ key: 'constructionFee', label: params.constructionFee.label, value: inputs.infrastructureCostMain, formula: '由主畫面輸入' });
+                if (params.constructionFee.enabled) baseItems.push({ key: 'constructionFee', label: params.constructionFee.label, value: inputs.infrastructureCostMain, formula: `${UI.formatCurrency(inputs.infrastructureCostMain,0,false,true)}` });
 
                 // 2. Sum up all base costs to get 'A'
                 const baseInvestmentSubtotal = baseItems.reduce((sum, item) => sum + item.value, 0);
@@ -1622,15 +1629,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (params.laborCostInvestment.enabled) {
                     const laborCost = finalTotalInvestment * laborPercent;
-                    finalItems.push({ key: 'laborCostInvestment', label: params.laborCostInvestment.label, value: laborCost, formula: `總投資額 x ${(laborPercent * 100).toFixed(0)}%` });
+                    finalItems.push({ key: 'laborCostInvestment', label: params.laborCostInvestment.label, value: laborCost, formula: `${UI.formatCurrency(finalTotalInvestment, 0, false, true)} x ${(laborPercent * 100).toFixed(0)}%` });
                 }
                 if (params.miscCostInvestment.enabled) {
                     const miscCost = finalTotalInvestment * miscPercent;
-                    finalItems.push({ key: 'miscCostInvestment', label: params.miscCostInvestment.label, value: miscCost, formula: `總投資額 x ${(miscPercent * 100).toFixed(0)}%` });
+                    finalItems.push({ key: 'miscCostInvestment', label: params.miscCostInvestment.label, value: miscCost, formula: `${UI.formatCurrency(finalTotalInvestment, 0, false, true)} x ${(miscPercent * 100).toFixed(0)}%` });
                 }
                 if (params.contingencyInvestment.enabled) {
                     const contingency = finalTotalInvestment * contingencyPercent;
-                    finalItems.push({ key: 'contingencyInvestment', label: params.contingencyInvestment.label, value: contingency, formula: `總投資額 x ${(contingencyPercent * 100).toFixed(0)}%` });
+                    finalItems.push({ key: 'contingencyInvestment', label: params.contingencyInvestment.label, value: contingency, formula: `${UI.formatCurrency(finalTotalInvestment, 0, false, true)} x ${(contingencyPercent * 100).toFixed(0)}%` });
                 }
 
                 return finalItems;
@@ -1952,6 +1959,10 @@ document.addEventListener('DOMContentLoaded', () => {
     </script>
 </body>
 </html>
+
+
+
+
 
 
 
