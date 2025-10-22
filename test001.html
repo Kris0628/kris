@@ -127,6 +127,78 @@
         @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         #kwhTableIcon.rotate-180 { transform: rotate(180deg); }
         .center-text-input { text-align: center !important; }
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            /* Hide interactive elements and input forms */
+            .lg\:col-span-1, .header-actions, #openAdvancedModalBtn, .modal-overlay, #toggleKwhTableBtn svg, .remove-equip-btn, #addEquipmentBtn, .card > div > #explanationList, .card > div > div > button, .details-row,
+            #cumulativePnlChartLegend, #revenueCostChartLegend, #rentChartLegend, #managementChartLegend {
+                display: none !important;
+            }
+
+            /* Reset styles for printing */
+            body, .card, .bg-amber-100 {
+                background: #ffffff !important;
+                box-shadow: none !important;
+                border: 1px solid #eee !important;
+                padding: 1rem !important;
+                margin-bottom: 1rem !important;
+                page-break-inside: avoid;
+            }
+            
+            .max-w-7xl {
+                max-width: 100%;
+                padding: 0 !important;
+            }
+            
+            header {
+                border-bottom: 2px solid #333;
+                padding-bottom: 1rem !important;
+                margin-bottom: 2rem !important;
+            }
+
+            .lg\:col-span-2 {
+                grid-column: span 3 / span 3;
+            }
+
+            /* Ensure tables are visible */
+            #kwhTableContainer {
+                display: block !important;
+                max-height: none !important;
+                overflow: visible !important;
+            }
+            
+            .summary-card {
+                background: #f3f4f6 !important;
+                color: #1f2937 !important;
+                border: 1px solid #e5e7eb;
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact;
+            }
+            
+            .grid {
+                display: grid !important;
+            }
+            
+            .lg\:grid-cols-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .card.bg-sky-50 {
+                page-break-inside: avoid;
+            }
+
+            .flex-grow.h-80 {
+                height: 250px !important;
+            }
+
+            @page {
+                size: A4;
+                margin: 2cm;
+            }
+        }
     </style>
     </head>
 <body class="p-4 md:p-8">
@@ -142,6 +214,7 @@
                     <button id="saveBtn">儲存</button>
                     <button id="recordsBtn">紀錄</button>
                     <button id="newAnalysisBtn">重置分析</button>
+                    <button id="exportPdfBtn">輸出PDF</button>
                 </div>
             </div>
         </header>
@@ -660,6 +733,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 UI.elements.saveBtn.addEventListener('click', () => UI.openModal(UI.elements.saveRecordModal));
                 UI.elements.recordsBtn.addEventListener('click', () => { UI.renderRecordsList(); UI.openModal(UI.elements.recordsModal); });
                 UI.elements.newAnalysisBtn.addEventListener('click', () => UI.openModal(UI.elements.newAnalysisConfirmModal));
+                UI.elements.exportPdfBtn.addEventListener('click', () => window.print());
                 UI.elements.openAdvancedModalBtn.addEventListener('click', () => UI.openModal(UI.elements.advancedModal));
                 UI.elements.loginAdvancedBtn.addEventListener('click', () => this.handleAdvancedLogin());
                 UI.elements.advancedPassword.addEventListener('keydown', (e) => { if (e.key === 'Enter') this.handleAdvancedLogin(); });
@@ -692,6 +766,19 @@ document.addEventListener('DOMContentLoaded', () => {
                             if (modal.style.display === 'flex') UI.closeModal(modal);
                         });
                     }
+                });
+                
+                // Handle chart animations for printing
+                window.addEventListener('beforeprint', () => {
+                    Object.values(Charts.instances).forEach(chart => {
+                        chart.options.animation = false;
+                    });
+                });
+
+                window.addEventListener('afterprint', () => {
+                    Object.values(Charts.instances).forEach(chart => {
+                        chart.options.animation = {};
+                    });
                 });
 
                 // Special input formatting and constraints
@@ -1804,7 +1891,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     items.push({ key: 'invoiceFee', label: p.electronicInvoiceFeePerTransaction.label, value: numberOfTransactions * p.electronicInvoiceFeePerTransaction.value, formula: `${Math.round(numberOfTransactions)}張 x ${UI.formatCurrency(p.electronicInvoiceFeePerTransaction.value, 1)}元` });
                 }
                 if (p.repairPartsRate.enabled) {
-                    items.push({ key: 'repairFee', label: p.repairPartsRate.label, value: results.costBreakdown.equipmentCost * p.repairPartsRate.value, formula: `${UI.formatCurrency(results.costBreakdown.equipmentCost, 0, false, true)}元 x ${p.repairPartsRate.value * 100}%` });
+                    items.push({ key: 'repairFee', label: p.repairPartsRate.label, value: results.costBreakdown.totalDeviceCostUntaxed * p.repairPartsRate.value, formula: `${UI.formatCurrency(results.costBreakdown.totalDeviceCostUntaxed, 0, false, true)}元 x ${p.repairPartsRate.value * 100}%` });
                 }
                 if (p.electricalTechnicianFee.enabled && hasDC) {
                     items.push({ key: 'electricalTechFee', label: p.electricalTechnicianFee.label, value: p.electricalTechnicianFee.value, formula: '年度固定費用' });
@@ -1816,7 +1903,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     items.push({ key: 'insuranceFee', label: p.insuranceFee.label, value: p.insuranceFee.value, formula: '年度固定費用' });
                 }
                 if (p.extendedWarrantyPerPile.enabled && year >= p.extendedWarrantyStartYear.value) {
-                    items.push({ key: 'warrantyFee', label: p.extendedWarrantyPerPile.label, value: results.costBreakdown.equipmentCost * p.extendedWarrantyPerPile.value, formula: `${UI.formatCurrency(results.costBreakdown.equipmentCost, 0, false, true)}元 x ${p.extendedWarrantyPerPile.value * 100}%` });
+                    items.push({ key: 'warrantyFee', label: p.extendedWarrantyPerPile.label, value: results.costBreakdown.totalDeviceCostUntaxed * p.extendedWarrantyPerPile.value, formula: `${UI.formatCurrency(results.costBreakdown.totalDeviceCostUntaxed, 0, false, true)}元 x ${p.extendedWarrantyPerPile.value * 100}%` });
                 }
                 if (p.laborCost.enabled) {
                     items.push({ key: 'laborCost', label: p.laborCost.label, value: p.laborCost.value, formula: '年度固定費用' });
