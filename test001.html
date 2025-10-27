@@ -129,74 +129,122 @@
         .center-text-input { text-align: center !important; }
         @media print {
             body {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                background-color: #fff !important;
+                margin: 0;
+                padding: 0;
             }
-            /* Hide interactive elements and input forms */
-            .lg\:col-span-1, .header-actions, #openAdvancedModalBtn, .modal-overlay, #toggleKwhTableBtn svg, .remove-equip-btn, #addEquipmentBtn, .card > div > #explanationList, .card > div > div > button, .details-row,
+            .no-print, .lg\:col-span-1, .header-actions, #openAdvancedModalBtn, .modal-overlay, #toggleKwhTableBtn svg, .remove-equip-btn, #addEquipmentBtn, .card > div > #explanationList, .card > div > div > button, .details-row,
             #cumulativePnlChartLegend, #revenueCostChartLegend, #rentChartLegend, #managementChartLegend {
                 display: none !important;
             }
-
-            /* Reset styles for printing */
-            body, .card, .bg-amber-100 {
+            
+            body, #print-charts-grid {
                 background: #ffffff !important;
                 box-shadow: none !important;
-                border: 1px solid #eee !important;
-                padding: 1rem !important;
-                margin-bottom: 1rem !important;
-                page-break-inside: avoid;
             }
             
-            .max-w-7xl {
-                max-width: 100%;
+            /* Remove default card styles for print */
+            .card {
+                border: none !important;
                 padding: 0 !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+            }
+
+            .max-w-7xl {
+                max-width: 100% !important;
+                padding: 1.5cm !important; /* Set page margins here */
+                margin: 0 !important;
+                box-shadow: none !important;
             }
             
             header {
-                border-bottom: 2px solid #333;
+                border-bottom: 2px solid #333 !important;
                 padding-bottom: 1rem !important;
                 margin-bottom: 2rem !important;
+            }
+            
+            .bg-amber-100 {
+                background: #fef3c7 !important;
+                 -webkit-print-color-adjust: exact !important; 
+                print-color-adjust: exact !important;
+                border: 1px solid #fde68a !important;
+                padding: 0.75rem !important;
+                margin-top: 1rem !important;
+                border-radius: 0.75rem !important;
             }
 
             .lg\:col-span-2 {
                 grid-column: span 3 / span 3;
             }
-
-            /* Ensure tables are visible */
             #kwhTableContainer {
                 display: block !important;
                 max-height: none !important;
                 overflow: visible !important;
             }
             
+            /* Style for summary cards */
             .summary-card {
                 background: #f3f4f6 !important;
                 color: #1f2937 !important;
-                border: 1px solid #e5e7eb;
-                -webkit-print-color-adjust: exact; 
-                print-color-adjust: exact;
-            }
-            
-            .grid {
-                display: grid !important;
-            }
-            
-            .lg\:grid-cols-3 {
-                grid-template-columns: 1fr;
-            }
-
-            .card.bg-sky-50 {
+                border: 1px solid #e5e7eb !important;
+                -webkit-print-color-adjust: exact !important; 
+                print-color-adjust: exact !important;
                 page-break-inside: avoid;
+                box-shadow: none !important;
+                border-radius: 1rem !important;
+                padding: 1.5rem !important;
+            }
+            
+            .grid { display: grid !important; }
+            .lg\:grid-cols-3 { grid-template-columns: 1fr; }
+            .lg\:col-span-2 > .grid:first-child { 
+                grid-template-columns: 1fr 1fr 1fr !important; 
+                gap: 1rem !important;
+                margin-bottom: 2rem !important; /* Add space after summary cards */
             }
 
+            #print-charts-grid {
+                display: block !important; 
+                margin-top: 1.5rem;
+                page-break-before: always; /* Start charts on a new page */
+            }
+            
+            /* Style for chart cards */
+            #print-charts-grid > .card.bg-sky-50 {
+                display: flex !important;
+                page-break-inside: avoid !important;
+                border: 1px solid #ddd !important;
+                margin-bottom: 2.5rem !important; /* Spacing between charts */
+                padding: 1.5rem !important;
+                border-radius: 1rem !important;
+            }
+
+            /* Style for table cards */
+            .card.bg-gradient-to-br {
+                 page-break-inside: avoid;
+                 border: 1px solid #ddd !important;
+                 padding: 1.5rem !important;
+                 margin-top: 2rem !important;
+                 box-shadow: none !important;
+                 border-radius: 1rem !important;
+            }
+            .table-header {
+                background-color: #f9fafb !important;
+                -webkit-print-color-adjust: exact !important; 
+                print-color-adjust: exact !important;
+            }
+            
             .flex-grow.h-80 {
                 height: 250px !important;
             }
 
             @page {
                 size: A4;
-                margin: 2cm;
+                margin: 0; /* Remove browser margin, use body's padding */
             }
         }
     </style>
@@ -430,7 +478,7 @@
                                     </div>
                                     <div id="rentByKwhTierSection" class="hidden-section space-y-3">
                                         <div class="grid grid-cols-2 items-center gap-4">
-                                            <span class="label-text">度數門檻/月</span>
+                                            <span class="label-text">總度數門檻/月</span>
                                             <input type="text" id="rentKwhThreshold" class="input-field" value="5,000">
                                         </div>
                                          <div class="flex flex-wrap gap-3 mt-3">
@@ -513,37 +561,39 @@
                     <div class="summary-card"><div class="summary-label">ROE (股東權益報酬率)</div><div id="roeSummary" class="summary-value"></div></div>
                     <div class="summary-card"><div class="summary-label">IRR (內部報酬率)</div><div id="irrSummary" class="summary-value"></div></div>
                 </div>
-                <div class="card bg-sky-50 fixed-height">
-                    <div class="flex flex-col sm:flex-row justify-between items-center mb-2">
-                        <h2 class="text-xl md:text-2xl font-bold text-gray-800">累積損益趨勢</h2>
-                        <span class="text-sm font-medium text-gray-500 mt-1 sm:mt-0">單位：元</span>
+                <div id="print-charts-grid" class="grid grid-cols-1 gap-6">
+                    <div class="card bg-sky-50 fixed-height">
+                        <div class="flex flex-col sm:flex-row justify-between items-center mb-2">
+                            <h2 class="text-xl md:text-2xl font-bold text-gray-800">累積損益趨勢</h2>
+                            <span class="text-sm font-medium text-gray-500 mt-1 sm:mt-0">單位：元</span>
+                        </div>
+                        <div id="cumulativePnlChartLegend" class="flex flex-wrap gap-x-4 gap-y-1 justify-center mb-3"></div>
+                        <div class="flex-grow h-80"><canvas id="cumulativePnlChart"></canvas></div>
                     </div>
-                    <div id="cumulativePnlChartLegend" class="flex flex-wrap gap-x-4 gap-y-1 justify-center mb-3"></div>
-                    <div class="flex-grow h-80"><canvas id="cumulativePnlChart"></canvas></div>
-                </div>
-                <div class="card bg-sky-50 fixed-height">
-                    <div class="flex flex-col sm:flex-row justify-between items-center mb-2">
-                        <h2 class="text-xl md:text-2xl font-bold text-gray-800">營收、成本、淨利(年)</h2>
-                        <span class="text-sm font-medium text-gray-500 mt-1 sm:mt-0">單位：元</span>
+                    <div class="card bg-sky-50 fixed-height">
+                        <div class="flex flex-col sm:flex-row justify-between items-center mb-2">
+                            <h2 class="text-xl md:text-2xl font-bold text-gray-800">營收、成本、淨利(年)</h2>
+                            <span class="text-sm font-medium text-gray-500 mt-1 sm:mt-0">單位：元</span>
+                        </div>
+                        <div id="revenueCostChartLegend" class="flex flex-wrap gap-x-4 gap-y-1 justify-center mb-3"></div>
+                        <div class="flex-grow h-80"><canvas id="revenueCostChart"></canvas></div>
                     </div>
-                    <div id="revenueCostChartLegend" class="flex flex-wrap gap-x-4 gap-y-1 justify-center mb-3"></div>
-                    <div class="flex-grow h-80"><canvas id="revenueCostChart"></canvas></div>
-                </div>
-                 <div class="card bg-sky-50 fixed-height">
-                    <div class="flex flex-col sm:flex-row justify-between items-center mb-2">
-                        <h2 class="text-xl md:text-2xl font-bold text-gray-800">租金&分潤</h2>
-                        <span class="text-sm font-medium text-gray-500 mt-1 sm:mt-0">單位：元</span>
+                     <div class="card bg-sky-50 fixed-height">
+                        <div class="flex flex-col sm:flex-row justify-between items-center mb-2">
+                            <h2 class="text-xl md:text-2xl font-bold text-gray-800">租金&分潤</h2>
+                            <span class="text-sm font-medium text-gray-500 mt-1 sm:mt-0">單位：元</span>
+                        </div>
+                        <div id="rentChartLegend" class="flex flex-wrap gap-x-4 gap-y-1 justify-center mb-3"></div>
+                        <div class="flex-grow h-80"><canvas id="rentChart"></canvas></div>
                     </div>
-                    <div id="rentChartLegend" class="flex flex-wrap gap-x-4 gap-y-1 justify-center mb-3"></div>
-                    <div class="flex-grow h-80"><canvas id="rentChart"></canvas></div>
-                </div>
-                 <div class="card bg-sky-50 fixed-height">
-                    <div class="flex flex-col sm:flex-row justify-between items-center mb-2">
-                        <h2 class="text-xl md:text-2xl font-bold text-gray-800">維運代管圖表</h2>
-                        <span class="text-sm font-medium text-gray-500 mt-1 sm:mt-0">單位：元</span>
+                     <div class="card bg-sky-50 fixed-height">
+                        <div class="flex flex-col sm:flex-row justify-between items-center mb-2">
+                            <h2 class="text-xl md:text-2xl font-bold text-gray-800">維運代管圖表</h2>
+                            <span class="text-sm font-medium text-gray-500 mt-1 sm:mt-0">單位：元</span>
+                        </div>
+                        <div id="managementChartLegend" class="flex flex-wrap gap-x-4 gap-y-1 justify-center mb-3"></div>
+                        <div class="flex-grow h-80"><canvas id="managementChart"></canvas></div>
                     </div>
-                    <div id="managementChartLegend" class="flex flex-wrap gap-x-4 gap-y-1 justify-center mb-3"></div>
-                    <div class="flex-grow h-80"><canvas id="managementChart"></canvas></div>
                 </div>
             </div>
         </div>
@@ -602,19 +652,12 @@
     <div id="advancedModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header"><h3 class="modal-title">進階設定</h3><button class="modal-close-btn">&times;</button></div>
-            <div id="advancedPasswordSection" class="space-y-4 password-section-compact max-w-sm mx-auto text-center">
-                <span class="label-text block mb-2">請輸入管理密碼</span>
-                <input type="password" id="advancedPassword" class="input-field" placeholder="預設密碼: 0000">
-                <button id="loginAdvancedBtn" class="modal-action-button w-full">登入</button>
-                <div id="advancedMessage" class="modal-message"></div>
-            </div>
-            <div id="advancedContentSection" class="hidden">
+            <div id="advancedContentSection" class="block">
                 <div class="modal-tabs">
                     <button class="modal-tab-btn active" data-tab="specs">設備規格</button>
                     <button class="modal-tab-btn" data-tab="investment">建置成本</button>
                     <button class="modal-tab-btn" data-tab="annual_costs">年度成本</button>
                     <button class="modal-tab-btn" data-tab="tou">尖離峰時段</button>
-                    <button class="modal-tab-btn" data-tab="password">修改密碼</button>
                 </div>
                 <div id="tab-specs" class="modal-tab-content active">
                     <div class="flex justify-between items-center mb-4"><h4 class="text-xl font-bold text-gray-800">設備價格設定</h4><span class="text-sm font-medium text-gray-500">單位：元</span></div>
@@ -734,11 +777,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 UI.elements.recordsBtn.addEventListener('click', () => { UI.renderRecordsList(); UI.openModal(UI.elements.recordsModal); });
                 UI.elements.newAnalysisBtn.addEventListener('click', () => UI.openModal(UI.elements.newAnalysisConfirmModal));
                 UI.elements.exportPdfBtn.addEventListener('click', () => window.print());
-                UI.elements.openAdvancedModalBtn.addEventListener('click', () => UI.openModal(UI.elements.advancedModal));
-                UI.elements.loginAdvancedBtn.addEventListener('click', () => this.handleAdvancedLogin());
-                UI.elements.advancedPassword.addEventListener('keydown', (e) => { if (e.key === 'Enter') this.handleAdvancedLogin(); });
+                UI.elements.openAdvancedModalBtn.addEventListener('click', () => {
+                    UI.populateSpecsModal(Config.deviceSpecs, Config.calculationParams);
+                    UI.populateFormulasModal(Config.calculationParams);
+                    TouEditor.init();
+                    UI.openModal(UI.elements.advancedModal);
+                });
                 UI.elements.saveAdvancedBtn.addEventListener('click', () => this.saveAdvancedSettings());
-                UI.elements.changePasswordBtn.addEventListener('click', () => this.changePassword());
                 UI.elements.confirmSaveBtn.addEventListener('click', () => this.saveRecord());
                 UI.elements.confirmNewAnalysisBtn.addEventListener('click', () => this.newAnalysis());
 
@@ -772,12 +817,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.addEventListener('beforeprint', () => {
                     Object.values(Charts.instances).forEach(chart => {
                         chart.options.animation = false;
+                        chart.resize();
                     });
                 });
 
                 window.addEventListener('afterprint', () => {
                     Object.values(Charts.instances).forEach(chart => {
                         chart.options.animation = {};
+                        chart.resize();
                     });
                 });
 
@@ -802,17 +849,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 Persistence.saveSession();
             },
             
-            handleAdvancedLogin() {
-                if (UI.elements.advancedPassword.value === Config.passwords.advanced) {
-                    UI.showAdvancedContent(true);
-                    UI.populateSpecsModal(Config.deviceSpecs, Config.calculationParams);
-                    UI.populateFormulasModal(Config.calculationParams);
-                    TouEditor.init();
-                } else {
-                    UI.showModalMessage(UI.elements.advancedMessage, '密碼錯誤，請重試。');
-                }
-            },
-
             saveAdvancedSettings(closeModal = true) {
                 TouEditor.saveAndApply();
                 document.querySelectorAll('#specsModalTableBody input.cost-input, #specsModalTableBody input.salvage-percent-input').forEach(input => {
@@ -950,9 +986,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 technicianFee: { value: 150000, label: '技師簽證費', unit: '元', description: '台電外包技師費用(一次性)。', enabled: true, category: 'investment' },
                 distributionPanelFee: { value: 300000, label: '高/低壓配電盤', unit: '元', description: '高壓或低壓配電盤費用(一次性)。', enabled: true, category: 'investment' },
                 constructionFee: { value: 500000, label: '基礎設施工程', unit: '元', description: '場地土木、基礎、裝修等工程費用(一次性)。', enabled: true, category: 'investment', readonly: true },
-                laborCostInvestment: { value: 0.05, label: '建置人力成本', unit: '%', description: '建置所需的人力成本，為總投資額的百分比。', enabled: true, category: 'investment' },
-                miscCostInvestment: { value: 0.03, label: '建置雜項成本', unit: '%', description: '建置過程中的雜項開銷，為總投資額的百分比。', enabled: true, category: 'investment' },
-                contingencyInvestment: { value: 0.10, label: '建置專案裕度', unit: '%', description: '專案的風險準備金或裕度，為總投資額的百分比。', enabled: true, category: 'investment' },
+                siteLayoutFee: { value: 50000, label: '場佈費用', unit: '元', description: '場地裝潢、標線、指示牌等費用(一次性)。', enabled: true, category: 'investment' },
+                laborCostInvestment: { value: 0.01, label: '建置人力成本', unit: '%', description: '建置所需的人力成本，為總投資額的百分比。', enabled: true, category: 'investment' },
+                miscCostInvestment: { value: 0.01, label: '建置雜項成本', unit: '%', description: '建置過程中的雜項開銷，為總投資額的百分比。', enabled: true, category: 'investment' },
+                contingencyInvestment: { value: 0.05, label: '建置專案裕度', unit: '%', description: '專案的風險準備金或裕度，為總投資額的百分比。', enabled: true, category: 'investment' },
                 meterFeeBase: { value: 12000, label: '電錶費用(基本)', unit: '元', description: '台電電表基本費用(僅DC樁, 一次性)。', enabled: true, category: 'investment' },
                 meterFeePerGun: { value: 700, label: '電錶費用/槍', unit: '元', description: '每增加一槍の電表費用(僅DC樁, 一次性)。', enabled: true, category: 'investment' },
                 taxRate: { value: 0.05, label: '營業稅率', unit: '%', description: '設備購買及相關服務の營業稅率。', enabled: false, category: 'investment' },
@@ -1336,9 +1373,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!modal) return;
                 modal.style.display = 'none';
                 if (modal.id === 'advancedModal') {
-                    this.showAdvancedContent(false);
-                    this.elements.advancedPassword.value = '';
-                    this.showModalMessage(this.elements.advancedMessage, '', false, true);
+                    // Password section reset is no longer needed
                 }
             },
             showModalMessage(element, message, isError = true, hide = false) {
@@ -1346,10 +1381,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 element.textContent = message;
                 element.className = `modal-message ${isError ? 'error' : 'success'}`;
                 element.style.display = 'block';
-            },
-            showAdvancedContent(show) {
-                this.elements.advancedPasswordSection.style.display = show ? 'none' : 'block';
-                this.elements.advancedContentSection.style.display = show ? 'block' : 'none';
             },
             handleTabSwitch(event) {
                 const tabId = event.target.dataset.tab;
@@ -1769,6 +1800,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (params.constructionFee.enabled) baseItems.push({ key: 'constructionFee', label: params.constructionFee.label, value: inputs.infrastructureCostMain, formula: `${UI.formatCurrency(inputs.infrastructureCostMain,0,false,true)}` });
 
+                if (params.siteLayoutFee.enabled) baseItems.push({ key: 'siteLayoutFee', label: params.siteLayoutFee.label, value: params.siteLayoutFee.value, formula: `${UI.formatCurrency(params.siteLayoutFee.value,0,false,true)}` });
+
                 // 2. Sum up all base costs to get 'A'
                 const baseInvestmentSubtotal = baseItems.reduce((sum, item) => sum + item.value, 0);
 
@@ -2116,4 +2149,9 @@ document.addEventListener('DOMContentLoaded', () => {
     </script>
 </body>
 </html>
+
+
+
+
+
 
