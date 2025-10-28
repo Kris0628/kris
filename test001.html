@@ -264,11 +264,7 @@
                             <input type="text" id="equipmentCostDisplayMain" class="input-field readonly" readonly>
                         </div>
                         <div class="grid grid-cols-2 items-center gap-4">
-                            <span class="label-text">設備殘值</span>
-                            <input type="text" id="salvageValueDisplay" class="input-field readonly" readonly>
-                        </div>
-                        <div class="grid grid-cols-2 items-center gap-4">
-                            <span class="label-text">基礎設施工程</span>
+                            <span class="label-text">勞務工程</span>
                             <input type="text" id="infrastructureCostMain" class="input-field" value="500,000">
                         </div>
                         <hr class="border-gray-200 my-2"/>
@@ -1066,8 +1062,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 lineSubsidyPerKw: { value: 500, label: '台電線路補助費/kW', unit: '元', description: '台電線補費，每kW收取的一次性費用。', enabled: true, category: 'investment' },
                 technicianFee: { value: 150000, label: '技師簽證費', unit: '元', description: '台電外包技師費用(一次性)。', enabled: true, category: 'investment' },
                 distributionPanelFee: { value: 300000, label: '高/低壓配電盤', unit: '元', description: '高壓或低壓配電盤費用(一次性)。', enabled: true, category: 'investment' },
-                constructionFee: { value: 500000, label: '基礎設施工程', unit: '元', description: '場地土木、基礎、裝修等工程費用(一次性)。', enabled: true, category: 'investment', readonly: true },
+                constructionFee: { value: 500000, label: '勞務工程', unit: '元', description: '場地土木、基礎、裝修等工程費用(一次性)。', enabled: true, category: 'investment', readonly: true },
                 siteLayoutFee: { value: 50000, label: '場佈費用', unit: '元', description: '場地裝潢、標線、指示牌等費用(一次性)。', enabled: true, category: 'investment' },
+                equipmentServiceFeeRate: { value: 0.05, label: '設備技術服務費', unit: '%', description: '依設備未稅總成本的百分比計算。', enabled: true, category: 'investment' },
                 laborCostInvestment: { value: 0.01, label: '建置人力成本', unit: '%', description: '建置所需的人力成本，為總投資額的百分比。', enabled: true, category: 'investment' },
                 miscCostInvestment: { value: 0.01, label: '建置雜項成本', unit: '%', description: '建置過程中的雜項開銷，為總投資額的百分比。', enabled: true, category: 'investment' },
                 contingencyInvestment: { value: 0.05, label: '建置專案裕度', unit: '%', description: '專案的風險準備金或裕度，為總投資額的百分比。', enabled: true, category: 'investment' },
@@ -1350,7 +1347,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.elements.parkingSpaces.value = inputs.equipmentList.reduce((sum, item) => sum + item.gunCount, 0);
                 if (inputs.billingMethodDC === 'tou') this.elements.avgTouRate.value = this.formatCurrency(results.avgChargeFeeDC, 2, false, true);
                 this.elements.equipmentCostDisplayMain.value = this.formatCurrency(results.costBreakdown.totalDeviceCostUntaxed, 0, false, true);
-                this.elements.salvageValueDisplay.value = this.formatCurrency(results.costBreakdown.totalSalvageValue, 0, false, true);
 
                 this.populateTable(this.elements.kwhStatsTableBody, results.annualData, d => `<tr class="kwh-row" data-year="${d.year}"><td class="table-cell table-cell-year">第 ${d.year} 年</td><td class="table-cell text-green-600 font-semibold">${d.kwhPerDay.toLocaleString('en-US',{maximumFractionDigits:1})}</td><td class="table-cell text-blue-600 font-semibold">${d.kwhPerMonth.toLocaleString('en-US',{maximumFractionDigits:0})}</td><td class="table-cell text-red-600 font-semibold">${d.kwhPerYear.toLocaleString('en-US',{maximumFractionDigits:0})}</td></tr>`);
                 this.populateTable(this.elements.pnlTableBody, results.annualData, d => `<tr class="pnl-row" data-year="${d.year}"><td class="table-cell table-cell-year">第 ${d.year} 年</td><td class="table-cell">${this.formatCurrency(d.revenue,0,false,true)}</td><td class="table-cell">${this.formatCurrency(d.cost,0,false,true)}</td><td class="table-cell ${d.pnl>=0?'':'text-red-600'}">${this.formatCurrency(d.pnl,0,false,true)}</td><td class="table-cell font-semibold ${d.cumulativePnl>=0?'text-blue-600':'text-red-600'}">${this.formatCurrency(d.cumulativePnl,0,false,true)}</td></tr>`);
@@ -1930,6 +1926,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (params.deviceCost.enabled) baseItems.push({ key: 'deviceCost', label: '設備總成本 (未稅)', value: totalDeviceCostUntaxed, untaxedValue: totalDeviceCostUntaxed, formula: deviceCostFormulaParts.join(' + ') || '無設備'});
 
+                if (params.equipmentServiceFeeRate.enabled) {
+                    const serviceFee = totalDeviceCostUntaxed * params.equipmentServiceFeeRate.value;
+                    baseItems.push({
+                        key: 'equipmentServiceFeeRate',
+                        label: params.equipmentServiceFeeRate.label,
+                        value: serviceFee,
+                        formula: `${UI.formatCurrency(totalDeviceCostUntaxed, 0, false, true)} x ${(params.equipmentServiceFeeRate.value * 100).toFixed(0)}%`
+                    });
+                }
+
                 if (hasDC) {
                     if (params.lineSubsidyPerKw.enabled) baseItems.push({ key: 'lineSubsidyPerKw', label: params.lineSubsidyPerKw.label, value: params.lineSubsidyPerKw.value * totalPowerKw, formula: `${UI.formatCurrency(params.lineSubsidyPerKw.value,0,false,true)} x ${totalPowerKw} kW`});
                     if (params.technicianFee.enabled) baseItems.push({ key: 'technicianFee', label: params.technicianFee.label, value: params.technicianFee.value, formula: `${UI.formatCurrency(params.technicianFee.value,0,false,true)}` });
@@ -2293,4 +2299,8 @@ document.addEventListener('DOMContentLoaded', () => {
     </script>
 </body>
 </html>
+
+
+
+
 
