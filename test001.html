@@ -127,54 +127,34 @@
         @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         #kwhTableIcon.rotate-180 { transform: rotate(180deg); }
         .center-text-input { text-align: center !important; }
+        
         @media print {
             body {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
-                background-color: #fff !important;
-                margin: 0;
-                padding: 0;
             }
             .no-print, .lg\:col-span-1, .header-actions, #openAdvancedModalBtn, .modal-overlay, #toggleKwhTableBtn svg, .remove-equip-btn, #addEquipmentBtn, .card > div > #explanationList, .card > div > div > button, .details-row,
-            #cumulativePnlChartLegend, #revenueCostChartLegend, #rentChartLegend, #managementChartLegend {
+            #cumulativePnlChartLegend, #revenueCostChartLegend, #rentChartLegend, #managementChartLegend, #openSensitivityModalBtn {
                 display: none !important;
             }
-            
-            body, #print-charts-grid {
+            body, .card, .bg-amber-100 {
                 background: #ffffff !important;
                 box-shadow: none !important;
+                border: 1px solid #eee !important;
+                padding: 1rem !important;
+                margin-bottom: 1rem !important;
+                page-break-inside: avoid;
             }
             
-            /* Remove default card styles for print */
-            .card {
-                border: none !important;
-                padding: 0 !important;
-                margin: 0 !important;
-                box-shadow: none !important;
-                border-radius: 0 !important;
-            }
-
             .max-w-7xl {
-                max-width: 100% !important;
-                padding: 1.5cm !important; /* Set page margins here */
-                margin: 0 !important;
-                box-shadow: none !important;
+                max-width: 100%;
+                padding: 0 !important;
             }
             
             header {
-                border-bottom: 2px solid #333 !important;
+                border-bottom: 2px solid #333;
                 padding-bottom: 1rem !important;
                 margin-bottom: 2rem !important;
-            }
-            
-            .bg-amber-100 {
-                background: #fef3c7 !important;
-                 -webkit-print-color-adjust: exact !important; 
-                print-color-adjust: exact !important;
-                border: 1px solid #fde68a !important;
-                padding: 0.75rem !important;
-                margin-top: 1rem !important;
-                border-radius: 0.75rem !important;
             }
 
             .lg\:col-span-2 {
@@ -186,66 +166,61 @@
                 overflow: visible !important;
             }
             
-            /* Style for summary cards */
             .summary-card {
-                background: #f3f4f6 !important;
+                background-color: #f3f4f6 !important;
                 color: #1f2937 !important;
-                border: 1px solid #e5e7eb !important;
+                border: 1px solid #e5e7eb;
                 -webkit-print-color-adjust: exact !important; 
                 print-color-adjust: exact !important;
-                page-break-inside: avoid;
-                box-shadow: none !important;
-                border-radius: 1rem !important;
-                padding: 1.5rem !important;
             }
             
             .grid { display: grid !important; }
             .lg\:grid-cols-3 { grid-template-columns: 1fr; }
-            .lg\:col-span-2 > .grid:first-child { 
-                grid-template-columns: 1fr 1fr 1fr !important; 
-                gap: 1rem !important;
-                margin-bottom: 2rem !important; /* Add space after summary cards */
-            }
+            .lg\:col-span-2 > .grid:first-child { grid-template-columns: 1fr 1fr 1fr !important; }
 
             #print-charts-grid {
-                display: block !important; 
+                display: grid !important;
+                grid-template-columns: 1fr; /* Force single column layout */
+                gap: 2rem;
                 margin-top: 1.5rem;
-                page-break-before: always; /* Start charts on a new page */
             }
-            
-            /* Style for chart cards */
-            #print-charts-grid > .card.bg-sky-50 {
+            .card.bg-sky-50 {
                 display: flex !important;
-                page-break-inside: avoid !important;
+                page-break-inside: avoid;
                 border: 1px solid #ddd !important;
-                margin-bottom: 2.5rem !important; /* Spacing between charts */
-                padding: 1.5rem !important;
-                border-radius: 1rem !important;
+                margin-bottom: 2rem !important; /* Add margin between charts */
             }
-
-            /* Style for table cards */
-            .card.bg-gradient-to-br {
-                 page-break-inside: avoid;
-                 border: 1px solid #ddd !important;
-                 padding: 1.5rem !important;
-                 margin-top: 2rem !important;
-                 box-shadow: none !important;
-                 border-radius: 1rem !important;
-            }
-            .table-header {
-                background-color: #f9fafb !important;
-                -webkit-print-color-adjust: exact !important; 
-                print-color-adjust: exact !important;
-            }
-            
             .flex-grow.h-80 {
                 height: 250px !important;
             }
 
             @page {
                 size: A4;
-                margin: 0; /* Remove browser margin, use body's padding */
+                margin: 1.5cm;
             }
+        }
+        .sensitivity-table {
+            width: 100%;
+            margin-top: 1.5rem;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        .sensitivity-table th, .sensitivity-table td {
+            border: 1px solid #e5e7eb;
+            padding: 0.75rem 1rem;
+            text-align: center;
+        }
+        .sensitivity-table th {
+            background-color: #f9fafb;
+            font-weight: 600;
+        }
+        .sensitivity-table tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        .sensitivity-table .base-case {
+            background-color: #eef2ff;
+            font-weight: 700;
+            color: #4f46e5;
         }
     </style>
     </head>
@@ -642,7 +617,10 @@
                                 <li data-target="payback"><strong>預計回收年限：</strong><span id="explainerPaybackPeriod" class="font-semibold text-gray-700"></span><span class="text-gray-500 text-sm ml-2">{含建置期，從專案啟動到回本的總時間。}</span></li>
                             </ul>
                         </div>
-                        <div class="text-right mt-2"><button id="openAdvancedModalBtn" class="text-sm bg-indigo-600 text-white px-5 py-2.5 rounded-lg hover:bg-indigo-700 transition-all duration-200 ease-in-out shadow-md hover:shadow-md">⚙️ 進階設定</button></div>
+                        <div class="text-right mt-2 flex justify-end gap-2">
+                            <button id="openSensitivityModalBtn" class="text-sm bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 transition-all duration-200 ease-in-out shadow-md hover:shadow-md no-print">📊 敏感性分析</button>
+                            <button id="openAdvancedModalBtn" class="text-sm bg-indigo-600 text-white px-5 py-2.5 rounded-lg hover:bg-indigo-700 transition-all duration-200 ease-in-out shadow-md hover:shadow-md">⚙️ 進階設定</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -692,14 +670,7 @@
                     <div id="touEditorMessage" class="modal-message mt-2"></div>
                 </div>
                 <div id="tab-password" class="modal-tab-content">
-                    <h4 class="text-xl font-bold text-gray-800 mb-4">修改管理密碼</h4>
-                    <div class="space-y-4 password-section-compact max-w-md mx-auto">
-                        <div class="grid grid-cols-2 items-center gap-4"><span class="label-text">舊密碼</span><input type="password" id="oldPassword" class="input-field"></div>
-                        <div class="grid grid-cols-2 items-center gap-4"><span class="label-text">新密碼</span><input type="password" id="newPassword" class="input-field"></div>
-                        <div class="grid grid-cols-2 items-center gap-4"><span class="label-text">確認新密碼</span><input type="password" id="confirmNewPassword" class="input-field"></div>
-                        <div class="text-center"><button id="changePasswordBtn" class="modal-action-button bg-green-600 hover:bg-green-700">確認儲存新密碼</button></div>
-                        <div id="passwordChangeMessage" class="modal-message"></div>
-                    </div>
+                    <!-- This content is now hidden as the tab is removed -->
                 </div>
                 <div class="mt-8 text-right"><button id="saveAdvancedBtn" class="modal-action-button">儲存設定並關閉</button></div>
             </div>
@@ -739,10 +710,53 @@
             </div>
         </div>
     </div>
+    
+    <div id="sensitivityModal" class="modal-overlay">
+        <div class="modal-content max-w-2xl"> <!-- Wider modal -->
+            <div class="modal-header">
+                <h3 class="modal-title">敏感性分析</h3>
+                <button class="modal-close-btn">&times;</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+                <div>
+                    <label for="targetVariable" class="label-text mb-2 block">分析目標 (Y 軸)</label>
+                    <select id="targetVariable" class="input-field w-full text-center">
+                        <option value="paybackPeriod">預計回收年限 (年)</option>
+                        <option value="roi">ROI (投資報酬率 %)</option>
+                        <option value="irr">IRR (內部報酬率 %)</option>
+                        <option value="totalNetProfitSummary">總充電淨利 (元)</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="analysisVariable" class="label-text mb-2 block">分析變因 (X 軸)</label>
+                    <select id="analysisVariable" class="input-field w-full text-center">
+                        <option value="chargeFeePerKwhDC">DC 每度電收費 (元)</option>
+                        <option value="chargeFeePerKwhAC">AC 每度電收費 (元)</option>
+                        <option value="carsPerGunPerDayDC">DC 每日車次/槍</option>
+                        <option value="carsPerGunPerDayAC">AC 每日車次/槍</option>
+                        <option value="kwhPerGunPerMonthDC">DC 每月度數/槍</option>
+                        <option value="kwhPerGunPerMonthAC">AC 每月度數/槍</option>
+                        <option value="demandGrowthRate">需求年增率 (%)</option>
+                        <option value="avgKwhPerCar">每車平均充電 (kWh)</option>
+                        <option value="taipowerFee">台電平均電費 (元)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-6 text-center">
+                <button id="runSensitivityAnalysis" class="modal-action-button" style="display: none;">執行分析</button>
+            </div>
+            <div id="sensitivityTableContainer" class="mt-6">
+                <!-- Results will be injected here -->
+            </div>
+        </div>
+    </div>
 
     <script>
 document.addEventListener('DOMContentLoaded', () => {
     (function() {
+
+        const steps = [0.8, 0.9, 1.0, 1.1, 1.2]; // -20%, -10%, Base, +10%, +20%
+
         /**
          * =================================================================
          * APP MODULE: Main Controller
@@ -784,19 +798,35 @@ document.addEventListener('DOMContentLoaded', () => {
                     UI.openModal(UI.elements.advancedModal);
                 });
                 UI.elements.saveAdvancedBtn.addEventListener('click', () => this.saveAdvancedSettings());
+                
+                // ADDED: Sensitivity Modal Listeners
+                UI.elements.openSensitivityModalBtn.addEventListener('click', () => {
+                    UI.openModal(UI.elements.sensitivityModal);
+                    this.runSensitivityAnalysis(); // Run analysis on open
+                });
+                UI.elements.targetVariable.addEventListener('change', () => this.runSensitivityAnalysis());
+                UI.elements.analysisVariable.addEventListener('change', () => this.runSensitivityAnalysis());
+                // UI.elements.runSensitivityAnalysis.addEventListener('click', () => this.runSensitivityAnalysis()); // No longer needed
+
                 UI.elements.confirmSaveBtn.addEventListener('click', () => this.saveRecord());
                 UI.elements.confirmNewAnalysisBtn.addEventListener('click', () => this.newAnalysis());
 
-                // Add Enter key listener for password change
+                // Add Enter key listener for password change (if elements exist, though tab is hidden)
                 [UI.elements.oldPassword, UI.elements.newPassword, UI.elements.confirmNewPassword].forEach(el => {
-                    el.addEventListener('keydown', (e) => {
-                        if (e.key === 'Enter') {
-                            e.preventDefault();
-                            UI.elements.changePasswordBtn.click();
-                            e.target.blur();
-                        }
-                    });
+                    if (el) { // Check if element exists
+                        el.addEventListener('keydown', (e) => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                if(UI.elements.changePasswordBtn) UI.elements.changePasswordBtn.click(); // Check if button exists
+                                e.target.blur();
+                            }
+                        });
+                    }
                 });
+                if (UI.elements.changePasswordBtn) { // Check if button exists
+                     UI.elements.changePasswordBtn.addEventListener('click', () => this.changePassword());
+                }
+
 
                 // Universal modal close buttons
                 document.querySelectorAll('.modal-close-btn, #cancelSaveBtn, #cancelNewAnalysisBtn').forEach(btn => {
@@ -849,6 +879,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 Persistence.saveSession();
             },
             
+            handleAdvancedLogin() {
+                // No password logic, directly show content
+                UI.showAdvancedContent(true);
+                UI.populateSpecsModal(Config.deviceSpecs, Config.calculationParams);
+                UI.populateFormulasModal(Config.calculationParams);
+                TouEditor.init();
+            },
+
             saveAdvancedSettings(closeModal = true) {
                 TouEditor.saveAndApply();
                 document.querySelectorAll('#specsModalTableBody input.cost-input, #specsModalTableBody input.salvage-percent-input').forEach(input => {
@@ -915,25 +953,10 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             
             changePassword() {
-                const { oldPassword, newPassword, confirmNewPassword, passwordChangeMessage } = UI.elements;
-                if (oldPassword.value !== Config.passwords.advanced) {
-                    UI.showModalMessage(passwordChangeMessage, '舊密碼不正確。');
-                    return;
+                // This function is no longer used but kept to prevent errors if called
+                if (UI.elements.passwordChangeMessage) {
+                     UI.showModalMessage(UI.elements.passwordChangeMessage, '密碼功能已移除。');
                 }
-                if (!newPassword.value || newPassword.value.length < 4) {
-                    UI.showModalMessage(passwordChangeMessage, '新密碼長度至少需要4位數。');
-                    return;
-                }
-                if (newPassword.value !== confirmNewPassword.value) {
-                    UI.showModalMessage(passwordChangeMessage, '新密碼與確認密碼不相符。');
-                    return;
-                }
-                Config.passwords.advanced = newPassword.value;
-                UI.showModalMessage(passwordChangeMessage, '密碼已成功更新！', false);
-                setTimeout(() => {
-                    [oldPassword, newPassword, confirmNewPassword].forEach(el => el.value = '');
-                    UI.showModalMessage(passwordChangeMessage, '', false, true);
-                }, 2000);
             },
 
             handleExplanationClick(e) {
@@ -962,6 +985,64 @@ document.addEventListener('DOMContentLoaded', () => {
                 UI.resetForm();
                 this.update();
                 UI.closeModal(UI.elements.newAnalysisConfirmModal);
+            },
+
+            runSensitivityAnalysis() {
+                const targetVar = UI.elements.targetVariable.value;
+                const analysisVar = UI.elements.analysisVariable.value;
+                
+                const baseInputs = UI.getInputs();
+                const labels = ["-20%", "-10%", "基準", "+10%", "+20%"];
+                
+                const results = [];
+                let baseValue = 0;
+
+                // Determine base value and key to modify
+                let isPercentage = false;
+                let isParam = false;
+                
+                if (analysisVar === 'taipowerFee') {
+                    baseValue = Config.calculationParams.taipowerFee.value;
+                    isParam = true;
+                } else if (analysisVar === 'demandGrowthRate') {
+                    baseValue = baseInputs[analysisVar] * 100; // it's a rate, so *100 for display, but modify as rate
+                    isPercentage = true;
+                } else {
+                    baseValue = baseInputs[analysisVar];
+                }
+
+                steps.forEach(step => {
+                    // Deep copy base inputs
+                    const modifiedInputs = JSON.parse(JSON.stringify(baseInputs));
+                    
+                    // Modify the single variable
+                    if (isParam) {
+                        // Need to modify a copy of params, run calc, then restore
+                        const originalParamValue = Config.calculationParams[analysisVar].value;
+                        Config.calculationParams[analysisVar].value = baseValue * step;
+                        
+                        const res = Calculator.run(modifiedInputs, Config.calculationParams, Config.deviceSpecs);
+                        
+                        // Restore original param value
+                        Config.calculationParams[analysisVar].value = originalParamValue;
+                        results.push(res);
+
+                    } else if (isPercentage) {
+                        modifiedInputs[analysisVar] = (baseValue * step) / 100; // Convert back to rate
+                        const res = Calculator.run(modifiedInputs, Config.calculationParams, Config.deviceSpecs);
+                        results.push(res);
+                    } else {
+                        modifiedInputs[analysisVar] = baseValue * step;
+                        // Need to update linked inputs if we change a primary driver
+                        if (analysisVar === 'carsPerGunPerDayDC' || analysisVar === 'avgKwhPerCar' || analysisVar === 'carsPerGunPerDayAC' || analysisVar === 'kwhPerGunPerMonthDC' || analysisVar === 'kwhPerGunPerMonthAC') {
+                             UI.updateLinkedInputs(modifiedInputs);
+                        }
+                        const res = Calculator.run(modifiedInputs, Config.calculationParams, Config.deviceSpecs);
+                        results.push(res);
+                    }
+                });
+
+                UI.renderSensitivityTable(targetVar, analysisVar, labels, results, baseValue, isPercentage, isParam);
             }
         };
 
@@ -1382,6 +1463,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 element.className = `modal-message ${isError ? 'error' : 'success'}`;
                 element.style.display = 'block';
             },
+            showAdvancedContent(show) {
+                this.elements.advancedPasswordSection.style.display = show ? 'none' : 'block';
+                this.elements.advancedContentSection.style.display = show ? 'block' : 'none';
+            },
             handleTabSwitch(event) {
                 const tabId = event.target.dataset.tab;
                 event.target.closest('.modal-tabs').querySelectorAll('.modal-tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -1665,6 +1750,65 @@ document.addEventListener('DOMContentLoaded', () => {
                 ['profitShareByAmount', 'profitShareByPercentage', 'profitShareBySite', 'financingToggle'].forEach(id => this.elements[id].checked = false);
                 this.elements.profitShareNone.checked = true;
                 Persistence.loadDefaultState();
+            },
+            
+            // ADDED: renderSensitivityTable function
+            renderSensitivityTable(targetVar, analysisVar, labels, results, baseValue, isPercentage, isParam) {
+                const container = this.elements.sensitivityTableContainer;
+                
+                // Get friendly names
+                const targetText = this.elements.targetVariable.querySelector(`option[value="${targetVar}"]`).textContent;
+                const analysisText = this.elements.analysisVariable.querySelector(`option[value="${analysisVar}"]`).textContent;
+
+                let tableHtml = `<table class="sensitivity-table">`;
+
+                // Header Row 1: Variable Name
+                tableHtml += `<thead><tr><th class="text-left">${analysisText}</th>`;
+                steps.forEach((step, index) => {
+                    tableHtml += `<th>${labels[index]}</th>`;
+                });
+                tableHtml += `</tr>`;
+
+                // Header Row 2: Variable Values
+                tableHtml += `<tr><th class="text-left text-gray-600">值</th>`;
+                steps.forEach((step, index) => {
+                    let valueDisplay = "";
+                    let val = baseValue * step;
+                    if (isPercentage) {
+                        valueDisplay = `${val.toFixed(1)}%`;
+                    } else if (isParam) {
+                        valueDisplay = `${UI.formatCurrency(val, 2, false, true)}`;
+                    } else {
+                         valueDisplay = `${val.toLocaleString('en-US', {maximumFractionDigits: 1})}`;
+                    }
+                    tableHtml += `<th class="${index === 2 ? 'base-case' : ''}">${valueDisplay}</th>`;
+                });
+                tableHtml += `</tr></thead>`;
+
+                // Data Row: Target Variable Results
+                tableHtml += `<tbody><tr><td class="font-semibold text-left">${targetText}</td>`;
+                results.forEach((res, index) => {
+                    let resultValue = "";
+                    switch(targetVar) {
+                        case 'paybackPeriod':
+                            resultValue = res.paybackPeriod === 'N/A' ? '無法回收' : res.paybackPeriod;
+                            break;
+                        case 'roi':
+                            resultValue = isNaN(res.roi) ? 'N/A' : `${res.roi.toFixed(1)}%`;
+                            break;
+                        case 'irr':
+                            resultValue = isNaN(res.irr) ? 'N/A' : `${res.irr.toFixed(1)}%`;
+                            break;
+                        case 'totalNetProfitSummary':
+                            resultValue = UI.formatCurrency(res.totalNetProfit, 0);
+                            break;
+                    }
+                    tableHtml += `<td class="${index === 2 ? 'base-case' : ''}">${resultValue}</td>`;
+                });
+                tableHtml += `</tr></tbody>`;
+                
+                tableHtml += `</table>`;
+                container.innerHTML = tableHtml;
             }
         };
 
@@ -2149,9 +2293,4 @@ document.addEventListener('DOMContentLoaded', () => {
     </script>
 </body>
 </html>
-
-
-
-
-
 
