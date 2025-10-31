@@ -222,6 +222,10 @@
             font-weight: 700;
             color: #4f46e5;
         }
+        select option:disabled {
+            text-decoration: line-through;
+            color: #9ca3af;
+        }
     </style>
     </head>
 <body class="p-4 md:p-8">
@@ -708,7 +712,7 @@
     </div>
     
     <div id="sensitivityModal" class="modal-overlay">
-        <div class="modal-content max-w-2xl"> <!-- Wider modal -->
+        <div class="modal-content max-w-3xl"> <!-- Wider modal -->
             <div class="modal-header">
                 <h3 class="modal-title">敏感性分析</h3>
                 <button class="modal-close-btn">&times;</button>
@@ -726,14 +730,7 @@
                 <div>
                     <label for="analysisVariable" class="label-text mb-2 block">分析變因 (X 軸)</label>
                     <select id="analysisVariable" class="input-field w-full text-center">
-                        <option value="chargeFeePerKwhDC">DC 每度電收費 (元)</option>
-                        <option value="chargeFeePerKwhAC">AC 每度電收費 (元)</option>
-                        <option value="carsPerGunPerDayDC">DC 每日車次/槍</option>
-                        <option value="carsPerGunPerDayAC">AC 每日車次/槍</option>
-                        <option value="kwhPerGunPerMonthDC">DC 每月度數/槍</option>
-                        <option value="kwhPerGunPerMonthAC">AC 每月度數/槍</option>
-                        <option value="demandGrowthRate">需求年增率 (%)</option>
-                        <option value="avgKwhPerCar">每車平均充電 (kWh)</option>
+                        <option value="totalKwh">總充電度數 (kWh)</option>
                         <option value="taipowerFee">台電平均電費 (元)</option>
                     </select>
                 </div>
@@ -743,6 +740,9 @@
             </div>
             <div id="sensitivityTableContainer" class="mt-6">
                 <!-- Results will be injected here -->
+            </div>
+            <div id="sensitivityChartContainer" class="mt-6 h-72">
+                <canvas id="sensitivityChart"></canvas>
             </div>
         </div>
     </div>
@@ -802,7 +802,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 UI.elements.targetVariable.addEventListener('change', () => this.runSensitivityAnalysis());
                 UI.elements.analysisVariable.addEventListener('change', () => this.runSensitivityAnalysis());
-                // UI.elements.runSensitivityAnalysis.addEventListener('click', () => this.runSensitivityAnalysis()); // No longer needed
 
                 UI.elements.confirmSaveBtn.addEventListener('click', () => this.saveRecord());
                 UI.elements.confirmNewAnalysisBtn.addEventListener('click', () => this.newAnalysis());
@@ -984,6 +983,8 @@ document.addEventListener('DOMContentLoaded', () => {
             },
 
             runSensitivityAnalysis() {
+                UI.updateSensitivityOptions();
+                
                 const targetVar = UI.elements.targetVariable.value;
                 const analysisVar = UI.elements.analysisVariable.value;
                 
@@ -991,7 +992,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const labels = ["-20%", "-10%", "基準", "+10%", "+20%"];
                 
                 const results = [];
-                let baseValue = 0;
+                let baseValue = 0; 
 
                 // Determine base value and key to modify
                 let isPercentage = false;
@@ -1000,10 +1001,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (analysisVar === 'taipowerFee') {
                     baseValue = Config.calculationParams.taipowerFee.value;
                     isParam = true;
-                } else if (analysisVar === 'demandGrowthRate') {
-                    baseValue = baseInputs[analysisVar] * 100; // it's a rate, so *100 for display, but modify as rate
-                    isPercentage = true;
+                } else if (analysisVar === 'totalKwh') {
+                    // This is the new logic. 'baseValue' isn't a single number.
+                    // We'll use 1.0 as the base for 'step' calculation, and handle labels specially.
+                    baseValue = 1.0; 
                 } else {
+                    // Fallback for any other variable (though none are left)
                     baseValue = baseInputs[analysisVar];
                 }
 
@@ -1013,7 +1016,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     // Modify the single variable
                     if (isParam) {
-                        // Need to modify a copy of params, run calc, then restore
+                        // Modify Taipower Fee
                         const originalParamValue = Config.calculationParams[analysisVar].value;
                         Config.calculationParams[analysisVar].value = baseValue * step;
                         
@@ -1023,22 +1026,118 @@ document.addEventListener('DOMContentLoaded', () => {
                         Config.calculationParams[analysisVar].value = originalParamValue;
                         results.push(res);
 
-                    } else if (isPercentage) {
-                        modifiedInputs[analysisVar] = (baseValue * step) / 100; // Convert back to rate
+                    } else if (analysisVar === 'totalKwh') {
+                        // NEW LOGIC for totalKwh
+                        // We must force 'byKwh' mode for this analysis to make sense
+                        modifiedInputs.revenueMethodAC = 'byKwh';
+                        modifiedInputs.revenueMethodDC = 'byKwh';
+                        
+                        // Scale the kWh values
+                        modifiedInputs.kwhPerGunPerMonthAC *= step;
+                        modifiedInputs.kwhPerGunPerMonthDC *= step;
+
+                        // CRITICAL: Update the linked 'carsPer...' inputs based on new kWh
+                        UI.updateLinkedInputs(modifiedInputs); 
+
                         const res = Calculator.run(modifiedInputs, Config.calculationParams, Config.deviceSpecs);
                         results.push(res);
+                        
                     } else {
+                        // This block is now for legacy/other variables (none left, but good to keep)
                         modifiedInputs[analysisVar] = baseValue * step;
-                        // Need to update linked inputs if we change a primary driver
-                        if (analysisVar === 'carsPerGunPerDayDC' || analysisVar === 'avgKwhPerCar' || analysisVar === 'carsPerGunPerDayAC' || analysisVar === 'kwhPerGunPerMonthDC' || analysisVar === 'kwhPerGunPerMonthAC') {
-                             UI.updateLinkedInputs(modifiedInputs);
-                        }
+                        UI.updateLinkedInputs(modifiedInputs);
                         const res = Calculator.run(modifiedInputs, Config.calculationParams, Config.deviceSpecs);
                         results.push(res);
                     }
                 });
 
                 UI.renderSensitivityTable(targetVar, analysisVar, labels, results, baseValue, isPercentage, isParam);
+                
+                const targetText = UI.elements.targetVariable.querySelector(`option[value="${targetVar}"]`).textContent;
+                const analysisText = UI.elements.analysisVariable.querySelector(`option[value="${analysisVar}"]`).textContent;
+                
+                // Prepare data for the chart
+                const chartData = results.map(res => {
+                    switch(targetVar) {
+                        case 'paybackPeriod':
+                            // Use null for 'N/A' to create gaps in line
+                            if (res.paybackPeriod === 'N/A') {
+                                // Plot "N/A" as a value slightly worse than the max operation years
+                                return -(baseInputs.operationYears + 1); 
+                            }
+                            const payback = parseFloat(res.paybackPeriod.replace(' 年', ''));
+                            return isNaN(payback) ? null : -payback; // INVERT THE VALUE
+                        case 'roi':
+                            return isNaN(res.roi) ? null : res.roi;
+                        case 'irr':
+                            return isNaN(res.irr) ? null : res.irr;
+                        case 'totalNetProfitSummary':
+                            return res.totalNetProfit;
+                        default:
+                            return null;
+                    }
+                });
+
+                const chartXLabels_Percent = labels; // ["-20%", "-10%", "基準", "+10%", "+20%"]
+                
+                // Recalculate baseValue for 'totalKwh' for labeling
+                let labelBaseValue;
+                if(analysisVar === 'totalKwh') {
+                    // Calculate total base kWh/month for labeling
+                    const acGuns = baseInputs.equipmentList.reduce((sum, e) => e.spec.type === 'AC' ? sum + e.gunCount : sum, 0);
+                    const dcGuns = baseInputs.equipmentList.reduce((sum, e) => e.spec.type !== 'AC' ? sum + e.gunCount : sum, 0);
+                    labelBaseValue = (baseInputs.kwhPerGunPerMonthAC * acGuns) + (baseInputs.kwhPerGunPerMonthDC * dcGuns);
+                } else if (isParam) {
+                    labelBaseValue = Config.calculationParams[analysisVar].value;
+                } else {
+                    labelBaseValue = baseInputs[analysisVar];
+                }
+
+                const chartXLabels_Value = steps.map(step => {
+                    let val = (analysisVar === 'totalKwh') ? labelBaseValue * step : baseValue * step;
+                    
+                    if (isPercentage) {
+                        return `${val.toFixed(1)}%`;
+                    } else if (isParam) {
+                        return `${UI.formatCurrency(val, 2, false, true)}`;
+                    } else if (analysisVar === 'totalKwh') {
+                        return `${UI.formatCurrency(val, 0, false, true)} kWh/月`;
+                    } else {
+                         return `${val.toLocaleString('en-US', {maximumFractionDigits: 1})}`;
+                    }
+                });
+
+                // Store full labels for tooltip
+                if (Charts.instances.sensitivity) {
+                    Charts.instances.sensitivity.fullXLabels = chartXLabels_Value;
+                    
+                    Charts.instances.sensitivity.data = {
+                        labels: chartXLabels_Percent, // Show percentages on X-axis
+                        datasets: [{
+                            label: targetText,
+                            data: chartData,
+                            borderColor: '#4f46e5',
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            fill: true,
+                            tension: 0.1,
+                            spanGaps: false, // Do not connect line across 'null' (N/A) points
+                        }]
+                    };
+                    
+                    // Customize Y-axis label
+                    Charts.instances.sensitivity.options.scales.y.title = {
+                        display: true,
+                        text: targetText
+                    };
+                    
+                    // Customize X-axis label
+                    Charts.instances.sensitivity.options.scales.x.title = {
+                        display: true,
+                        text: analysisText
+                    };
+
+                    Charts.instances.sensitivity.update();
+                }
             }
         };
 
@@ -1578,8 +1677,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     case 'investment': title = '總投資額 計算說明'; const investmentItems = Calculator.getInvestmentBreakdown(inputs, calculationParams); contentHtml = buildGrid(investmentItems, results.totalInvestment); break;
                     case 'revenue': title = '總營收 計算說明 (營運期間總計)'; const totalRevenueItems = Calculator.getOverallRevenueBreakdown(results, inputs); contentHtml = buildGrid(totalRevenueItems, results.totalChargingRevenue); break;
                     case 'cost': title = '總成本 計算說明 (營運期間總計)'; const totalCostItems = Calculator.getOverallCostBreakdown(results, inputs); const totalCost = results.annualData.reduce((sum, d) => sum + d.cost, 0); contentHtml = buildGrid(totalCostItems, totalCost); break;
-                    case 'equity': title = '本金 計算說明'; const equityItems = [ { label: '總投資額', value: results.totalInvestment, formula: '所有初期建置成本' }, { label: '融資金額', value: -results.loanAmount, formula: '僅針對設備費用貸款' } ]; contentHtml = buildGrid(equityItems, results.equity, '本金 (自有資金)'); break;
-                    case 'loan': title = '融資 計算說明'; let loanGridHtml = '<div class="explainer-grid">'; loanGridHtml += `<span>設備費用(未稅)</span><span>所有設備未稅總價</span><span class="font-semibold">${this.formatCurrency(results.costBreakdown.equipmentCost, 0, false, true)}</span>`; loanGridHtml += `<span>貸款比例</span><span>使用者設定</span><span class="font-semibold">${(inputs.loanPercentage * 100).toFixed(0)}%</span>`; loanGridHtml += '</div>'; loanGridHtml += `<div class="explainer-total-row"><span>融資金額</span><span>${this.formatCurrency(results.loanAmount, 0, false, true)}</span></div>`; contentHtml = loanGridHtml; break;
+                    case 'equity': 
+                        title = '本金 計算說明';
+                        const equityItems = [ 
+                            { label: '總投資額', value: results.totalInvestment, formula: '(所有建置成本加總)' }, 
+                            { label: '融資金額', value: -results.loanAmount, formula: `(${this.formatCurrency(results.totalInvestment, 0, false, true)} x ${inputs.loanPercentage * 100}%)` } 
+                        ]; 
+                        contentHtml = buildGrid(equityItems, results.equity, '本金 (自有資金)'); 
+                        break;
+                    case 'loan': 
+                        title = '融資 計算說明'; 
+                        let loanGridHtml = '<div class="explainer-grid">'; 
+                        loanGridHtml += `<span>總投資額</span><span>所有建置成本加總</span><span class="font-semibold">${this.formatCurrency(results.totalInvestment, 0, false, true)}</span>`; 
+                        loanGridHtml += `<span>貸款比例</span><span>使用者設定</span><span class="font-semibold">${(inputs.loanPercentage * 100).toFixed(0)}%</span>`; 
+                        loanGridHtml += '</div>'; 
+                        loanGridHtml += `<div class="explainer-total-row"><span>融資金額</span><span>${this.formatCurrency(results.loanAmount, 0, false, true)}</span></div>`; 
+                        contentHtml = loanGridHtml; 
+                        break;
                     case 'interest': title = '利息總額 計算說明'; const interestItems = []; let tempRemainingPrincipal = results.loanAmount; for (let year = 1; year <= inputs.loanTerm; year++) { if (tempRemainingPrincipal <= 0) break; const interestPayment = tempRemainingPrincipal * inputs.interestRate; const monthlyPayment = (tempRemainingPrincipal * (inputs.interestRate / 12)) / (1 - Math.pow(1 + (inputs.interestRate / 12), - (inputs.loanTerm - year + 1) * 12)); const annualPayment = monthlyPayment * 12; const principalPayment = annualPayment - interestPayment; const formattedInterestRate = parseFloat((inputs.interestRate * 100).toFixed(2)); interestItems.push({ label: `第 ${year} 年利息`, value: interestPayment, formula: `${this.formatCurrency(tempRemainingPrincipal, 0, false, true)} x ${formattedInterestRate}%` }); tempRemainingPrincipal -= principalPayment; } contentHtml = buildGrid(interestItems, results.totalInterestPaid, '利息總額'); break;
                     case 'management': title = '維運代管總成本 計算說明'; const managementItems = Calculator.getOverallManagementCostBreakdown(results, inputs); contentHtml = buildGrid(managementItems, results.totalManagementCost); break;
                     case 'payback':
@@ -1748,6 +1862,45 @@ document.addEventListener('DOMContentLoaded', () => {
                 Persistence.loadDefaultState();
             },
             
+            // ADDED THIS NEW FUNCTION
+            updateSensitivityOptions() {
+                const inputs = this.getInputs();
+                const hasAC = inputs.equipmentList.some(e => e.spec.type === 'AC');
+                const hasDC = inputs.equipmentList.some(e => e.spec.type !== 'AC');
+
+                const optionsMap = {
+                    'totalKwh': 'AC_OR_DC', // New key
+                    'taipowerFee': 'ALL'
+                };
+
+                const select = this.elements.analysisVariable;
+                if (!select) return;
+
+                let firstEnabledOption = null;
+
+                for (const option of select.options) {
+                    const type = optionsMap[option.value];
+                    let shouldBeDisabled = false;
+
+                    if (type === 'AC_OR_DC' && !hasAC && !hasDC) { // Disable if no guns at all
+                        shouldBeDisabled = true;
+                    }
+                    // 'ALL' type is never disabled
+
+                    option.disabled = shouldBeDisabled;
+                    
+                    option.style.textDecoration = shouldBeDisabled ? 'line-through' : 'none';
+
+                    if (!shouldBeDisabled && !firstEnabledOption) {
+                        firstEnabledOption = option.value;
+                    }
+                }
+
+                if (select.options[select.selectedIndex].disabled && firstEnabledOption) {
+                    select.value = firstEnabledOption;
+                }
+            },
+
             // ADDED: renderSensitivityTable function
             renderSensitivityTable(targetVar, analysisVar, labels, results, baseValue, isPercentage, isParam) {
                 const container = this.elements.sensitivityTableContainer;
@@ -1767,13 +1920,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Header Row 2: Variable Values
                 tableHtml += `<tr><th class="text-left text-gray-600">值</th>`;
+                
+                // Recalculate baseValue for 'totalKwh' for labeling
+                let labelBaseValue;
+                if(analysisVar === 'totalKwh') {
+                    const baseInputs = UI.getInputs(); // Get fresh inputs
+                    const acGuns = baseInputs.equipmentList.reduce((sum, e) => e.spec.type === 'AC' ? sum + e.gunCount : sum, 0);
+                    const dcGuns = baseInputs.equipmentList.reduce((sum, e) => e.spec.type !== 'AC' ? sum + e.gunCount : sum, 0);
+                    labelBaseValue = (baseInputs.kwhPerGunPerMonthAC * acGuns) + (baseInputs.kwhPerGunPerMonthDC * dcGuns);
+                } else if (isParam) {
+                    labelBaseValue = Config.calculationParams[analysisVar].value;
+                } else {
+                    labelBaseValue = UI.getInputs()[analysisVar];
+                }
+
                 steps.forEach((step, index) => {
                     let valueDisplay = "";
-                    let val = baseValue * step;
+                    let val = (analysisVar === 'totalKwh') ? labelBaseValue * step : baseValue * step;
+                    
                     if (isPercentage) {
                         valueDisplay = `${val.toFixed(1)}%`;
                     } else if (isParam) {
                         valueDisplay = `${UI.formatCurrency(val, 2, false, true)}`;
+                    } else if (analysisVar === 'totalKwh') {
+                        valueDisplay = `${UI.formatCurrency(val, 0, false, true)}`;
                     } else {
                          valueDisplay = `${val.toLocaleString('en-US', {maximumFractionDigits: 1})}`;
                     }
@@ -1822,7 +1992,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const equipmentCostItem = investmentBreakdown.find(i => i.key === 'deviceCost');
                 results.costBreakdown = { equipmentCost: equipmentCostItem?.value || 0, totalDeviceCostUntaxed: equipmentCostItem?.untaxedValue || 0, totalSalvageValue: this.calculateSalvageValue(inputs, deviceSpecs) };
                 
-                const loanAmount = inputs.financingEnabled ? results.costBreakdown.equipmentCost * inputs.loanPercentage : 0;
+                const loanAmount = inputs.financingEnabled ? results.totalInvestment * inputs.loanPercentage : 0;
                 const equity = results.totalInvestment - loanAmount;
                 results.loanAmount = loanAmount;
                 results.equity = equity;
@@ -2143,6 +2313,99 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.instances.rent = new Chart(UI.elements.rentChart, { type: 'bar', data: {}, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
                 this.instances.cumulative = new Chart(UI.elements.cumulativePnlChart, { type: 'line', data: {}, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
                 this.instances.tou = new Chart(UI.elements.touPieChart, { type: 'doughnut', data: {}, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.label}: ${c.raw}%` } } } } });
+                
+                // ADDED:
+                if (UI.elements.sensitivityChart) { // Check if it exists (it's in a modal)
+                    this.instances.sensitivity = new Chart(UI.elements.sensitivityChart, {
+                        type: 'line',
+                        data: {},
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: { mode: 'index', intersect: false },
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: (c) => {
+                                            let label = c.dataset.label || '';
+                                            if (label) {
+                                                label += ': ';
+                                            }
+                                            if (c.raw === null) {
+                                                label += '無法回收';
+                                            } else if (c.parsed.y !== null) {
+                                                const targetVar = UI.elements.targetVariable.value;
+                                                if (targetVar === 'paybackPeriod') {
+                                                    // Check if it's the "N/A" value
+                                                    if (c.raw <= -UI.getInputs().operationYears) {
+                                                        label += '無法回收';
+                                                    } else {
+                                                        label += `${(c.parsed.y * -1).toFixed(1)} 年`; // RE-INVERT for display
+                                                    }
+                                                } else if (targetVar === 'roi' || targetVar === 'irr') {
+                                                    label += `${c.parsed.y.toFixed(1)}%`;
+                                                } else {
+                                                    label += UI.formatCurrency(c.parsed.y);
+                                                }
+                                            }
+                                            return label;
+                                        },
+                                        title: (c) => {
+                                            // X-axis label (e.g., -20%)
+                                            return c[0].label;
+                                        },
+                                        afterTitle: (c) => {
+                                            // Get the corresponding value from the chart object
+                                            const chart = Charts.instances.sensitivity; // Use 'Charts.instances' to get the correct scope
+                                            if (chart && chart.fullXLabels) {
+                                                return chart.fullXLabels[c[0].dataIndex];
+                                            }
+                                            return '';
+                                        }
+                                    }
+                                }
+                            },
+                            // ADDED THIS BLOCK TO SHOW POINTS
+                            elements: {
+                                point: {
+                                    radius: 4,
+                                    hoverRadius: 7,
+                                    backgroundColor: '#4f46e5',
+                                    borderColor: '#ffffff',
+                                    borderWidth: 2
+                                }
+                            },
+                            scales: {
+                                x: { 
+                                    grid: { display: false },
+                                    title: { display: true, text: '變因' }
+                                },
+                                y: {
+                                    beginAtZero: false,
+                                    title: { display: true, text: '目標' },
+                                    ticks: {
+                                        callback: (value) => {
+                                            // Dynamic formatting for Y-axis
+                                            const targetVar = UI.elements.targetVariable ? UI.elements.targetVariable.value : 'paybackPeriod';
+                                            if (targetVar === 'paybackPeriod') {
+                                                // Check for "N/A" value
+                                                if (value <= -UI.getInputs().operationYears) {
+                                                    return '無法回收';
+                                                }
+                                                return `${(value * -1).toFixed(1)} 年`; // RE-INVERT for display
+                                            } else if (targetVar === 'roi' || targetVar === 'irr') {
+                                                return `${value.toFixed(1)}%`;
+                                            } else {
+                                                return yAxisTickFormatter(value); // Use existing formatter
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
             },
             generateLegend(chart, container) { /* Logic remains complex, kept as is */
                 if (!chart || !container) return; container.innerHTML = ''; const legendItems = chart.legend.legendItems; if (!legendItems) return;
