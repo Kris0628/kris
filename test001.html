@@ -2515,13 +2515,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 if (state.inputs) {
                     const { inputs } = state;
+                    const commaFields = ['infrastructureCostMain', 'rentPerSpace', 'rentPerLand', 'kwhPerGunPerMonthDC', 'rentKwhThreshold'];
+
                     Object.keys(inputs).forEach(key => {
                         const el = UI.elements[key];
                         const val = inputs[key];
                         if (el && typeof val !== 'object' && typeof val !== 'undefined') {
-                            if (el.type === 'checkbox') el.checked = val;
-                            else if (key.includes('Rate') || key.includes('Percentage')) el.value = val * 100;
-                            else el.value = val;
+                            if (el.type === 'checkbox') {
+                                el.checked = val;
+                            } else if (key.includes('Rate') || key.includes('Percentage')) {
+                                el.value = val * 100;
+                            } else if (commaFields.includes(key)) {
+                                // Apply comma formatting
+                                el.value = (val !== null) ? Number(val).toLocaleString('en-US') : '';
+                            } else {
+                                el.value = val;
+                            }
                         } else if (key.startsWith('rentTier') && key.endsWith('Type')) {
                             // This is now obsolete, handled by the loop below
                         }
@@ -2562,6 +2571,7 @@ document.addEventListener('DOMContentLoaded', () => {
     </script>
 </body>
 </html>
+
 
 
 
