@@ -1216,6 +1216,14 @@ document.addEventListener('DOMContentLoaded', () => {
             init() {
                 // Auto-cache all elements with an ID
                 document.querySelectorAll('[id]').forEach(el => this.elements[el.id] = el);
+                
+                // --- FIX ---
+                // Ensure the collapsible table is closed on init, overriding any stray styles
+                if (this.elements.kwhTableContainer) {
+                    this.elements.kwhTableContainer.style.maxHeight = '0px';
+                }
+                // --- END FIX ---
+
                 this.updateUIVisibility();
                 this.elements.addEquipmentBtn.addEventListener('click', () => { this.addEquipmentRow(); App.update(); });
                 document.querySelectorAll('.modal-tab-btn').forEach(btn => btn.addEventListener('click', this.handleTabSwitch));
