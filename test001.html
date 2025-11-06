@@ -783,6 +783,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 this.setupEventListeners();
                 this.update();
+
+                // --- NEW FIX ---
+                // After the first update/render, forcefully collapse the table
+                // This ensures any race conditions on load are overridden.
+                if (UI.elements.kwhTableContainer) {
+                    UI.elements.kwhTableContainer.style.maxHeight = '0px';
+                    UI.elements.kwhTableIcon.classList.remove('rotate-180');
+                }
+                // --- END NEW FIX ---
             },
 
             setupEventListeners() {
