@@ -540,12 +540,11 @@
                     <div class="summary-card"><div class="summary-label">總成本</div><div id="totalCostSummary" class="summary-value"></div></div>
                     <div class="summary-card"><div class="summary-label">總淨利</div><div id="totalNetProfitSummary" class="summary-value"></div></div>
                     
-                    <div class="summary-card"><div class="summary-label">平均每年淨利</div><div id="avgNetProfitSummary" class="summary-value"></div></div>
                     <div class="summary-card"><div class="summary-label">本金 / 自有資金</div><div id="equitySummary" class="summary-value"></div></div>
                     <div class="summary-card"><div class="summary-label">融資總利息</div><div id="totalInterestSummary" class="summary-value"></div></div>
-                    
                     <div class="summary-card"><div class="summary-label">IRR (內部報酬率)</div><div id="irrSummary" class="summary-value"></div></div>
-                    <div class="summary-card"><div class="summary-label">ROI (投資報酬率)</div><div id="roiSummary" class="summary-value"></div></div>
+                    
+                    <div class="summary-card"><div class="summary-label">專案總報酬率 (ROI)</div><div id="roiSummary" class="summary-value"></div></div>
                 </div>
                 <div id="print-charts-grid" class="grid grid-cols-1 gap-6">
                     <div class="card bg-sky-50 fixed-height">
@@ -1191,6 +1190,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 meterFeePerGun: { value: 700, label: '電錶費用/槍', unit: '元', description: '每增加一槍の電表費用(僅DC樁, 一次性)。', enabled: true, category: 'investment' },
                 taxRate: { value: 0.05, label: '營業稅率', unit: '%', description: '設備購買及相關服務の營業稅率。', enabled: false, category: 'investment' },
                 taipowerFee: { value: 4.2, label: '台電平均電費', unit: '元', description: '向台電購電の每度平均成本。', enabled: true, category: 'annual' },
+                monthlyCapacityFee: { value: 30000, label: '每月基本電費(契約容量)', unit: '元', description: '台電收取的固定月費(DC樁適用)。', enabled: true, category: 'annual' },
                 electricalTechnicianFee: { value: 20000, label: '高壓用電技術人員/年', unit: '元', description: '每年收取一次技師檢定費。', enabled: true, category: 'annual' },
                 maintenanceFee: { value: 37000, label: '維運&客服/年', unit: '元', description: '年度場域維護與線上客服費用。', enabled: false, category: 'annual' },
                 transactionFeeRate: { value: 0.03, label: '金流手續費', unit: '%', description: '支付給金流服務商の每筆交易手續費率。', enabled: true, category: 'annual' },
@@ -1461,8 +1461,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const totalCost = results.annualData.reduce((sum, d) => sum + d.cost, 0);
                 renderCurrency(this.elements.totalCostSummary, totalCost);
                 renderCurrency(this.elements.equitySummary, results.equity);
-                const avgNetProfit = inputs.operationYears > 0 ? (results.totalNetProfit / inputs.operationYears) : 0;
-                renderCurrency(this.elements.avgNetProfitSummary, avgNetProfit);
                 // ADDED LOGIC END
                 
                 renderSummary(this.elements.operationPeriodSummary, inputs.operationYears, ' 年');
@@ -1527,6 +1525,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         row.after(newRow);
                     }
                 }
+                
+                // --- FIX ---
+                // After adding or removing a row, check if this is the kWh table
+                // and resize its container if it's currently open.
+                if (tbody.id === 'kwhStatsTableBody') {
+                    const c = UI.elements.kwhTableContainer;
+                    // Check if the container is open (maxHeight will be non-zero)
+                    if (c.style.maxHeight && c.style.maxHeight !== '0px') {
+                        c.style.maxHeight = c.scrollHeight + 'px';
+                    }
+                }
+                // --- END FIX ---
             },
             togglePnlDetails(row, results) {
                 this.toggleDetails(this.elements.pnlTableBody, row, results, (yearData, res) => this.createDetailsHtml(yearData, res), 5);
@@ -2200,6 +2210,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         label: p.taipowerFee.label,
                         value: totalKwhSold * p.taipowerFee.value * powerLoss,
                         formula: `${UI.formatCurrency(totalKwhSold, 0, false, true)}kWh x ${UI.formatCurrency(p.taipowerFee.value, 2, false, true)}元 x ${powerLoss.toFixed(2)} (含電損)`
+                    });
+                }
+
+                if (p.monthlyCapacityFee.enabled && hasDC) {
+                    items.push({
+                        key: 'monthlyCapacityFee',
+                        label: p.monthlyCapacityFee.label,
+                        value: p.monthlyCapacityFee.value * 12,
+                        formula: `${UI.formatCurrency(p.monthlyCapacityFee.value, 0, false, true)}元/月 x 12月`
                     });
                 }
 
