@@ -784,14 +784,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.setupEventListeners();
                 this.update();
 
-                // --- NEW FIX ---
-                // After the first update/render, forcefully collapse the table
+                // --- NEWER FIX ---
+                // Force collapse the table *after* data is populated by update()
                 // This ensures any race conditions on load are overridden.
-                if (UI.elements.kwhTableContainer) {
-                    UI.elements.kwhTableContainer.style.maxHeight = '0px';
+                const container = UI.elements.kwhTableContainer;
+                if (container) {
+                    // Temporarily remove transition to set height instantly
+                    container.classList.remove('transition-all', 'duration-500');
+                    container.style.maxHeight = '0px';
                     UI.elements.kwhTableIcon.classList.remove('rotate-180');
+                    
+                    // Force browser repaint/reflow
+                    void container.offsetWidth; 
+                    
+                    // Add transition back for future clicks
+                    container.classList.add('transition-all', 'duration-500');
                 }
-                // --- END NEW FIX ---
+                // --- END NEWER FIX ---
             },
 
             setupEventListeners() {
@@ -1229,6 +1238,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // --- FIX ---
                 // Ensure the collapsible table is closed on init, overriding any stray styles
                 if (this.elements.kwhTableContainer) {
+                    // Remove transition during init to prevent load animations
+                    this.elements.kwhTableContainer.classList.remove('transition-all', 'duration-500');
                     this.elements.kwhTableContainer.style.maxHeight = '0px';
                 }
                 // --- END FIX ---
@@ -1520,6 +1531,8 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             toggleKwhTable() {
                 const c = UI.elements.kwhTableContainer;
+                // Add transitions back if they were removed on init
+                c.classList.add('transition-all', 'duration-500');
                 UI.elements.kwhTableIcon.classList.toggle('rotate-180');
                 c.style.maxHeight = (c.style.maxHeight && c.style.maxHeight !== '0px') ? '0px' : c.scrollHeight + 'px';
             },
