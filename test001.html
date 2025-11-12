@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -586,6 +588,7 @@
                         <div id="managementChartLegend" class="flex flex-wrap gap-x-4 gap-y-1 justify-center mb-3"></div>
                         <div class="flex-grow h-80"><canvas id="managementChart"></canvas></div>
                     </div>
+                    <!-- REMOVED CHART: Total Cost Structure -->
                 </div>
             </div>
         </div>
@@ -737,9 +740,9 @@
                     <label for="targetVariable" class="label-text mb-2 block">分析目標 (Y 軸)</label>
                     <select id="targetVariable" class="input-field w-full text-center">
                         <option value="paybackPeriod">預計回收年限 (年)</option>
-                        <option value="roi">ROI (投資報酬率 %)</option>
+                        <option value="roi">專案總報酬率 (ROI %)</option>
                         <option value="irr">IRR (內部報酬率 %)</option>
-                        <option value="totalNetProfitSummary">總充電淨利 (元)</option>
+                        <option value="totalNetProfitSummary">總淨利 (元)</option>
                     </select>
                 </div>
                 <div>
@@ -1734,7 +1737,30 @@ document.addEventListener('DOMContentLoaded', () => {
                         loanGridHtml += `<div class="explainer-total-row"><span>融資金額</span><span>${this.formatCurrency(results.loanAmount, 0, false, true)}</span></div>`; 
                         contentHtml = loanGridHtml; 
                         break;
-                    case 'interest': title = '利息總額 計算說明'; const interestItems = []; let tempRemainingPrincipal = results.loanAmount; for (let year = 1; year <= inputs.loanTerm; year++) { if (tempRemainingPrincipal <= 0) break; const interestPayment = tempRemainingPrincipal * inputs.interestRate; const monthlyPayment = (tempRemainingPrincipal * (inputs.interestRate / 12)) / (1 - Math.pow(1 + (inputs.interestRate / 12), - (inputs.loanTerm - year + 1) * 12)); const annualPayment = monthlyPayment * 12; const principalPayment = annualPayment - interestPayment; const formattedInterestRate = parseFloat((inputs.interestRate * 100).toFixed(2)); interestItems.push({ label: `第 ${year} 年利息`, value: interestPayment, formula: `${this.formatCurrency(tempRemainingPrincipal, 0, false, true)} x ${formattedInterestRate}%` }); tempRemainingPrincipal -= principalPayment; } contentHtml = buildGrid(interestItems, results.totalInterestPaid, '利息總額'); break;
+                    case 'interest': 
+                        title = '利息總額 計算說明'; 
+                        const interestItems = []; 
+                        let tempRemainingPrincipal = results.loanAmount; 
+                        const firstYearInterest = tempRemainingPrincipal * inputs.interestRate;
+                        interestItems.push({ label: `第 1 年利息 (估)`, value: firstYearInterest, formula: `${this.formatCurrency(tempRemainingPrincipal, 0, false, true)} x ${parseFloat((inputs.interestRate * 100).toFixed(2))}%` });
+                        
+                        let lastYearInterest = 0;
+                        for (let year = 1; year <= inputs.loanTerm; year++) { 
+                            if (tempRemainingPrincipal <= 0) break; 
+                            const interestPayment = tempRemainingPrincipal * inputs.interestRate;
+                            lastYearInterest = interestPayment;
+                            const monthlyPayment = (tempRemainingPrincipal * (inputs.interestRate / 12)) / (1 - Math.pow(1 + (inputs.interestRate / 12), - (inputs.loanTerm - year + 1) * 12)); 
+                            const principalPayment = (monthlyPayment * 12) - interestPayment; 
+                            tempRemainingPrincipal -= principalPayment; 
+                        }
+                        
+                        if (inputs.loanTerm > 1) {
+                            interestItems.push({ label: `...`, value: 0, formula: `利息逐年遞減` });
+                            interestItems.push({ label: `第 ${inputs.loanTerm} 年利息 (估)`, value: lastYearInterest, formula: `依剩餘本金計算` });
+                        }
+                        
+                        contentHtml = buildGrid(interestItems, results.totalInterestPaid, '利息總額'); 
+                        break;
                     case 'management': title = '維運代管總成本 計算說明'; const managementItems = Calculator.getOverallManagementCostBreakdown(results, inputs); contentHtml = buildGrid(managementItems, results.totalManagementCost); break;
                     case 'payback':
                         title = '預計回收年限 計算說明';
@@ -2026,7 +2052,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const Calculator = {
             lastResults: {},
             run(inputs, params, deviceSpecs) {
-                const results = { annualData: [], totalInvestment: 0, paybackPeriod: 'N/A', costBreakdown: {}, avgChargeFeeAC: 0, avgChargeFeeDC: 0, totalChargingRevenue: 0, totalNetProfit: 0, totalInterestPaid: 0, roi: NaN, irr: NaN, totalManagementCost: 0 };
+                const results = { annualData: [], totalInvestment: 0, paybackPeriod: 'N/A', costBreakdown: {}, avgChargeFeeAC: 0, avgChargeFeeDC: 0, totalChargingRevenue: 0, totalNetProfit: 0, totalInterestPaid: 0, roi: NaN, irr: NaN, totalManagementCost: 0 }; // REMOVED totalCostBreakdown
                 const investmentBreakdown = this.getInvestmentBreakdown(inputs, params);
                 results.totalInvestment = investmentBreakdown.reduce((sum, item) => sum + item.value, 0);
                 const equipmentCostItem = investmentBreakdown.find(i => i.key === 'deviceCost');
@@ -2097,6 +2123,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
 
+                // --- REMOVED: Calculate Total Cost Breakdown ---
+                
                 results.totalNetProfit = results.annualData.reduce((sum, d) => sum + d.pnl, 0);
                 results.totalChargingRevenue = results.annualData.reduce((sum, d) => sum + d.revenue, 0);
                 results.totalInterestPaid = cashFlows.length > 1 ? results.annualData.reduce((sum, d) => sum + (d.details.costBreakdownItems.find(i => i.key === 'interest')?.value || 0), 0) : 0;
@@ -2362,6 +2390,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.instances.cumulative = new Chart(UI.elements.cumulativePnlChart, { type: 'line', data: {}, options: { ...commonOptions, scales: { x: { grid: { display: false } }, y: { ticks: { callback: yAxisTickFormatter } } } } });
                 this.instances.tou = new Chart(UI.elements.touPieChart, { type: 'doughnut', data: {}, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.label}: ${c.raw}%` } } } } });
                 
+                // REMOVED: Initialize Cost Structure Chart
+                
                 // ADDED:
                 if (UI.elements.sensitivityChart) { // Check if it exists (it's in a modal)
                     this.instances.sensitivity = new Chart(UI.elements.sensitivityChart, {
@@ -2507,6 +2537,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.instances.tou.data = { labels: ['尖峰', '離峰', '假日'], datasets: [{ data: [inputs.touRatios.peak * 100, inputs.touRatios.offpeak * 100, inputs.touRatios.holiday * 100].map(v => v.toFixed(0)), backgroundColor: ['#ef4444', '#10b981', '#3b82f6'] }] };
                     this.instances.tou.update();
                 }
+
+                // REMOVED: Update Cost Structure Chart
             }
         };
 
