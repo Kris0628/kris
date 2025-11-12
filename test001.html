@@ -275,15 +275,15 @@
                         <div id="equipmentListContainer" class="space-y-3"></div>
                         <hr class="border-gray-200 my-2"/>
                         <div class="grid grid-cols-2 items-center gap-4">
-                            <span class="label-text">總槍數(車格)</span>
+                            <span class="label-text text-left">總槍數(車格)</span>
                             <input type="number" id="parkingSpaces" class="input-field readonly" readonly>
                         </div>
                          <div class="grid grid-cols-2 items-center gap-4">
-                            <span class="label-text">設備費用(未稅)</span>
+                            <span class="label-text text-left">設備費用(未稅)</span>
                             <input type="text" id="equipmentCostDisplayMain" class="input-field readonly" readonly>
                         </div>
                         <div class="grid grid-cols-2 items-center gap-4">
-                            <span class="label-text">勞務工程</span>
+                            <span class="label-text text-left">勞務工程</span>
                             <input type="text" id="infrastructureCostMain" class="input-field" value="500,000">
                         </div>
                         <hr class="border-gray-200 my-2"/>
@@ -307,18 +307,18 @@
                 <div class="card bg-white">
                     <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-5 pb-3 border-b border-gray-200">營運&成本設定</h2>
                     <div class="space-y-4">
-                        <div id="acSettingsBlock" class="input-section bg-blue-50 space-y-4 hidden-section">
-                            <h3 class="text-xl font-bold text-gray-700 pb-2 border-b border-blue-200">AC 慢充設定</h3>
+                        <div id="acSettingsBlock" class="input-section bg-green-50 space-y-4 hidden-section"> <!-- CHANGED: bg-blue-50 to bg-green-50 -->
+                            <h3 class="text-xl font-bold text-gray-700 pb-2 border-b border-green-200">AC 慢充設定</h3> <!-- CHANGED: border-blue-200 to border-green-200 -->
                             <div>
-                                <h4 class="text-lg font-semibold text-gray-700 mb-2">收費方式</h4>
+                                <h4 class="text-lg font-semibold text-gray-700 mb-2 text-left">收費方式</h4>
                                 <p class="text-sm text-red-600 mt-1 mb-2">AC不以尖離峰方式計費</p>
                                 <div class="grid grid-cols-2 items-center gap-4">
-                                    <span class="label-text">每度電收費 (元)</span>
+                                    <span class="label-text text-left">每度電收費 (元)</span>
                                     <input type="number" id="chargeFeePerKwhAC" class="input-field" value="7.5" step="0.1">
                                 </div>
                             </div>
                             <div class="pt-4 mt-4 border-t border-blue-200">
-                                <h4 class="text-lg font-semibold text-gray-700 mb-2">基礎參數</h4>
+                                <h4 class="text-lg font-semibold text-gray-700 mb-2 text-left">基礎參數</h4>
                                 <p class="text-sm text-gray-500 mb-3">* 僅當「每日車次/槍」初始設定低於2時，才會套用需求年增率，且成長上限為2台車。</p>
                                 <div>
                                     <div class="flex flex-wrap gap-3">
@@ -328,14 +328,14 @@
                                 </div>
                                 <div class="grid grid-cols-2 items-center gap-4 mt-3">
                                     <div>
-                                        <span class="label-text">每日車次/槍</span>
+                                        <span class="label-text text-left">每日車次/槍</span>
                                         <span class="block text-xs text-red-500 font-normal">(上限2車/次)</span>
                                     </div>
                                     <input type="number" id="carsPerGunPerDayAC" class="input-field" value="0.5" max="2" step="0.1">
                                 </div>
                                 <div class="grid grid-cols-2 items-center gap-4 mt-3">
                                    <div>
-                                        <span class="label-text">每月度數/槍</span>
+                                        <span class="label-text text-left">每月度數/槍</span>
                                         <span class="block text-xs text-red-500 font-normal">(上限1800度/月)</span>
                                     </div>
                                    <input type="number" id="kwhPerGunPerMonthAC" class="input-field" value="1800" max="1800" step="10">
@@ -343,10 +343,10 @@
                             </div>
                         </div>
                         
-                        <div id="dcSettingsBlock" class="input-section bg-green-50 space-y-4 hidden-section">
-                            <h3 class="text-xl font-bold text-gray-700 pb-2 border-b border-green-200">DC 快充設定</h3>
+                        <div id="dcSettingsBlock" class="input-section bg-blue-50 space-y-4 hidden-section"> <!-- CHANGED: bg-green-50 to bg-blue-50 -->
+                            <h3 class="text-xl font-bold text-gray-700 pb-2 border-b border-blue-200">DC 快充設定</h3> <!-- CHANGED: border-green-200 to border-blue-200 -->
                             <div>
-                                <h4 class="text-lg font-semibold text-gray-700 mb-2">收費方式</h4>
+                                <h4 class="text-lg font-semibold text-gray-700 mb-2 text-left">收費方式</h4>
                                 <div>
                                     <div class="flex flex-wrap gap-3">
                                         <label class="choice-label"><input type="radio" name="billingMethodDC" value="fixed" checked><span>固定費率</span></label>
@@ -354,24 +354,24 @@
                                     </div>
                                 </div>
                                 <div id="fixedRateSectionDC" class="grid grid-cols-2 items-center gap-4 mt-3">
-                                    <span class="label-text">每度電收費 (元)</span>
+                                    <span class="label-text text-left">每度電收費 (元)</span>
                                     <input type="number" id="chargeFeePerKwhDC" class="input-field" value="10" step="0.1">
                                 </div>
                                 <div id="touRateSectionDC" class="hidden-section space-y-4 mt-3">
                                     <div class="grid grid-cols-2 items-center gap-4">
-                                        <span class="label-text font-bold text-indigo-600">尖離峰均價</span>
+                                        <span class="label-text font-bold text-indigo-600 text-left">尖離峰均價</span>
                                         <input type="text" id="avgTouRate" class="input-field readonly font-bold text-indigo-600" readonly>
                                     </div>
                                     <div class="grid grid-cols-2 items-center gap-4">
-                                        <div><span class="label-text block">尖峰費率 (元)</span></div>
+                                        <div class="text-left"><span class="label-text block">尖峰費率 (元)</span></div>
                                         <input type="number" id="peakRate" class="input-field" value="13.5" step="0.1">
                                     </div>
                                     <div class="grid grid-cols-2 items-center gap-4">
-                                        <div><span class="label-text block">離峰費率 (元)</span></div>
+                                        <div class="text-left"><span class="label-text block">離峰費率 (元)</span></div>
                                         <input type="number" id="offPeakRate" class="input-field" value="6.9" step="0.1">
                                     </div>
                                     <div class="grid grid-cols-2 items-center gap-4">
-                                        <div><span class="label-text block">假日費率 (元)</span></div>
+                                        <div class="text-left"><span class="label-text block">假日費率 (元)</span></div>
                                         <input type="number" id="holidayRate" class="input-field" value="8.5" step="0.1">
                                     </div>
                                     <div class="flex items-center gap-4 mt-2">
@@ -396,7 +396,7 @@
                                 </div>
                             </div>
                             <div class="pt-4 mt-4 border-t border-green-200">
-                                <h4 class="text-lg font-semibold text-gray-700 mb-2">基礎參數</h4>
+                                <h4 class="text-lg font-semibold text-gray-700 mb-2 text-left">基礎參數</h4>
                                 <div>
                                     <div class="flex flex-wrap gap-3">
                                         <label class="choice-label"><input type="radio" name="revenueMethodDC" value="byCars" checked><span>依車次</span></label>
@@ -404,27 +404,27 @@
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-2 items-center gap-4 mt-3">
-                                    <span class="label-text">每日車次/槍</span><input type="number" id="carsPerGunPerDayDC" class="input-field" value="3" step="0.5">
+                                    <span class="label-text text-left">每日車次/槍</span><input type="number" id="carsPerGunPerDayDC" class="input-field" value="3" step="0.5">
                                 </div>
                                 <div class="grid grid-cols-2 items-center gap-4 mt-3">
-                                   <span class="label-text">每月度數/槍</span><input type="text" id="kwhPerGunPerMonthDC" class="input-field" value="2,700">
+                                   <span class="label-text text-left">每月度數/槍</span><input type="text" id="kwhPerGunPerMonthDC" class="input-field" value="2,700">
                                 </div>
                             </div>
                         </div>
 
                         <div class="input-section bg-yellow-50 space-y-4">
                             <div class="grid grid-cols-2 items-center gap-4">
-                                <span class="label-text">每車平均充電 (kWh)</span>
+                                <span class="label-text text-left">每車平均充電 (kWh)</span>
                                 <input type="number" id="avgKwhPerCar" class="input-field" value="30">
                             </div>
                             <div class="grid grid-cols-2 items-center gap-4">
-                                <span class="label-text">需求年增率 (%)</span><input type="number" id="demandGrowthRate" class="input-field" value="20">
+                                <span class="label-text text-left">需求年增率 (%)</span><input type="number" id="demandGrowthRate" class="input-field" value="20">
                             </div>
                             <div class="grid grid-cols-2 items-center gap-4">
-                                <span class="label-text">預計營運期 (年)</span><input type="number" id="operationYears" class="input-field" value="15" min="1">
+                                <span class="label-text text-left">預計營運期 (年)</span><input type="number" id="operationYears" class="input-field" value="15" min="1">
                             </div>
                             <div class="grid grid-cols-2 items-center gap-4">
-                                <span class="label-text">建置期 (月)</span><input type="number" id="constructionPeriod" class="input-field" value="6" min="0">
+                                <span class="label-text text-left">建置期 (月)</span><input type="number" id="constructionPeriod" class="input-field" value="6" min="0">
                             </div>
                         </div>
                         
@@ -438,7 +438,7 @@
                                 </div>
                             </div>
                             <div class="grid grid-cols-2 items-center gap-4">
-                                <span class="label-text">折舊攤提年限</span><input type="number" id="depreciationYears" class="input-field" value="5" min="1">
+                                <span class="label-text text-left">折舊攤提年限</span><input type="number" id="depreciationYears" class="input-field" value="5" min="1">
                             </div>
                         </div>
 
@@ -455,20 +455,20 @@
                                 </div>
                                 <div class="space-y-4">
                                     <div id="rentBySpaceSection" class="grid grid-cols-2 items-center gap-4">
-                                        <span class="label-text">車格租金/月</span><input type="text" id="rentPerSpace" class="input-field" value="500">
+                                        <span class="label-text text-left">車格租金/月</span><input type="text" id="rentPerSpace" class="input-field" value="500">
                                     </div>
                                     <div id="rentByLandSection" class="hidden-section grid grid-cols-2 items-center gap-4">
-                                        <span class="label-text">土地租金/月</span><input type="text" id="rentPerLand" class="input-field" value="15,000">
+                                        <span class="label-text text-left">土地租金/月</span><input type="text" id="rentPerLand" class="input-field" value="15,000">
                                     </div>
                                     <div id="rentByKwhShareSection" class="hidden-section grid grid-cols-2 items-center gap-4">
-                                        <span class="label-text">每度電分潤 (元)</span><input type="number" id="rentPerKwh" class="input-field" value="1" step="0.1">
+                                        <span class="label-text text-left">每度電分潤 (元)</span><input type="number" id="rentPerKwh" class="input-field" value="1" step="0.1">
                                     </div>
                                     <div id="rentByRevenueShareSection" class="hidden-section grid grid-cols-2 items-center gap-4">
-                                        <span class="label-text">營收分潤 (%)</span><input type="number" id="rentPercentage" class="input-field" value="10" step="1">
+                                        <span class="label-text text-left">營收分潤 (%)</span><input type="number" id="rentPercentage" class="input-field" value="10" step="1">
                                     </div>
                                     <div id="rentByKwhTierSection" class="hidden-section space-y-3">
                                         <div class="grid grid-cols-2 items-center gap-4">
-                                            <span class="label-text">總度數門檻/月</span>
+                                            <span class="label-text text-left">總度數門檻/月</span>
                                             <input type="text" id="rentKwhThreshold" class="input-field" value="5,000">
                                         </div>
                                          <div class="flex flex-wrap gap-3 mt-3">
@@ -476,24 +476,24 @@
                                             <label class="choice-label text-sm"><input type="radio" name="rentTierType" value="byRevenue"><span>依營收</span></label>
                                         </div>
                                         <div class="p-3 border border-gray-200 rounded-lg space-y-2">
-                                            <span class="label-text text-sm text-green-600 block">▲ 當月總度數 > 門檻</span>
+                                            <span class="label-text text-sm text-green-600 block text-left">▲ 當月總度數 > 門檻</span>
                                             <div id="rentTierAboveKwh" class="grid grid-cols-2 items-center gap-4">
-                                                <span class="label-text text-sm">每度電分潤 (元)</span>
+                                                <span class="label-text text-sm text-left">每度電分潤 (元)</span>
                                                 <input type="number" id="rentTierAboveValueKwh" class="input-field" value="1.2" step="0.1">
                                             </div>
                                             <div id="rentTierAboveRevenue" class="hidden-section grid grid-cols-2 items-center gap-4">
-                                                <span class="label-text text-sm">營收分潤 (%)</span>
+                                                <span class="label-text text-sm text-left">營收分潤 (%)</span>
                                                 <input type="number" id="rentTierAboveValueRevenue" class="input-field" value="12" step="1">
                                             </div>
                                         </div>
                                         <div class="p-3 border border-gray-200 rounded-lg space-y-2">
-                                            <span class="label-text text-sm text-red-600 block">▼ 當月總度數 &lt;= 門檻</span>
+                                            <span class="label-text text-sm text-red-600 block text-left">▼ 當月總度數 &lt;= 門檻</span>
                                             <div id="rentTierBelowKwh" class="grid grid-cols-2 items-center gap-4">
-                                                <span class="label-text text-sm">每度電分潤 (元)</span>
+                                                <span class="label-text text-sm text-left">每度電分潤 (元)</span>
                                                 <input type="number" id="rentTierBelowValueKwh" class="input-field" value="0.8" step="0.1">
                                             </div>
                                             <div id="rentTierBelowRevenue" class="hidden-section grid grid-cols-2 items-center gap-4">
-                                                <span class="label-text text-sm">營收分潤 (%)</span>
+                                                <span class="label-text text-sm text-left">營收分潤 (%)</span>
                                                 <input type="number" id="rentTierBelowValueRevenue" class="input-field" value="8" step="1">
                                             </div>
                                         </div>
@@ -516,20 +516,20 @@
                             </div>
                             <div class="space-y-3">
                                 <div id="profitShareByAmountSection" class="hidden-section grid grid-cols-2 items-center gap-4">
-                                    <span class="label-text">每度電分潤 (元)</span><input type="number" id="profitShareAmount" class="input-field center-text-input" value="1" step="0.1">
+                                    <span class="label-text text-left">每度電分潤 (元)</span><input type="number" id="profitShareAmount" class="input-field center-text-input" value="1" step="0.1">
                                 </div>
                                 <div id="profitShareByPercentageSection" class="hidden-section grid grid-cols-2 items-center gap-4">
-                                    <span class="label-text">營收分潤 (%)</span><input type="number" id="profitSharePercentage" class="input-field center-text-input" value="10" step="1">
+                                    <span class="label-text text-left">營收分潤 (%)</span><input type="number" id="profitSharePercentage" class="input-field center-text-input" value="10" step="1">
                                 </div>
                                 <div id="profitShareBySiteSection" class="hidden-section space-y-3">
                                     <div class="grid grid-cols-2 items-center gap-4">
-                                        <span class="label-text">每站收費(月)</span><input type="number" id="siteFeeMonthly" class="input-field center-text-input" value="3000">
+                                        <span class="label-text text-left">每站收費(月)</span><input type="number" id="siteFeeMonthly" class="input-field center-text-input" value="3000">
                                     </div>
                                     <div class="grid grid-cols-2 items-center gap-4">
-                                        <span class="label-text">槍數基準</span><input type="number" id="gunCountThreshold" class="input-field center-text-input" value="5">
+                                        <span class="label-text text-left">槍數基準</span><input type="number" id="gunCountThreshold" class="input-field center-text-input" value="5">
                                     </div>
                                     <div class="grid grid-cols-2 items-center gap-4">
-                                        <span class="label-text">每槍計費(月)</span><input type="number" id="siteFeePerGunMonthly" class="input-field center-text-input" value="600">
+                                        <span class="label-text text-left">每槍計費(月)</span><input type="number" id="siteFeePerGunMonthly" class="input-field center-text-input" value="600">
                                     </div>
                                     <div id="siteFeeValidationMessage" class="text-xs text-red-600 mt-2"></div>
                                 </div>
@@ -1547,42 +1547,106 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.toggleDetails(this.elements.kwhStatsTableBody, row, results, (yearData) => this.createKwhDetailsHtml(yearData, this.getInputs()), 4);
             },
             createKwhDetailsHtml(yearData, inputs) {
-                const { details, year } = yearData;
+                const { details, year, kwhPerYear, kwhPerDay, kwhPerMonth } = yearData;
                 const acGuns = inputs.equipmentList.filter(e => e.spec.type === 'AC').reduce((s, e) => s + e.gunCount, 0);
                 const dcGuns = inputs.equipmentList.filter(e => e.spec.type !== 'AC').reduce((s, e) => s + e.gunCount, 0);
                 
-                const buildGrid = (items, total) => `
-                    <div class="explainer-grid">
-                        ${items.map(item => `
-                            <span>${item.label}</span>
-                            <span>${item.formula}</span>
-                            <span>${item.valueDisplay}</span>
-                        `).join('')}
-                    </div>
-                    <div class="explainer-total-row"><span>年度總度數</span><span>${this.formatCurrency(total, 0, false, true)} kWh</span></div>`;
-                
-                const items = [];
-                if (details.kwh.ac > 0) items.push({ label: 'AC 年度度數', formula: `${inputs.kwhPerGunPerMonthAC}kWh x ${acGuns}槍 x 12月`, valueDisplay: `${this.formatCurrency(details.kwh.ac, 0, false, true)} kWh` });
-                if (details.kwh.dc > 0) items.push({ label: 'DC 年度度數', formula: `${inputs.kwhPerGunPerMonthDC}kWh x ${dcGuns}槍 x 12月 x ${Math.pow(1 + inputs.demandGrowthRate, year - 1).toFixed(2)}`, valueDisplay: `${this.formatCurrency(details.kwh.dc, 0, false, true)} kWh` });
+                const hasAC = details.kwh.ac > 0;
+                const hasDC = details.kwh.dc > 0;
 
-                return `<div class="details-container"><div class="details-section"><h4>第 ${year} 年充電度數計算</h4>${buildGrid(items, yearData.kwhPerYear)}</div></div>`;
+                // Calculate individual components
+                const kwhPerDayAC = hasAC ? details.kwh.ac / 365 : 0;
+                const kwhPerDayDC = hasDC ? details.kwh.dc / 365 : 0;
+                const kwhPerMonthAC = hasAC ? details.kwh.ac / 12 : 0;
+                const kwhPerMonthDC = hasDC ? details.kwh.dc / 12 : 0;
+
+                let html = `<div class="details-container"><div class="details-section"><h4>第 ${year} 年充電度數計算</h4>`;
+
+                // --- REMOVED Source Grid ---
+
+                // --- Build Details Grid ---
+                let detailsGrid = '<div class="explainer-grid">';
+
+                // AC Details
+                if (hasAC) {
+                    const acFormula = `${this.formatCurrency(inputs.kwhPerGunPerMonthAC, 0, false, true)}kWh x ${acGuns}槍 x 12月`;
+                    detailsGrid += `
+                        <span class="font-semibold col-span-3 pb-2" style="font-size: 1.125rem; line-height: 1.75rem; color: #059669; border-bottom: none !important; padding-bottom: 0.5rem !important; text-align: left;">AC 慢充</span>
+                        <span style="font-weight: 500; color: #374151; font-size: 0.9rem; text-align: left;">充電度數/日(平均)</span>
+                        <span style="color: #6B7280; font-size: 0.875rem; text-align: left;">${this.formatCurrency(details.kwh.ac, 0, false, true)} / 365</span>
+                        <span style="font-weight: 600; text-align: right; color: #059669;">${this.formatCurrency(kwhPerDayAC, 1, false, true)} kWh</span>
+                        
+                        <span style="font-weight: 500; color: #374151; font-size: 0.9rem; text-align: left;">充電度數/月(平均)</span>
+                        <span style="color: #6B7280; font-size: 0.875rem; text-align: left;">${this.formatCurrency(details.kwh.ac, 0, false, true)} / 12</span>
+                        <span style="font-weight: 600; text-align: right; color: #059669;">${this.formatCurrency(kwhPerMonthAC, 0, false, true)} kWh</span>
+                        
+                        <span style="font-weight: 500; color: #374151; font-size: 0.9rem; text-align: left;">年度總度數</span>
+                        <span style="color: #6B7280; font-size: 0.875rem; text-align: left;">${acFormula}</span>
+                        <span style="font-weight: 600; text-align: right; color: #059669;">${this.formatCurrency(details.kwh.ac, 0, false, true)} kWh</span>
+                    `;
+                }
+
+                // DC Details
+                if (hasDC) {
+                    const dcFormula = `${this.formatCurrency(inputs.kwhPerGunPerMonthDC, 0, false, true)}kWh x ${dcGuns}槍 x 12月 x ${Math.pow(1 + inputs.demandGrowthRate, year - 1).toFixed(2)}`;
+                    detailsGrid += `
+                        <span class="font-semibold col-span-3 pt-4 pb-2 ${hasAC ? 'border-t border-gray-200' : ''}" style="font-size: 1.125rem; line-height: 1.75rem; color: #2563EB; border-bottom: none !important; padding-bottom: 0.5rem !important; text-align: left;">DC 快充</span>
+                        <span style="font-weight: 500; color: #374151; font-size: 0.9rem; text-align: left;">充電度數/日(平均)</span>
+                        <span style="color: #6B7280; font-size: 0.875rem; text-align: left;">${this.formatCurrency(details.kwh.dc, 0, false, true)} / 365</span>
+                        <span style="font-weight: 600; text-align: right; color: #2563EB;">${this.formatCurrency(kwhPerDayDC, 1, false, true)} kWh</span>
+                        
+                        <span style="font-weight: 500; color: #374151; font-size: 0.9rem; text-align: left;">充電度數/月(平均)</span>
+                        <span style="color: #6B7280; font-size: 0.875rem; text-align: left;">${this.formatCurrency(details.kwh.dc, 0, false, true)} / 12</span>
+                        <span style="font-weight: 600; text-align: right; color: #2563EB;">${this.formatCurrency(kwhPerMonthDC, 0, false, true)} kWh</span>
+                        
+                        <span style="font-weight: 500; color: #374151; font-size: 0.9rem; text-align: left;">年度總度數</span>
+                        <span style="color: #6B7280; font-size: 0.875rem; text-align: left;">${dcFormula}</span>
+                        <span style="font-weight: 600; text-align: right; color: #2563EB;">${this.formatCurrency(details.kwh.dc, 0, false, true)} kWh</span>
+                    `;
+                }
+
+                // Total Details (only if both AC and DC exist)
+                if (hasAC && hasDC) {
+                    detailsGrid += `
+                        <span class="font-bold text-gray-800 col-span-3 pt-4 pb-2 border-t-2 border-gray-300 mt-2" style="font-size: 1.125rem; line-height: 1.75rem; border-bottom: none !important; padding-bottom: 0.5rem !important; text-align: left;">總計</span>
+                        <span style="font-weight: 500; color: #374151; font-size: 0.9rem; text-align: left;">總充電度數/日(平均)</span>
+                        <span style="color: #6B7280; font-size: 0.875rem; text-align: left;">${this.formatCurrency(kwhPerDayAC, 1, false, true)} + ${this.formatCurrency(kwhPerDayDC, 1, false, true)}</span>
+                        <span style="font-weight: 600; text-align: right; color: #1F2937;">${this.formatCurrency(kwhPerDay, 1, false, true)} kWh</span>
+                        
+                        <span style="font-weight: 500; color: #374151; font-size: 0.9rem; text-align: left;">總充電度數/月(平均)</span>
+                        <span style="color: #6B7280; font-size: 0.875rem; text-align: left;">${this.formatCurrency(kwhPerMonthAC, 0, false, true)} + ${this.formatCurrency(kwhPerMonthDC, 0, false, true)}</span>
+                        <span style="font-weight: 600; text-align: right; color: #1F2937;">${this.formatCurrency(kwhPerMonth, 0, false, true)} kWh</span>
+                        
+                        <span style="font-weight: 500; color: #374151; font-size: 0.9rem; text-align: left;">年度總度數</span>
+                        <span style="color: #6B7280; font-size: 0.875rem; text-align: left;">${this.formatCurrency(details.kwh.ac, 0, false, true)} + ${this.formatCurrency(details.kwh.dc, 0, false, true)}</span>
+                        <span style="font-weight: 600; text-align: right; color: #1F2937;">${this.formatCurrency(kwhPerYear, 0, false, true)} kWh</span>
+                    `;
+                }
+
+                detailsGrid += '</div>';
+                html += detailsGrid;
+
+                html += '</div></div>';
+                return html;
             },
             createDetailsHtml(yearData, results) {
-                const buildGrid = (items, total, totalLabel = '總計') => `
-                    <div class="explainer-grid">
-                        ${items.map(item => `
-                            <span>${item.label}</span>
-                            <span>${item.formula}</span>
-                            <span class="font-semibold ${item.value < 0 ? 'text-red-600' : 'text-gray-800'}">${this.formatCurrency(item.value, 0, false, true)}</span>
-                        `).join('')}
-                    </div>
-                    <div class="explainer-total-row"><span>${totalLabel}</span><span class="${total < 0 ? 'text-red-600' : 'text-gray-800'}">${this.formatCurrency(total, 0, false, true)}</span></div>`;
+                const buildGrid = (items, total, totalLabel = '總計', isCost = false) => {
+                    let gridHtml = '<div class="explainer-grid">';
+                    gridHtml += items.map(item => `
+                        <span style="font-weight: 500; color: #374151; font-size: 0.9rem; text-align: left;">${item.label}</span>
+                        <span style="color: #6B7280; font-size: 0.875rem; text-align: left;">${item.formula}</span>
+                        <span style="font-weight: 600; text-align: right; ${isCost ? 'color: #DC2626;' : 'color: #1F2937;'}">${this.formatCurrency(item.value, 0, false, true)}</span>
+                    `).join('');
+                    gridHtml += '</div>';
+                    gridHtml += `<div class="explainer-total-row"><span>${totalLabel}</span><span style="${isCost ? 'color: #DC2626;' : 'color: #111827;'}">${this.formatCurrency(total, 0, false, true)}</span></div>`;
+                    return gridHtml;
+                }
 
                 const revenueItems = Calculator.getRevenueBreakdown(yearData, this.getInputs(), results);
-                const revenueHtml = `<div class="details-section"><h4>總營收細項</h4>${buildGrid(revenueItems, yearData.revenue)}</div>`;
+                const revenueHtml = `<div class="details-section"><h4>總營收細項</h4>${buildGrid(revenueItems, yearData.revenue, '總計', false)}</div>`;
                 
                 let costItems = yearData.details.costBreakdownItems.filter(item => !(this.getInputs().financingEnabled && this.getInputs().depreciationMethod !== 'none' && item.key === 'principal'));
-                const costsHtml = `<div class="details-section"><h4>總成本細項</h4>${buildGrid(costItems.map(item => ({...item, value: -item.value})), -yearData.cost)}</div>`;
+                const costsHtml = `<div class="details-section"><h4>總成本細項</h4>${buildGrid(costItems, yearData.cost, '總計', true)}</div>`;
 
                 return `<div class="details-container"><div class="details-grid">${revenueHtml}${costsHtml}</div></div>`;
             },
