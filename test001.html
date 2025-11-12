@@ -594,7 +594,7 @@
                         </button>
                     </div>
                 </div>
-                <div id="kwhTableContainer" class="overflow-hidden transition-all duration-500 ease-in-out" style="max-height: 0px;">
+                <div id="kwhTableContainer" class="overflow-hidden ease-in-out" style="max-height: 0px;"> <!-- REMOVED transition-all duration-500 -->
                     <div class="overflow-x-auto rounded-lg border border-gray-200 mt-5">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="table-header"><tr><th class="table-cell text-left">年度</th><th class="table-cell">充電度數/日 (平均)</th><th class="table-cell">充電度數/月 (平均)</th><th class="table-cell">充電度數/年</th></tr></thead>
@@ -784,25 +784,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.setupEventListeners();
                 this.update();
 
-                // --- NEW FIX ---
-                // Force collapse the table *after* data is populated by update()
-                // This ensures any race conditions on load are overridden.
-                setTimeout(() => {
-                    const container = UI.elements.kwhTableContainer;
-                    if (container) {
-                        // Temporarily remove transition to set height instantly
-                        container.classList.remove('transition-all', 'duration-500');
-                        container.style.maxHeight = '0px';
-                        UI.elements.kwhTableIcon.classList.remove('rotate-180');
-                        
-                        // Force browser repaint/reflow
-                        void container.offsetWidth; 
-                        
-                        // Add transition back for future clicks
-                        container.classList.add('transition-all', 'duration-500');
-                    }
-                }, 0); // 0ms timeout executes after current call stack
-                // --- END NEW FIX ---
+                // --- REMOVED ALL setTimeout FIXES ---
             },
 
             setupEventListeners() {
@@ -1237,14 +1219,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Auto-cache all elements with an ID
                 document.querySelectorAll('[id]').forEach(el => this.elements[el.id] = el);
                 
-                // --- FIX ---
-                // Ensure the collapsible table is closed on init, overriding any stray styles
-                if (this.elements.kwhTableContainer) {
-                    // Remove transition during init to prevent load animations
-                    this.elements.kwhTableContainer.classList.remove('transition-all', 'duration-500');
-                    this.elements.kwhTableContainer.style.maxHeight = '0px';
-                }
-                // --- END FIX ---
+                // --- REMOVED ALL init FIXES ---
 
                 this.updateUIVisibility();
                 this.elements.addEquipmentBtn.addEventListener('click', () => { this.addEquipmentRow(); App.update(); });
@@ -1533,8 +1508,8 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             toggleKwhTable() {
                 const c = UI.elements.kwhTableContainer;
-                // Add transitions back if they were removed on init
-                c.classList.add('transition-all', 'duration-500');
+                // Add transitions back on first click
+                c.classList.add('transition-all', 'duration-500'); 
                 UI.elements.kwhTableIcon.classList.toggle('rotate-180');
                 c.style.maxHeight = (c.style.maxHeight && c.style.maxHeight !== '0px') ? '0px' : c.scrollHeight + 'px';
             },
