@@ -1532,7 +1532,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 
-                // --- REMOVED kwhStatsTableBody height adjustment ---
+                // --- FIX ---
+                // REMOVED the old logic block that adjusted kwhTableContainer.
+                // It's no longer needed as the container height is auto.
+                // --- END FIX ---
             },
             togglePnlDetails(row, results) {
                 this.toggleDetails(this.elements.pnlTableBody, row, results, (yearData, res) => this.createDetailsHtml(yearData, res), 5);
