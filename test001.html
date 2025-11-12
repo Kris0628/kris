@@ -134,6 +134,13 @@
         #kwhTableIcon.rotate-180 { transform: rotate(180deg); }
         .center-text-input { text-align: center !important; }
         
+        /* This class is no longer needed */
+        /* .force-collapse {
+            max-height: 0px !important;
+            overflow: hidden !important;
+            transition: none !important;
+        } */
+
         @media print {
             body {
                 -webkit-print-color-adjust: exact !important;
@@ -585,16 +592,14 @@
 
         <div class="mt-8 space-y-8">
             <div class="card bg-gradient-to-br from-blue-50 to-blue-100">
-                <div class="flex justify-between items-center cursor-pointer" id="toggleKwhTableBtn">
+                <div class="flex justify-between items-center" id="toggleKwhTableBtn"> <!-- REMOVED cursor-pointer -->
                     <h2 class="text-xl md:text-2xl font-bold text-gray-800">預估充電度數</h2>
                     <div class="flex items-center gap-4">
                         <span class="text-sm font-medium text-gray-500">單位：kWh</span>
-                        <button class="p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            <svg id="kwhTableIcon" class="w-6 h-6 text-gray-600 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
+                        <!-- REMOVED Button/Icon -->
                     </div>
                 </div>
-                <div id="kwhTableContainer" class="overflow-hidden ease-in-out" style="max-height: 0px;"> <!-- REMOVED transition-all duration-500 -->
+                <div id="kwhTableContainer" class=""> <!-- REMOVED classes and inline style -->
                     <div class="overflow-x-auto rounded-lg border border-gray-200 mt-5">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="table-header"><tr><th class="table-cell text-left">年度</th><th class="table-cell">充電度數/日 (平均)</th><th class="table-cell">充電度數/月 (平均)</th><th class="table-cell">充電度數/年</th></tr></thead>
@@ -784,7 +789,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.setupEventListeners();
                 this.update();
 
-                // --- REMOVED ALL setTimeout FIXES ---
+                // --- REMOVED setTimeout FIX ---
             },
 
             setupEventListeners() {
@@ -798,7 +803,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 // Specific button clicks
-                UI.elements.toggleKwhTableBtn.addEventListener('click', UI.toggleKwhTable);
+                // UI.elements.toggleKwhTableBtn.addEventListener('click', UI.toggleKwhTable); // REMOVED
                 UI.elements.pnlTableBody.addEventListener('click', (e) => { const row = e.target.closest('.pnl-row'); if (row) UI.togglePnlDetails(row, Calculator.getLastResults()); });
                 UI.elements.kwhStatsTableBody.addEventListener('click', (e) => { const row = e.target.closest('.kwh-row'); if (row) UI.toggleKwhDetails(row, Calculator.getLastResults()); });
                 UI.elements.explanationList.addEventListener('click', (e) => this.handleExplanationClick(e));
@@ -1219,7 +1224,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Auto-cache all elements with an ID
                 document.querySelectorAll('[id]').forEach(el => this.elements[el.id] = el);
                 
-                // --- REMOVED ALL init FIXES ---
+                // --- REMOVED init FIX ---
 
                 this.updateUIVisibility();
                 this.elements.addEquipmentBtn.addEventListener('click', () => { this.addEquipmentRow(); App.update(); });
@@ -1506,13 +1511,7 @@ document.addEventListener('DOMContentLoaded', () => {
             populateTable(tbody, data, rowTemplate) {
                 tbody.innerHTML = data.map(rowTemplate).join('');
             },
-            toggleKwhTable() {
-                const c = UI.elements.kwhTableContainer;
-                // Add transitions back on first click
-                c.classList.add('transition-all', 'duration-500'); 
-                UI.elements.kwhTableIcon.classList.toggle('rotate-180');
-                c.style.maxHeight = (c.style.maxHeight && c.style.maxHeight !== '0px') ? '0px' : c.scrollHeight + 'px';
-            },
+            /* REMOVED toggleKwhTable function */
             toggleDetails(tbody, row, results, detailHtmlFunction, colspan) {
                 const year = parseInt(row.dataset.year);
                 const currentlyOpen = tbody.querySelector('.details-row');
@@ -1533,17 +1532,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 
-                // --- FIX ---
-                // After adding or removing a row, check if this is the kWh table
-                // and resize its container if it's currently open.
-                if (tbody.id === 'kwhStatsTableBody') {
-                    const c = UI.elements.kwhTableContainer;
-                    // Check if the container is open (maxHeight will be non-zero)
-                    if (c.style.maxHeight && c.style.maxHeight !== '0px') {
-                        c.style.maxHeight = c.scrollHeight + 'px';
-                    }
-                }
-                // --- END FIX ---
+                // --- REMOVED kwhStatsTableBody height adjustment ---
             },
             togglePnlDetails(row, results) {
                 this.toggleDetails(this.elements.pnlTableBody, row, results, (yearData, res) => this.createDetailsHtml(yearData, res), 5);
