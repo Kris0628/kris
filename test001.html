@@ -884,7 +884,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Special input formatting and constraints
                 ['infrastructureCostMain', 'rentPerSpace', 'rentPerLand', 'kwhPerGunPerMonthDC', 'rentKwhThreshold'].forEach(id => {
-                    UI.elements[id]?.addEventListener('input', (e) => UI.formatNumericInput(e.target));
+                    UI.elements[id]?.addEventListener('blur', (e) => UI.formatNumericInput(e.target)); // CHANGED 'input' to 'blur'
                 });
                 const enforceMax = (el, max) => { if (UI.getNumericValue(el, 0) > max) el.value = max; };
                 UI.elements.carsPerGunPerDayAC.addEventListener('input', () => enforceMax(UI.elements.carsPerGunPerDayAC, 2));
