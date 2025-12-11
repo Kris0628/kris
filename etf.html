@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ETF 月配息策略 PK 試算表</title>
+    <title>ETF 月配息策略 PK 試算表 (自動查價加強版)</title>
     <style>
         :root {
             --primary: #1a73e8;
@@ -36,7 +36,7 @@
 
         header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             padding-top: 20px;
         }
 
@@ -61,11 +61,15 @@
             padding: 32px;
             box-shadow: var(--card-shadow);
             margin-bottom: 30px;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .main-input-row {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: 1fr auto;
             gap: 20px;
             align-items: end;
-            border: 1px solid rgba(0,0,0,0.05);
+            margin-bottom: 30px;
         }
 
         .input-group {
@@ -80,44 +84,149 @@
             margin-bottom: 8px;
         }
 
-        input {
+        input[type="number"] {
             padding: 14px;
             border: 1px solid var(--border);
             border-radius: 8px;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             outline: none;
             transition: all 0.2s ease;
             width: 100%;
             background-color: #fcfcfc;
         }
 
-        input:focus {
+        input[type="number"]:focus {
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
             background-color: white;
         }
 
-        button {
+        .calc-btn {
             background-color: var(--primary);
             color: white;
             border: none;
-            padding: 14px 28px;
+            padding: 14px 32px;
             border-radius: 8px;
             font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            height: 52px;
+            white-space: nowrap;
         }
 
-        button:hover {
+        .calc-btn:hover {
             background-color: var(--primary-dark);
             transform: translateY(-1px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
 
-        button:active {
-            transform: translateY(0);
+        /* Settings Section */
+        .settings-container {
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #eee;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .settings-title {
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text);
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .update-btn {
+            background-color: #fff;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+
+        .update-btn:hover {
+            background-color: var(--secondary);
+        }
+
+        .update-btn.loading {
+            opacity: 0.7;
+            cursor: wait;
+        }
+
+        .update-btn.loading svg {
+            animation: spin 1s linear infinite;
+        }
+        
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .etf-input-group {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+        
+        .etf-input-group h4 {
+            margin: 0 0 10px 0;
+            font-size: 1rem;
+            color: var(--primary);
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .etf-tag {
+            font-size: 0.75rem;
+            background: #eee;
+            color: #555;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: normal;
+        }
+
+        .mini-input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+        
+        .mini-input-wrapper {
+            flex: 1;
+        }
+        
+        .mini-input-wrapper label {
+            font-size: 0.8rem;
+            margin-bottom: 4px;
+            display: block;
+        }
+        
+        .mini-input-wrapper input {
+            padding: 8px;
+            font-size: 1rem;
+            width: 100%;
         }
 
         /* Results Grid */
@@ -131,9 +240,19 @@
             .results-container {
                 grid-template-columns: 1fr;
             }
-            
             .input-card {
                 padding: 24px;
+            }
+            .main-input-row {
+                grid-template-columns: 1fr;
+            }
+            .calc-btn {
+                width: 100%;
+            }
+            .settings-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
             }
         }
 
@@ -276,6 +395,42 @@
             margin-top: 40px;
             opacity: 0.8;
         }
+        
+        /* Toggle details/summary style */
+        details summary {
+            cursor: pointer;
+            list-style: none;
+        }
+        details summary::-webkit-details-marker {
+            display: none;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #323232;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+        .toast.error {
+            background: #d93025;
+        }
 
     </style>
 </head>
@@ -287,16 +442,93 @@
     </header>
 
     <div class="input-card">
-        <div class="input-group">
-            <label for="investmentAmount">預計總投資金額 (TWD)</label>
-            <input type="number" id="investmentAmount" value="400000" step="10000" placeholder="例如：1000000">
+        <div class="main-input-row">
+            <div class="input-group">
+                <label for="investmentAmount">預計總投資金額 (TWD)</label>
+                <input type="number" id="investmentAmount" value="400000" step="10000" placeholder="例如：1000000">
+            </div>
+            <button class="calc-btn" onclick="calculateReturns()">🚀 開始試算</button>
         </div>
-        <button onclick="calculateReturns()">🚀 開始試算</button>
+
+        <details open>
+            <summary class="settings-title" style="margin-bottom:0; padding-bottom: 15px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                進階設定：股價與配息
+            </summary>
+            
+            <div class="settings-container">
+                <div class="settings-header">
+                    <span style="font-size: 0.9rem; color: var(--gray);">請確認下方數據以獲得準確結果</span>
+                    <button class="update-btn" onclick="autoUpdatePrices()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/></svg>
+                        自動更新股價 (Yahoo)
+                    </button>
+                </div>
+
+                <div class="settings-grid">
+                    <!-- 0056 -->
+                    <div class="etf-input-group">
+                        <h4>0056 <span class="etf-tag">季配</span></h4>
+                        <div class="mini-input-row">
+                            <div class="mini-input-wrapper">
+                                <label>現價</label>
+                                <input type="number" id="price_0056" value="37.5" step="0.01">
+                            </div>
+                            <div class="mini-input-wrapper">
+                                <label>季配息</label>
+                                <input type="number" id="div_0056" value="1.07" step="0.01">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 00878 -->
+                    <div class="etf-input-group">
+                        <h4>00878 <span class="etf-tag">季配</span></h4>
+                        <div class="mini-input-row">
+                            <div class="mini-input-wrapper">
+                                <label>現價</label>
+                                <input type="number" id="price_00878" value="22.8" step="0.01">
+                            </div>
+                            <div class="mini-input-wrapper">
+                                <label>季配息</label>
+                                <input type="number" id="div_00878" value="0.55" step="0.01">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 00915 -->
+                    <div class="etf-input-group">
+                        <h4>00915 <span class="etf-tag">季配</span></h4>
+                        <div class="mini-input-row">
+                            <div class="mini-input-wrapper">
+                                <label>現價</label>
+                                <input type="number" id="price_00915" value="26.5" step="0.01">
+                            </div>
+                            <div class="mini-input-wrapper">
+                                <label>季配息</label>
+                                <input type="number" id="div_00915" value="0.72" step="0.01">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 00929 -->
+                    <div class="etf-input-group" style="border-color: #e37400;">
+                        <h4 style="color: #e37400;">00929 <span class="etf-tag">月配</span></h4>
+                        <div class="mini-input-row">
+                            <div class="mini-input-wrapper">
+                                <label>現價</label>
+                                <input type="number" id="price_00929" value="18.2" step="0.01">
+                            </div>
+                            <div class="mini-input-wrapper">
+                                <label>月配息</label>
+                                <input type="number" id="div_00929" value="0.16" step="0.01">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </details>
     </div>
 
     <div class="results-container">
-        
-        <!-- Strategy A: Combo -->
+        <!-- Results Cards Code (Unchanged) -->
         <div class="strategy-card" style="border-top: 6px solid #1a73e8;">
             <div class="card-header">
                 <h2>A. 黃金自組戰隊</h2>
@@ -331,14 +563,13 @@
                     💡 <strong>優勢：</strong> 
                     <ul style="margin: 5px 0 0 20px; padding:0;">
                         <li>風險分散於不同選股邏輯 (預測未來/ESG/多因子)。</li>
-                        <li>除息時間錯開 (1,4,7,10 / 2,5,8,11 / 3,6,9,12)，可創造「週週配」或「月月配」效果。</li>
+                        <li>除息時間錯開，可創造「週週配」或「月月配」效果。</li>
                         <li>分散後，單筆股息較不易超過 2 萬元，有助節省二代健保補充保費。</li>
                     </ul>
                 </div>
             </div>
         </div>
 
-        <!-- Strategy B: Single -->
         <div class="strategy-card" style="border-top: 6px solid #e37400;">
             <div class="card-header">
                 <h2>B. 單一月配 ETF</h2>
@@ -379,21 +610,129 @@
     </div>
     
     <div class="market-note">
-        * 註：試算採用近期概略股價與配息金額，實際數值請以當下市場與投信公告為準。<br>
+        * 註：「自動更新」功能使用公開代理伺服器抓取資料，若有 AdBlock 請暫時關閉。若仍無法更新，請手動輸入。<br>
         投資一定有風險，基金投資有賺有賠，申購前應詳閱公開說明書。
     </div>
+    
+    <div id="toast" class="toast">股價更新成功！</div>
 
     <script>
-        // 市場數據預設值 (建議定期更新以維持準確度)
-        // 價格 (Price) 為假設近期均價
-        // 季配息 (Q_Div) 為預估每季配息
-        // 月配息 (M_Div) 為預估每月配息
-        const marketData = {
-            s0056:  { price: 37.5, q_div: 1.07 }, // 元大高股息
-            s00878: { price: 22.8, q_div: 0.55 }, // 國泰永續
-            s00915: { price: 26.5, q_div: 0.72 }, // 凱基優選
-            s00929: { price: 18.2, m_div: 0.16 }  // 復華台灣科技 (月配，假設近期平均約 0.14-0.18)
-        };
+        
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+            if(isError) {
+                toast.classList.add('error');
+            } else {
+                toast.classList.remove('error');
+            }
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // 自動更新股價邏輯
+        async function autoUpdatePrices() {
+            const btn = document.querySelector('.update-btn');
+            btn.classList.add('loading');
+            btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/></svg> 更新中...`;
+            
+            const tickers = [
+                { id: '0056', field: 'price_0056' },
+                { id: '00878', field: 'price_00878' },
+                { id: '00915', field: 'price_00915' },
+                { id: '00929', field: 'price_00929' }
+            ];
+
+            try {
+                // 使用 Promise.all 同時發送請求以加快速度
+                const requests = tickers.map(t => fetchPriceFromYahoo(t.id));
+                const results = await Promise.all(requests);
+                
+                let successCount = 0;
+                results.forEach((price, index) => {
+                    if (price) {
+                        document.getElementById(tickers[index].field).value = price;
+                        successCount++;
+                    }
+                });
+
+                if (successCount > 0) {
+                    showToast(`成功更新 ${successCount} 檔 ETF 股價`);
+                    calculateReturns(); // 更新後自動重算
+                } else {
+                    showToast('更新失敗，請檢查網路狀態', true);
+                }
+
+            } catch (error) {
+                console.error(error);
+                showToast('更新發生錯誤', true);
+            } finally {
+                btn.classList.remove('loading');
+                btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/></svg> 自動更新股價 (Yahoo)`;
+            }
+        }
+
+        // 雙重備援抓取策略
+        async function fetchPriceFromYahoo(ticker) {
+            const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}.TW?interval=1d&range=1d`;
+            
+            // 策略 1: 使用 corsproxy.io (通常較快)
+            try {
+                const proxyUrl1 = `https://corsproxy.io/?${encodeURIComponent(yahooUrl)}`;
+                const response1 = await fetch(proxyUrl1);
+                if (response1.ok) {
+                    const data = await response1.json();
+                    const price = data.chart.result[0].meta.regularMarketPrice;
+                    console.log(`[Success] Fetched ${ticker} using Strategy 1`);
+                    return price;
+                }
+            } catch (e) {
+                console.warn(`Strategy 1 failed for ${ticker}, switching to backup...`, e);
+            }
+
+            // 策略 2: 使用 allorigins (備援)
+            try {
+                const proxyUrl2 = `https://api.allorigins.win/get?url=${encodeURIComponent(yahooUrl)}&disableCache=true`;
+                const response2 = await fetch(proxyUrl2);
+                if (response2.ok) {
+                    const wrapper = await response2.json();
+                    if (wrapper.contents) {
+                        const data = JSON.parse(wrapper.contents);
+                        const price = data.chart.result[0].meta.regularMarketPrice;
+                        console.log(`[Success] Fetched ${ticker} using Strategy 2`);
+                        return price;
+                    }
+                }
+            } catch (e) {
+                console.error(`All strategies failed for ${ticker}`, e);
+            }
+
+            return null;
+        }
+
+        // 獲取使用者輸入的市場數據
+        function getMarketData() {
+            return {
+                s0056:  { 
+                    price: parseFloat(document.getElementById('price_0056').value) || 0, 
+                    q_div: parseFloat(document.getElementById('div_0056').value) || 0 
+                },
+                s00878: { 
+                    price: parseFloat(document.getElementById('price_00878').value) || 0, 
+                    q_div: parseFloat(document.getElementById('div_00878').value) || 0 
+                },
+                s00915: { 
+                    price: parseFloat(document.getElementById('price_00915').value) || 0, 
+                    q_div: parseFloat(document.getElementById('div_00915').value) || 0 
+                },
+                s00929: { 
+                    price: parseFloat(document.getElementById('price_00929').value) || 0, 
+                    m_div: parseFloat(document.getElementById('div_00929').value) || 0 
+                }
+            };
+        }
 
         function calculateReturns() {
             const totalBudget = parseFloat(document.getElementById('investmentAmount').value);
@@ -403,21 +742,23 @@
                 return;
             }
 
+            const marketData = getMarketData();
+
+            if(marketData.s0056.price === 0 || marketData.s00878.price === 0 || marketData.s00915.price === 0 || marketData.s00929.price === 0) {
+                alert("請確認所有 ETF 股價皆大於 0");
+                return;
+            }
+
             // --- 策略 A: 自組 3 檔 ---
-            // 權重分配邏輯 (參考市場常見配置)：0056 (~28%), 00878 (~32%), 00915 (~40%)
-            // 目標是讓三個月份的配息金額盡量平滑，因 915 殖利率近期較高，權重稍重
-            
+            // 權重分配邏輯：0056 (~28%), 00878 (~32%), 00915 (~40%)
             const w_56 = 0.28;
             const w_878 = 0.32;
             const w_915 = 0.40;
 
-            // 計算可購買股數 (Math.floor 取整股，不考慮零股以求保守)
-            // 公式：(總金額 * 權重) / 股價
             let shares_56 = Math.floor((totalBudget * w_56) / marketData.s0056.price);
             let shares_878 = Math.floor((totalBudget * w_878) / marketData.s00878.price);
             let shares_915 = Math.floor((totalBudget * w_915) / marketData.s00915.price);
 
-            // 計算年總配息
             let yearDiv_56 = shares_56 * marketData.s0056.q_div * 4;
             let yearDiv_878 = shares_878 * marketData.s00878.q_div * 4;
             let yearDiv_915 = shares_915 * marketData.s00915.q_div * 4;
@@ -425,10 +766,8 @@
             let totalYearDiv_Combo = yearDiv_56 + yearDiv_878 + yearDiv_915;
             let monthlyAvg_Combo = Math.round(totalYearDiv_Combo / 12);
             
-            // 計算組合實際投入成本 (因為取整股，實際花費會略低於預算)
             let actualCost_Combo = (shares_56 * marketData.s0056.price) + (shares_878 * marketData.s00878.price) + (shares_915 * marketData.s00915.price);
             
-            // 避免除以零
             let yield_Combo = actualCost_Combo > 0 ? ((totalYearDiv_Combo / actualCost_Combo) * 100).toFixed(2) : "0.00";
 
 
@@ -441,23 +780,18 @@
             let yield_929 = actualCost_929 > 0 ? ((totalYearDiv_929 / actualCost_929) * 100).toFixed(2) : "0.00";
 
             // --- 更新 UI ---
-            
-            // Combo
             animateValue("comboMonthly", monthlyAvg_Combo);
             document.getElementById('comboYield').innerText = `年化殖利率約: ${yield_Combo}%`;
             
-            // 顯示為 "張數" (股數 / 1000)
             document.getElementById('res-0056').innerText = `${(shares_56/1000).toFixed(2)} 張`;
             document.getElementById('res-00878').innerText = `${(shares_878/1000).toFixed(2)} 張`;
             document.getElementById('res-00915').innerText = `${(shares_915/1000).toFixed(2)} 張`;
 
-            // Single
             animateValue("singleMonthly", monthlyDiv_929);
             document.getElementById('singleYield').innerText = `年化殖利率約: ${yield_929}%`;
             document.getElementById('res-00929').innerText = `${(shares_929/1000).toFixed(2)} 張`;
         }
 
-        // 簡單的數字跳動動畫效果
         function animateValue(id, end) {
             const obj = document.getElementById(id);
             const start = 0;
@@ -475,7 +809,6 @@
             window.requestAnimationFrame(step);
         }
 
-        // Run calculation on load
         window.onload = calculateReturns;
     </script>
 </body>
