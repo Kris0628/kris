@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ETF 月配息策略 PK 試算表</title>
+    <style>
+        :root {
+            --primary: #1a73e8;
+            --primary-dark: #1557b0;
+            --secondary: #e8f0fe;
+            --accent: #fbbc04;
+            --danger-bg: #fce8e6;
+            --danger-text: #c5221f;
+            --success-text: #188038;
+            --text: #202124;
+            --gray: #5f6368;
+            --border: #dadce0;
+            --card-shadow: 0 4px 6px rgba(60,64,67,0.1), 0 1px 3px rgba(60,64,67,0.08);
+            --hover-shadow: 0 10px 15px rgba(60,64,67,0.15), 0 4px 6px rgba(60,64,67,0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: var(--text);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            color: var(--text);
+            margin-bottom: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            color: var(--gray);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Input Section */
+        .input-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            align-items: end;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--gray);
+            margin-bottom: 8px;
+        }
+
+        input {
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1.2rem;
+            outline: none;
+            transition: all 0.2s ease;
+            width: 100%;
+            background-color: #fcfcfc;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
+            background-color: white;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        /* Results Grid */
+        .results-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .results-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .input-card {
+                padding: 24px;
+            }
+        }
+
+        .strategy-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .strategy-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--hover-shadow);
+        }
+
+        .card-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            position: relative;
+        }
+
+        .card-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .card-header .tag {
+            display: inline-block;
+            background: var(--secondary);
+            color: var(--primary);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .card-body {
+            padding: 28px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .metric {
+            margin-bottom: 24px;
+            text-align: center;
+            background: #fafafa;
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .metric-label {
+            font-size: 0.95rem;
+            color: var(--gray);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .metric-value {
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1.2;
+            margin: 5px 0;
+        }
+
+        .metric-sub {
+            font-size: 0.95rem;
+            color: var(--success-text);
+            font-weight: 600;
+            background: rgba(24, 128, 56, 0.1);
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            margin-top: 5px;
+        }
+
+        .allocation-list {
+            margin-top: 10px;
+            padding-top: 20px;
+            border-top: 1px dashed var(--border);
+        }
+
+        .allocation-title {
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .allocation-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 1rem;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f3f4;
+        }
+
+        .allocation-item:last-child {
+            border-bottom: none;
+        }
+
+        .allocation-name {
+            color: var(--gray);
+            font-weight: 500;
+        }
+
+        .allocation-val {
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .highlight-box {
+            background: #fff8e1; /* warm yellow */
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: auto;
+            font-size: 0.9rem;
+            color: #5f4b08;
+            line-height: 1.5;
+            border-left: 4px solid var(--accent);
+        }
+        
+        .market-note {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--gray);
+            margin-top: 40px;
+            opacity: 0.8;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>台股 ETF 月配息戰略試算</h1>
+        <p class="subtitle">輸入總投資金額，自動比較「自組黃金組合 (0056+878+915)」與「單一月配 (00929)」效益</p>
+    </header>
+
+    <div class="input-card">
+        <div class="input-group">
+            <label for="investmentAmount">預計總投資金額 (TWD)</label>
+            <input type="number" id="investmentAmount" value="400000" step="10000" placeholder="例如：1000000">
+        </div>
+        <button onclick="calculateReturns()">🚀 開始試算</button>
+    </div>
+
+    <div class="results-container">
+        
+        <!-- Strategy A: Combo -->
+        <div class="strategy-card" style="border-top: 6px solid #1a73e8;">
+            <div class="card-header">
+                <h2>A. 黃金自組戰隊</h2>
+                <span class="tag">0056 + 00878 + 00915</span>
+            </div>
+            <div class="card-body">
+                <div class="metric">
+                    <div class="metric-label">預估平均月領股息</div>
+                    <div class="metric-value" id="comboMonthly">NT$ 0</div>
+                    <div class="metric-sub" id="comboYield">年化殖利率約: 0%</div>
+                </div>
+                
+                <div class="allocation-list">
+                    <div class="allocation-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+                        資產配置建議 (資金權重優化)
+                    </div>
+                    <div class="allocation-item">
+                        <span class="allocation-name">0056 (高股息)</span>
+                        <span class="allocation-val" id="res-0056">0 張</span>
+                    </div>
+                    <div class="allocation-item">
+                        <span class="allocation-name">00878 (ESG)</span>
+                        <span class="allocation-val" id="res-00878">0 張</span>
+                    </div>
+                    <div class="allocation-item">
+                        <span class="allocation-name">00915 (低波)</span>
+                        <span class="allocation-val" id="res-00915">0 張</span>
+                    </div>
+                </div>
+                <div class="highlight-box">
+                    💡 <strong>優勢：</strong> 
+                    <ul style="margin: 5px 0 0 20px; padding:0;">
+                        <li>風險分散於不同選股邏輯 (預測未來/ESG/多因子)。</li>
+                        <li>除息時間錯開 (1,4,7,10 / 2,5,8,11 / 3,6,9,12)，可創造「週週配」或「月月配」效果。</li>
+                        <li>分散後，單筆股息較不易超過 2 萬元，有助節省二代健保補充保費。</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Strategy B: Single -->
+        <div class="strategy-card" style="border-top: 6px solid #e37400;">
+            <div class="card-header">
+                <h2>B. 單一月配 ETF</h2>
+                <span class="tag" style="background:#ffe0b2; color:#e65100;">範例：00929</span>
+            </div>
+            <div class="card-body">
+                <div class="metric">
+                    <div class="metric-label">預估平均月領股息</div>
+                    <div class="metric-value" id="singleMonthly">NT$ 0</div>
+                    <div class="metric-sub" id="singleYield">年化殖利率約: 0%</div>
+                </div>
+
+                <div class="allocation-list">
+                    <div class="allocation-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        資產配置建議 (All-in)
+                    </div>
+                    <div class="allocation-item">
+                        <span class="allocation-name">00929 (科技優息)</span>
+                        <span class="allocation-val" id="res-00929">0 張</span>
+                    </div>
+                    <div class="allocation-item">
+                        <span class="allocation-name">產業集中度</span>
+                        <span class="allocation-val" style="color:#d93025;">100% 電子科技</span>
+                    </div>
+                </div>
+                <div class="highlight-box" style="background-color: var(--danger-bg); color: var(--danger-text); border-left-color: #d93025;">
+                    ⚠️ <strong>注意：</strong>
+                    <ul style="margin: 5px 0 0 20px; padding:0;">
+                        <li>操作最簡單，自動月配息，無須自己組合。</li>
+                        <li>產業風險集中在電子股，波動可能較大。</li>
+                        <li>若單次股息超過 2 萬元 (約持有 140-150 張以上)，需扣 2.11% 二代健保補充保費。</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    
+    <div class="market-note">
+        * 註：試算採用近期概略股價與配息金額，實際數值請以當下市場與投信公告為準。<br>
+        投資一定有風險，基金投資有賺有賠，申購前應詳閱公開說明書。
+    </div>
+
+    <script>
+        // 市場數據預設值 (建議定期更新以維持準確度)
+        // 價格 (Price) 為假設近期均價
+        // 季配息 (Q_Div) 為預估每季配息
+        // 月配息 (M_Div) 為預估每月配息
+        const marketData = {
+            s0056:  { price: 37.5, q_div: 1.07 }, // 元大高股息
+            s00878: { price: 22.8, q_div: 0.55 }, // 國泰永續
+            s00915: { price: 26.5, q_div: 0.72 }, // 凱基優選
+            s00929: { price: 18.2, m_div: 0.16 }  // 復華台灣科技 (月配，假設近期平均約 0.14-0.18)
+        };
+
+        function calculateReturns() {
+            const totalBudget = parseFloat(document.getElementById('investmentAmount').value);
+            
+            if (!totalBudget || totalBudget <= 0) {
+                alert("請輸入有效的投資金額");
+                return;
+            }
+
+            // --- 策略 A: 自組 3 檔 ---
+            // 權重分配邏輯 (參考市場常見配置)：0056 (~28%), 00878 (~32%), 00915 (~40%)
+            // 目標是讓三個月份的配息金額盡量平滑，因 915 殖利率近期較高，權重稍重
+            
+            const w_56 = 0.28;
+            const w_878 = 0.32;
+            const w_915 = 0.40;
+
+            // 計算可購買股數 (Math.floor 取整股，不考慮零股以求保守)
+            // 公式：(總金額 * 權重) / 股價
+            let shares_56 = Math.floor((totalBudget * w_56) / marketData.s0056.price);
+            let shares_878 = Math.floor((totalBudget * w_878) / marketData.s00878.price);
+            let shares_915 = Math.floor((totalBudget * w_915) / marketData.s00915.price);
+
+            // 計算年總配息
+            let yearDiv_56 = shares_56 * marketData.s0056.q_div * 4;
+            let yearDiv_878 = shares_878 * marketData.s00878.q_div * 4;
+            let yearDiv_915 = shares_915 * marketData.s00915.q_div * 4;
+            
+            let totalYearDiv_Combo = yearDiv_56 + yearDiv_878 + yearDiv_915;
+            let monthlyAvg_Combo = Math.round(totalYearDiv_Combo / 12);
+            
+            // 計算組合實際投入成本 (因為取整股，實際花費會略低於預算)
+            let actualCost_Combo = (shares_56 * marketData.s0056.price) + (shares_878 * marketData.s00878.price) + (shares_915 * marketData.s00915.price);
+            
+            // 避免除以零
+            let yield_Combo = actualCost_Combo > 0 ? ((totalYearDiv_Combo / actualCost_Combo) * 100).toFixed(2) : "0.00";
+
+
+            // --- 策略 B: 單一 00929 ---
+            let shares_929 = Math.floor(totalBudget / marketData.s00929.price);
+            let monthlyDiv_929 = Math.round(shares_929 * marketData.s00929.m_div);
+            let totalYearDiv_929 = monthlyDiv_929 * 12;
+            
+            let actualCost_929 = shares_929 * marketData.s00929.price;
+            let yield_929 = actualCost_929 > 0 ? ((totalYearDiv_929 / actualCost_929) * 100).toFixed(2) : "0.00";
+
+            // --- 更新 UI ---
+            
+            // Combo
+            animateValue("comboMonthly", monthlyAvg_Combo);
+            document.getElementById('comboYield').innerText = `年化殖利率約: ${yield_Combo}%`;
+            
+            // 顯示為 "張數" (股數 / 1000)
+            document.getElementById('res-0056').innerText = `${(shares_56/1000).toFixed(2)} 張`;
+            document.getElementById('res-00878').innerText = `${(shares_878/1000).toFixed(2)} 張`;
+            document.getElementById('res-00915').innerText = `${(shares_915/1000).toFixed(2)} 張`;
+
+            // Single
+            animateValue("singleMonthly", monthlyDiv_929);
+            document.getElementById('singleYield').innerText = `年化殖利率約: ${yield_929}%`;
+            document.getElementById('res-00929').innerText = `${(shares_929/1000).toFixed(2)} 張`;
+        }
+
+        // 簡單的數字跳動動畫效果
+        function animateValue(id, end) {
+            const obj = document.getElementById(id);
+            const start = 0;
+            const duration = 500;
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const value = Math.floor(progress * (end - start) + start);
+                obj.innerHTML = `NT$ ${value.toLocaleString()}`;
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        // Run calculation on load
+        window.onload = calculateReturns;
+    </script>
+</body>
+</html>
