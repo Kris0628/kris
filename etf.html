@@ -725,7 +725,7 @@
                         <button class="info-icon" onclick="showHoldingsModal('Target')" title="查看前五大成份股" style="background-color: #e37400;">?</button>
                         <div class="etf-input-group-header">
                             <span class="group-label" style="color: #e37400;">對手 (單一月配)</span>
-                            <select id="select_Target" onchange="updateInputs('Target')" style="color: #e37400; background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23e37400\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpolyline points=\'6 9 12 15 18 9\'%3E%3C/polyline%3E%3C/svg%3E');"></select>
+                            <select id="select_Target" onchange="updateInputs('Target')" style="color: #e37400; background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23e37400\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpolyline points=\'6 9 12 15 18 9\'%3E%3Cpolyline\>3C/svg%3E');"></select>
                         </div>
                         <div class="mini-input-row" style="grid-template-columns: 1fr 1fr 1fr;">
                             <div class="mini-input-wrapper">
@@ -768,15 +768,15 @@
                     </div>
                     <div class="allocation-item">
                         <span class="allocation-name" id="name_A">Group A</span>
-                        <span class="allocation-val" id="res_A">0 張</span>
+                        <span class="allocation-val" id="res_A">0.0 張</span>
                     </div>
                     <div class="allocation-item">
                         <span class="allocation-name" id="name_B">Group B</span>
-                        <span class="allocation-val" id="res_B">0 張</span>
+                        <span class="allocation-val" id="res_B">0.0 張</span>
                     </div>
                     <div class="allocation-item">
                         <span class="allocation-name" id="name_C">Group C</span>
-                        <span class="allocation-val" id="res_C">0 張</span>
+                        <span class="allocation-val" id="res_C">0.0 張</span>
                     </div>
                 </div>
                 <div id="highlight_A" class="highlight-box">
@@ -807,7 +807,7 @@
                     </div>
                     <div class="allocation-item">
                         <span class="allocation-name" id="name_Target">Target ETF</span>
-                        <span class="allocation-val" id="res_Target">0 張</span>
+                        <span class="allocation-val" id="res_Target">0.0 張</span>
                     </div>
                     <div class="allocation-item">
                         <span class="allocation-name">產業集中度</span>
@@ -987,6 +987,17 @@
         // 二代健保參數
         const NHI_THRESHOLD = 20000;
         const NHI_RATE = 0.0211;
+        const SHARES_PER_LOT = 1000; // 定義每張股數
+
+        // Helper function for number formatting (1 decimal place + thousand separator)
+        function formatDecimal(num, decimals = 1) {
+            if (isNaN(num)) return `0.${'0'.repeat(decimals)}`;
+            return num.toLocaleString('en-US', { 
+                minimumFractionDigits: decimals, 
+                maximumFractionDigits: decimals 
+            });
+        }
+
 
         // 初始化下拉選單
         function initSelectors() {
@@ -1176,21 +1187,26 @@
             const allocations = ['A', 'B', 'C'].map(key => {
                 const { price, div } = data[key];
                 
-                // 計算最高安全股數 (1張 = 1000股)
-                // 股數 = (NHI_SAFE_THRESHOLD / 每股配息) * 1000股/張
-                const max_safe_shares = Math.floor(NHI_THRESHOLD_SAFE / div) * 1000;
+                // 股數計算: 達到 NHI 門檻所需的原始股數
+                const raw_shares_for_nhi = NHI_THRESHOLD_SAFE / div;
                 
-                // 所需的預算
-                const required_budget = max_safe_shares * price / 1000;
+                // 安全張數: 將原始股數向下取整至最接近的張 (1000 股)
+                const max_safe_lots = Math.floor(raw_shares_for_nhi / SHARES_PER_LOT);
                 
-                return { key, max_safe_shares, required_budget, price };
+                // 安全股數
+                const max_safe_shares = max_safe_lots * SHARES_PER_LOT;
+
+                // 所需的預算 (1 張 = 1000 股)
+                const lot_cost = price * SHARES_PER_LOT;
+                const required_budget = max_safe_lots * lot_cost; // 以張的成本計算
+
+                return { key, max_safe_shares, required_budget, price, lot_cost };
             });
 
             // 2. 計算三檔 ETF 都達到安全上限所需的總預算
             const total_required_safe_budget = allocations.reduce((sum, alloc) => sum + alloc.required_budget, 0);
 
             let invested_amounts = {};
-            let total_invested = 0;
 
             if (totalBudget >= total_required_safe_budget) {
                 // Case 1: 資金充足 - 投入三檔 ETF 的最高安全預算
@@ -1198,7 +1214,6 @@
                 
                 allocations.forEach(alloc => {
                     invested_amounts[alloc.key] = alloc.required_budget;
-                    total_invested += invested_amounts[alloc.key];
                 });
 
             } else {
@@ -1210,12 +1225,10 @@
                 
                 allocations.forEach(alloc => {
                     // 按比例分配預算
-                    const budget_for_key = alloc.required_budget * scaling_factor;
-                    // 計算可購買的張數 (取整張)
-                    const shares_for_key = Math.floor(budget_for_key / alloc.price) * 1000; 
-
-                    invested_amounts[alloc.key] = shares_for_key * alloc.price / 1000;
-                    total_invested += invested_amounts[alloc.key];
+                    invested_amounts[alloc.key] = alloc.required_budget * scaling_factor;
+                    
+                    // 注意：這裡計算出的投入金額會包含零股。
+                    // 由於 calculateReturns 會假設全數投入，這裡直接使用這個分配後的預算。
                 });
             }
 
@@ -1266,27 +1279,38 @@
                 return;
             }
 
-            // --- 策略 A: 自組 3 檔 (依權重計算) ---
+            // 股成本 (1 張 = 1000 股)
+            const lotCostA = data.A.price * SHARES_PER_LOT;
+            const lotCostB = data.B.price * SHARES_PER_LOT;
+            const lotCostC = data.C.price * SHARES_PER_LOT;
+            const lotCostTarget = data.Target.price * SHARES_PER_LOT;
+
+            // --- 策略 A: 自組 3 檔 (依權重計算 - 假設可購買零股) ---
             
             // 根據權重計算各檔 ETF 的預算
             const budget_A = (totalBudget * currentWeights.A) / 100;
             const budget_B = (totalBudget * currentWeights.B) / 100;
             const budget_C = (totalBudget * currentWeights.C) / 100;
             
-            // 計算可購買股數 (以股為單位計算，並捨去零股)
-            let shares_A = Math.floor(budget_A / data.A.price) * 1000; // 確保只買整張
-            let shares_B = Math.floor(budget_B / data.B.price) * 1000;
-            let shares_C = Math.floor(budget_C / data.C.price) * 1000;
+            // 計算可購買的**張數** (允許小數點)
+            const lots_A = budget_A / lotCostA;
+            const lots_B = budget_B / lotCostB;
+            const lots_C = budget_C / lotCostC;
 
-            // 實際投入金額
-            let invested_A = shares_A * data.A.price / 1000;
-            let invested_B = shares_B * data.B.price / 1000;
-            let invested_C = shares_C * data.C.price / 1000;
+            // 實際購買股數 (現在是小數點股數)
+            let shares_A = lots_A * SHARES_PER_LOT; 
+            let shares_B = lots_B * SHARES_PER_LOT;
+            let shares_C = lots_C * SHARES_PER_LOT;
+
+            // 實際投入金額 (假設預算全數投入)
+            let invested_A = budget_A;
+            let invested_B = budget_B;
+            let invested_C = budget_C;
             
             // 預估配息金額 (季配)
-            let singleDist_A = Math.round(shares_A * data.A.div / 1000);
-            let singleDist_B = Math.round(shares_B * data.B.div / 1000);
-            let singleDist_C = Math.round(shares_C * data.C.div / 1000);
+            let singleDist_A = Math.round(shares_A * data.A.div);
+            let singleDist_B = Math.round(shares_B * data.B.div);
+            let singleDist_C = Math.round(shares_C * data.C.div);
 
             let yearDiv_A = singleDist_A * 4;
             let yearDiv_B = singleDist_B * 4;
@@ -1296,9 +1320,6 @@
             let monthlyAvg_Combo = Math.round(totalYearDiv_Combo / 12);
             
             let actualCost_Combo = invested_A + invested_B + invested_C;
-            let totalBudgetAllocated = budget_A + budget_B + budget_C;
-            let remainingCash = totalBudgetAllocated - actualCost_Combo; // 未投入的零錢
-            
             let yield_Combo = actualCost_Combo > 0 ? ((totalYearDiv_Combo / actualCost_Combo) * 100).toFixed(2) : "0.00";
 
             // --- 策略 A 健保判斷 ---
@@ -1308,12 +1329,16 @@
             if (singleDist_C >= NHI_THRESHOLD && currentWeights.C > 0) nhiList_A.push({name: data.C.id, val: singleDist_C});
 
 
-            // --- 策略 B: 單一月配 ---
-            let shares_Target = Math.floor(totalBudget / data.Target.price) * 1000; // 確保只買整張
-            let monthlyDiv_Target = Math.round(shares_Target * data.Target.div / 1000);
+            // --- 策略 B: 單一月配 (假設可購買零股) ---
+            // 計算可購買的**張數** (允許小數點)
+            const lots_Target = totalBudget / lotCostTarget;
+            let shares_Target = lots_Target * SHARES_PER_LOT; // 實際購買股數 (現在是小數點股數)
+
+            // 預估配息金額 (月配)
+            let monthlyDiv_Target = Math.round(shares_Target * data.Target.div);
             let totalYearDiv_Target = monthlyDiv_Target * 12;
             
-            let actualCost_Target = shares_Target * data.Target.price / 1000;
+            let actualCost_Target = totalBudget; // 假設全數投入
             let yield_Target = actualCost_Target > 0 ? ((totalYearDiv_Target / actualCost_Target) * 100).toFixed(2) : "0.00";
             
             // --- 策略 B 健保判斷 ---
@@ -1325,21 +1350,21 @@
             document.getElementById('comboYield').innerText = `年化殖利率約: ${yield_Combo}%`;
             document.getElementById('label_combo_names').innerText = `${data.A.id} (${currentWeights.A}%) + ${data.B.id} (${currentWeights.B}%) + ${data.C.id} (${currentWeights.C}%)`;
             
-            // Update Combo List with Dividend Info (convert shares to 張)
+            // Update Combo List with Dividend Info (Lots to 1 decimal place)
             document.getElementById('name_A').innerText = `${data.A.name.split(' ')[0]} (${currentWeights.A}%)`;
-            document.getElementById('res_A').innerHTML = `${(shares_A/1000).toLocaleString()} 張<br><span class="detail-text">季配約 $${singleDist_A.toLocaleString()}</span>`;
+            document.getElementById('res_A').innerHTML = `${formatDecimal(lots_A, 1)} 張<br><span class="detail-text">季配約 $${singleDist_A.toLocaleString()}</span>`;
             
             document.getElementById('name_B').innerText = `${data.B.name.split(' ')[0]} (${currentWeights.B}%)`;
-            document.getElementById('res_B').innerHTML = `${(shares_B/1000).toLocaleString()} 張<br><span class="detail-text">季配約 $${singleDist_B.toLocaleString()}</span>`;
+            document.getElementById('res_B').innerHTML = `${formatDecimal(lots_B, 1)} 張<br><span class="detail-text">季配約 $${singleDist_B.toLocaleString()}</span>`;
             
             document.getElementById('name_C').innerText = `${data.C.name.split(' ')[0]} (${currentWeights.C}%)`;
-            document.getElementById('res_C').innerHTML = `${(shares_C/1000).toLocaleString()} 張<br><span class="detail-text">季配約 $${singleDist_C.toLocaleString()}</span>`;
+            document.getElementById('res_C').innerHTML = `${formatDecimal(lots_C, 1)} 張<br><span class="detail-text">季配約 $${singleDist_C.toLocaleString()}</span>`;
 
             animateValue("singleMonthly", monthlyDiv_Target);
             document.getElementById('singleYield').innerText = `年化殖利率約: ${yield_Target}%`;
             document.getElementById('label_target_name').innerText = `選手: ${data.Target.id}`;
             document.getElementById('name_Target').innerText = data.Target.name.split(' ')[1];
-            document.getElementById('res_Target').innerHTML = `${(shares_Target/1000).toLocaleString()} 張<br><span class="detail-text">月配約 $${monthlyDiv_Target.toLocaleString()}</span>`;
+            document.getElementById('res_Target').innerHTML = `${formatDecimal(lots_Target, 1)} 張<br><span class="detail-text">月配約 $${monthlyDiv_Target.toLocaleString()}</span>`;
 
             // --- 更新健保說明 Note A ---
             const highlightBoxA = document.getElementById('highlight_A');
@@ -1358,10 +1383,8 @@
                 noteHtmlA += `<li>✅ <strong>完美閃避：</strong>各檔 ETF 單次配息皆未超過 2 萬元，<span style="font-weight:bold; text-decoration: underline;">完全免扣</span>二代健保補充保費。</li>`;
             }
             
-            // 提醒未投入金額
-            if (remainingCash > totalBudget * 0.005) { // If remaining cash is more than 0.5% of total budget allocated
-                 noteHtmlA += `<li>💡 <strong>提醒：</strong>配置後約有 ${Math.round(remainingCash).toLocaleString()} 元資金未投入 (無法購買零股)。</li>`;
-            }
+            // 新增零股優勢提醒
+            noteHtmlA += `<li>💡 <strong>零股/分批投資優勢：</strong>張數為小數點 (零股) 計算，能更精確運用資金達到權重目標。</li>`;
 
             noteListA.innerHTML = noteHtmlA;
 
@@ -1378,7 +1401,7 @@
                 noteHtmlB += `<li>⚠️ <strong>注意：</strong>單次配息 ${monthlyDiv_Target.toLocaleString()} 元，已超過 2 萬元門檻！<br>每月需多扣約 <strong>${targetFee.toLocaleString()}</strong> 元補充保費。</li>`;
             } else {
                 highlightBoxB.className = "highlight-box success";
-                noteHtmlB += `<li>✅ <strong>免扣保費：</strong>單次配息 ${monthlyDiv_Target.toLocaleString()} 元，未達 2 萬元扣費門檻。</li>`;
+                noteHtmlB += `<li>✅ <strong>免扣保費：：</strong>單次配息 ${monthlyDiv_Target.toLocaleString()} 元，未達 2 萬元扣費門檻。</li>`;
             }
             noteListB.innerHTML = noteHtmlB;
         }
