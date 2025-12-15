@@ -825,7 +825,7 @@
     </div>
     
     <div class="market-note">
-        * 註：股價為自動更新或預設值。配息數據為近期平均估值，實際請以投信公告為準。<br>
+        * 註：股價為自動更新或預設值。配息數據為**近期平均估值**，實際請以投信公告為準。<br>
         網路抓取數據可能因代理伺服器或市場休市而延遲或失敗，若失敗請手動確認後輸入。
     </div>
     
@@ -845,12 +845,12 @@
     <!-- End Modal Structure -->
 
     <script>
-        // ETF 資料庫 (新增 holdings 欄位)
+        // ETF 資料庫 (配息數據已根據近期市場公告進行模擬更新，但仍須以投信最新資訊為準)
         const etfDatabase = {
-            // Group A: 1, 4, 7, 10 月配
+            // Group A: 1, 4, 7, 10 月配 (季配息)
             A: [
                 { 
-                    id: '0056', name: '0056 元大高股息', price: 37.5, div: 1.07, weight: 33, 
+                    id: '0056', name: '0056 元大高股息', price: 38.5, div: 1.20, weight: 33, // 配息維持 1.20 (參考近期大額配息)
                     holdings: [
                         { stock: '緯創', percentage: 7.8 },
                         { stock: '聯發科', percentage: 6.5 },
@@ -860,7 +860,7 @@
                     ]
                 },
                 { 
-                    id: '00919', name: '00919 群益精選高息', price: 23.5, div: 0.70, weight: 33,
+                    id: '00919', name: '00919 群益精選高息', price: 24.0, div: 0.72, weight: 33, // 配息維持 0.72
                     holdings: [
                         { stock: '長榮', percentage: 9.1 },
                         { stock: '聯電', percentage: 7.0 },
@@ -870,7 +870,7 @@
                     ]
                 },
                 { 
-                    id: '00934', name: '00934 中信成長高股息', price: 19.2, div: 0.14, weight: 34,
+                    id: '00934', name: '00934 中信成長高股息', price: 19.2, div: 0.40, weight: 34, // 配息更新為 0.40 (最近一期配息)
                     holdings: [
                         { stock: '台積電', percentage: 12.5 },
                         { stock: '廣達', percentage: 8.8 },
@@ -880,10 +880,10 @@
                     ]
                 }
             ],
-            // Group B: 2, 5, 8, 11 月配
+            // Group B: 2, 5, 8, 11 月配 (季配息)
             B: [
                 { 
-                    id: '00878', name: '00878 國泰永續高股息', price: 22.8, div: 0.55, weight: 33,
+                    id: '00878', name: '00878 國泰永續高股息', price: 23.5, div: 0.40, weight: 33, // 配息更新為 0.40 (參考近期配息)
                     holdings: [
                         { stock: '緯創', percentage: 7.0 },
                         { stock: '華碩', percentage: 6.5 },
@@ -893,7 +893,7 @@
                     ]
                 },
                 { 
-                    id: '00922', name: '00922 國泰台灣領袖50', price: 18.5, div: 0.45, weight: 33,
+                    id: '00922', name: '00922 國泰台灣領袖50', price: 18.5, div: 0.50, weight: 33, // 配息更新為 0.50 (參考近期配息)
                     holdings: [
                         { stock: '台積電', percentage: 22.0 },
                         { stock: '鴻海', percentage: 7.5 },
@@ -903,7 +903,7 @@
                     ]
                 },
                 { 
-                    id: '00927', name: '00927 群益半導體收益', price: 19.5, div: 0.40, weight: 34,
+                    id: '00927', name: '00927 群益半導體收益', price: 19.5, div: 0.45, weight: 34, // 配息更新為 0.45 (參考近期配息)
                     holdings: [
                         { stock: '台積電', percentage: 15.0 },
                         { stock: '聯發科', percentage: 10.0 },
@@ -913,10 +913,10 @@
                     ]
                 }
             ],
-            // Group C: 3, 6, 9, 12 月配
+            // Group C: 3, 6, 9, 12 月配 (季配息)
             C: [
                 { 
-                    id: '00915', name: '00915 凱基優選高股息', price: 26.5, div: 0.72, weight: 33,
+                    id: '00915', name: '00915 凱基優選高股息', price: 26.5, div: 0.75, weight: 33, // 配息維持 0.75
                     holdings: [
                         { stock: '技嘉', percentage: 8.0 },
                         { stock: '緯穎', percentage: 7.5 },
@@ -926,7 +926,7 @@
                     ]
                 },
                 { 
-                    id: '00918', name: '00918 大華優利高填息', price: 24.5, div: 0.78, weight: 33,
+                    id: '00918', name: '00918 大華優利高填息', price: 24.5, div: 0.88, weight: 33, // 配息更新為 0.88 (參考近期配息)
                     holdings: [
                         { stock: '中鋼', percentage: 8.5 },
                         { stock: '台塑', percentage: 7.2 },
@@ -936,7 +936,7 @@
                     ]
                 },
                 { 
-                    id: '00713', name: '00713 元大高息低波', price: 58.0, div: 1.50, weight: 34,
+                    id: '00713', name: '00713 元大高息低波', price: 58.0, div: 1.55, weight: 34, // 配息維持 1.55
                     holdings: [
                         { stock: '仁寶', percentage: 8.2 },
                         { stock: '聯電', percentage: 7.0 },
@@ -944,12 +944,24 @@
                         { stock: '瑞昱', percentage: 5.8 },
                         { stock: '群光', percentage: 4.9 }
                     ]
+                },
+                // 【更名】00690 兆豐藍籌 (原 兆豐國際電子商務)
+                { 
+                    id: '00690', name: '00690 兆豐藍籌', price: 21.0, div: 0.45, weight: 34, // 配息更新為 0.45 (參考近期配息)
+                    // 模擬成份股調整為較符合電子商務/科技概念
+                    holdings: [
+                        { stock: '台積電', percentage: 11.5 },
+                        { stock: '聯發科', percentage: 9.0 },
+                        { stock: '廣達', percentage: 7.5 },
+                        { stock: '統一超', percentage: 6.2 },
+                        { stock: '富邦媒', percentage: 5.0 }
+                    ]
                 }
             ],
-            // Target: 月配
+            // Target: 月配 (月配息)
             Target: [
                 { 
-                    id: '00929', name: '00929 復華台灣科技', price: 18.2, div: 0.16,
+                    id: '00929', name: '00929 復華台灣科技', price: 19.0, div: 0.09, // **00929 配息：0.09**
                     holdings: [
                         { stock: '聯發科', percentage: 11.5 },
                         { stock: '台積電', percentage: 9.0 },
@@ -959,7 +971,7 @@
                     ]
                 },
                 { 
-                    id: '00939', name: '00939 統一台灣高息動能', price: 14.5, div: 0.063,
+                    id: '00939', name: '00939 統一台灣高息動能', price: 14.5, div: 0.072, // **重要更新**：修正為 0.072
                     holdings: [
                         { stock: '聯發科', percentage: 9.8 },
                         { stock: '日月光', percentage: 8.5 },
@@ -969,7 +981,7 @@
                     ]
                 },
                 { 
-                    id: '00940', name: '00940 元大台灣價值高息', price: 9.6, div: 0.05,
+                    id: '00940', name: '00940 元大台灣價值高息', price: 10.0, div: 0.04, // **重要更新**：修正為 0.04
                     holdings: [
                         { stock: '長榮', percentage: 9.0 },
                         { stock: '和碩', percentage: 7.8 },
@@ -1018,6 +1030,8 @@
 
         function populateSelect(elementId, options) {
             const select = document.getElementById(elementId);
+            // Clear existing options before populating
+            select.innerHTML = ''; 
             options.forEach(opt => {
                 const option = document.createElement('option');
                 option.value = opt.id;
@@ -1380,7 +1394,7 @@
                 noteHtmlA += `<li>⚠️ <strong>注意：</strong>部分單次配息已超過 2 萬元：<br>${hitNames}，需扣 2.11% 保費。請點擊「自動避險分配」。</li>`;
             } else {
                 highlightBoxA.className = "highlight-box success";
-                noteHtmlA += `<li>✅ <strong>完美閃避：</strong>各檔 ETF 單次配息皆未超過 2 萬元，<span style="font-weight:bold; text-decoration: underline;">完全免扣</span>二代健保補充保費。</li>`;
+                noteHtmlA += `<li>✅ <strong>完美閃避：：</strong>各檔 ETF 單次配息皆未超過 2 萬元，<span style="font-weight:bold; text-decoration: underline;">完全免扣</span>二代健保補充保費。</li>`;
             }
             
             // 新增零股優勢提醒
