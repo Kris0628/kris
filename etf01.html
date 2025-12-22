@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ETF 月配息策略 PK - 成分股透視版</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --accent-hover: #2980b9;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --bg-light: #f4f7f6;
+            --text-main: #34495e;
+            --card-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans TC", sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container { width: 100%; max-width: 1000px; }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        h1 { margin: 0; color: var(--primary); font-size: 1.8rem; }
+        .subtitle { color: #7f8c8d; font-size: 0.95rem; margin-top: 5px; }
+
+        /* --- Input Section --- */
+        .config-panel {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 25px;
+        }
+
+        .input-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-end;
+            margin-bottom: 20px;
+        }
+        .input-group { flex: 1; min-width: 280px; }
+        .input-group label { display: block; font-weight: 700; margin-bottom: 8px; font-size: 0.9rem; }
+        input[type="number"], select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #dcdde1;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: #fafafa;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus { outline: none; border-color: var(--accent); background: #fff; }
+
+        .btn-main {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .btn-main:hover { background: var(--accent-hover); transform: translateY(-1px); }
+
+        /* --- Settings Grid --- */
+        details { 
+            background: #f8f9fa; border-radius: 12px; padding: 15px; margin-top: 15px;
+            border: 1px solid #eee;
+        }
+        summary { cursor: pointer; font-weight: 700; color: var(--text-main); outline: none; }
+        
+        .etf-settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .etf-box {
+            background: white;
+            border: 1px solid #e0e0e0;
+            padding: 12px;
+            border-radius: 10px;
+            position: relative;
+        }
+        .etf-box-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding-bottom: 5px;
+            border-bottom: 1px dashed #eee;
+        }
+        .etf-box-label { font-size: 0.85rem; font-weight: 700; color: var(--primary); }
+        
+        .info-btn {
+            background: #e1f5fe;
+            color: var(--accent);
+            border: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .info-btn:hover { background: var(--accent); color: white; transform: scale(1.1); }
+
+        .mini-inputs { display: flex; gap: 8px; margin-top: 8px; }
+        .mini-field { flex: 1; }
+        .mini-field label { font-size: 0.7rem; color: #95a5a6; display: block; margin-bottom: 2px; }
+        .mini-field input { padding: 6px; font-size: 0.9rem; }
+
+        /* --- Results Section --- */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border-top: 5px solid var(--primary);
+        }
+
+        .card-header {
+            padding: 15px 20px;
+            background: #fdfdfd;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-title h3 { margin: 0; font-size: 1.1rem; }
+        .card-title small { color: #7f8c8d; }
+        .monthly-val { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
+
+        .allocation-list { padding: 0 20px; flex-grow: 1; }
+        .alloc-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px dashed #eee;
+        }
+        .alloc-item:last-child { border-bottom: none; }
+
+        .item-icon {
+            width: 45px;
+            height: 45px;
+            background: #ebf5fb;
+            color: var(--accent);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.85rem;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .item-content { flex-grow: 1; }
+        
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 4px;
+        }
+        
+        .item-name-group { font-size: 1rem; font-weight: 700; color: var(--text-main); }
+        .item-name-code { color: var(--accent); margin-right: 5px; }
+        
+        .item-main-val { font-weight: 800; color: var(--primary); font-size: 1rem; }
+
+        .item-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: #7f8c8d;
+        }
+
+        .card-footer {
+            padding: 12px 20px;
+            background: #fafafa;
+            border-top: 1px solid #eee;
+            font-size: 0.85rem;
+        }
+        .nhi-status { font-weight: bold; }
+        .nhi-warn { color: var(--danger); }
+        .nhi-safe { color: var(--success); }
+
+        /* --- Modal (Pop-up) --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1000;
+            display: none; justify-content: center; align-items: center;
+            backdrop-filter: blur(3px);
+            animation: fadeIn 0.2s;
+        }
+        .modal-content {
+            background: white; width: 90%; max-width: 400px;
+            border-radius: 16px; padding: 25px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            position: relative;
+            transform: translateY(20px);
+            animation: slideUp 0.3s forwards;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #f0f0f0; }
+        .modal-title { margin: 0; font-size: 1.2rem; color: var(--primary); }
+        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #999; }
+        
+        .stock-list { list-style: none; padding: 0; margin: 0; }
+        .stock-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f9f9f9; font-size: 0.95rem; }
+        .stock-item:last-child { border-bottom: none; }
+        .stock-name { font-weight: 600; color: #555; }
+        .stock-pct { font-weight: 700; color: var(--accent); }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { to { transform: translateY(0); } }
+
+        @media (max-width: 600px) {
+            .results-grid { grid-template-columns: 1fr; }
+            .input-row { flex-direction: column; align-items: stretch; }
+            .btn-main { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>ETF 投資組合策略試算</h1>
+        <p class="subtitle">視覺化配息分析 • 智能權重配置 • 成分股透視</p>
+    </header>
+
+    <div class="config-panel">
+        <div class="input-row">
+            <div class="input-group">
+                <label>💰 總投資金額 (TWD)</label>
+                <input type="number" id="totalCapital" value="1000000" step="10000" oninput="app.calculate()">
+            </div>
+            <button class="btn-main" onclick="app.autoOptimize()">⚡ 啟動二代健保避險分配</button>
+        </div>
+
+        <details open>
+            <summary>⚙️ 自定義組合與參數 (點擊收合/展開)</summary>
+            <div class="etf-settings-grid" id="settingsGrid"></div>
+        </details>
+    </div>
+
+    <div class="results-grid">
+        <!-- Strategy A -->
+        <div class="result-card" style="border-top-color: var(--accent);">
+            <div class="card-header">
+                <div class="card-title">
+                    <h3>自組月月領戰隊</h3>
+                    <small>策略：季配息分散佈局 (A+B+C)</small>
+                </div>
+                <div class="monthly-val" id="val_a_monthly">NT$ 0</div>
+            </div>
+            <div class="allocation-list" id="list_a"></div>
+            <div class="card-footer" id="footer_a"></div>
+        </div>
+
+        <!-- Strategy B -->
+        <div class="result-card" style="border-top-color: var(--warning);">
+            <div class="card-header">
+                <div class="card-title">
+                    <h3>單一月配 ETF</h3>
+                    <small>策略：集中單一標的</small>
+                </div>
+                <div class="monthly-val" style="color: var(--warning);" id="val_b_monthly">NT$ 0</div>
+            </div>
+            <div class="allocation-list" id="list_b"></div>
+            <div class="card-footer" id="footer_b"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="holdingsModal" class="modal-overlay" onclick="app.closeModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3 class="modal-title" id="m_title">ETF 成分股</h3>
+            <button class="close-btn" onclick="app.closeModal()">&times;</button>
+        </div>
+        <div style="margin-bottom:10px; font-weight:bold; color:#888; font-size:0.9rem; display:flex; justify-content:space-between;">
+            <span>前 5 大持股</span>
+            <span>權重</span>
+        </div>
+        <ul class="stock-list" id="m_list"></ul>
+        <p style="font-size:0.8rem; color:#aaa; margin-top:15px; text-align:right;">* 數據為近期模擬值，請以官網公告為準</p>
+    </div>
+</div>
+
+<script>
+    const App = function() {
+        // ETF Data
+        const db = {
+            '00919': { name: '群益精選高息', price: 23.5, div: 0.72, holdings: [['長榮', '12.5%'], ['中信金', '9.8%'], ['聯發科', '8.4%'], ['聯詠', '7.2%'], ['力成', '6.5%']] },
+            '00915': { name: '凱基優選高股息', price: 27.2, div: 0.82, holdings: [['鴻海', '11.2%'], ['聯發科', '9.5%'], ['瑞昱', '8.8%'], ['聯詠', '7.4%'], ['中信金', '6.9%']] },
+            '00918': { name: '大華優利高填息', price: 24.5, div: 0.78, holdings: [['長榮', '10.8%'], ['鴻海', '9.5%'], ['聯電', '8.2%'], ['中信金', '7.5%'], ['廣達', '6.1%']] },
+            '00713': { name: '元大高息低波', price: 51.3, div: 1.50, holdings: [['統一', '8.4%'], ['台灣大', '7.9%'], ['遠傳', '7.5%'], ['可成', '6.2%'], ['華碩', '5.8%']] },
+            '0056': { name: '元大高股息', price: 38.1, div: 1.07, holdings: [['聯發科', '9.2%'], ['鴻海', '8.5%'], ['聯詠', '7.8%'], ['廣達', '6.5%'], ['緯創', '5.4%']] },
+            '00927': { name: '群益半導體收益', price: 20.1, div: 0.64, holdings: [['台積電', '15.2%'], ['聯發科', '10.5%'], ['聯電', '8.5%'], ['日月光', '6.8%'], ['瑞昱', '5.5%']] },
+            '00878': { name: '國泰永續高股息', price: 22.8, div: 0.55, holdings: [['聯發科', '8.8%'], ['廣達', '7.2%'], ['聯詠', '6.5%'], ['仁寶', '5.8%'], ['華碩', '5.2%']] },
+            '00690': { name: '兆豐藍籌', price: 43.5, div: 0.89, holdings: [['台積電', '28.5%'], ['鴻海', '5.2%'], ['聯發科', '4.8%'], ['中華電', '3.5%'], ['富邦金', '3.2%']] },
+            '00922': { name: '國泰台灣領袖50', price: 18.5, div: 0.50, holdings: [['台積電', '30.5%'], ['鴻海', '6.2%'], ['聯發科', '5.5%'], ['廣達', '3.8%'], ['台達電', '3.5%']] },
+            '00929': { name: '復華台灣科技', price: 18.2, div: 0.11, holdings: [['聯發科', '10.5%'], ['聯詠', '9.2%'], ['日月光', '8.5%'], ['瑞昱', '7.8%'], ['力成', '6.2%']] },
+            '00940': { name: '元大台灣價值高息', price: 9.5, div: 0.05, holdings: [['長榮', '9.4%'], ['聯電', '8.8%'], ['中信金', '8.2%'], ['聯發科', '7.5%'], ['光寶科', '6.8%']] }
+        };
+
+        const groupKeys = {
+            A: ['00919', '00915', '00918', '00713'],
+            B: ['0056', '00927'],
+            C: ['00878', '00690', '00922'],
+            Target: ['00929', '00940']
+        };
+
+        let weights = { A: 33.33, B: 33.33, C: 33.34 };
+
+        function init() {
+            const grid = document.getElementById('settingsGrid');
+            grid.innerHTML = '';
+
+            ['A', 'B', 'C', 'Target'].forEach(g => {
+                const box = document.createElement('div');
+                box.className = 'etf-box';
+                const label = g === 'Target' ? '對照組 (月配)' : `組別 ${g}`;
+                const options = groupKeys[g].map(id => `<option value="${id}">${id} ${db[id].name}</option>`).join('');
+                
+                box.innerHTML = `
+                    <div class="etf-box-header">
+                        <span class="etf-box-label">${label}</span>
+                        <button class="info-btn" onclick="app.openModal('${g}')" title="查看成分股">?</button>
+                    </div>
+                    <select id="sel_${g}" onchange="app.updateInputs('${g}')" style="margin-bottom:8px;">${options}</select>
+                    <div class="mini-inputs">
+                        <div class="mini-field"><label>現價</label><input type="number" id="p_${g}" step="0.1" oninput="app.calculate()"></div>
+                        <div class="mini-field"><label>配息</label><input type="number" id="d_${g}" step="0.01" oninput="app.calculate()"></div>
+                    </div>
+                `;
+                grid.appendChild(box);
+                
+                // Set initial data
+                const firstId = groupKeys[g][0];
+                document.getElementById(`p_${g}`).value = db[firstId].price;
+                document.getElementById(`d_${g}`).value = db[firstId].div;
+            });
+            
+            // Initial calculation after UI is ready
+            setTimeout(() => calculate(), 50);
+        }
+
+        function updateInputs(g) {
+            const selectEl = document.getElementById(`sel_${g}`);
+            if (!selectEl) return;
+            const id = selectEl.value;
+            document.getElementById(`p_${g}`).value = db[id].price;
+            document.getElementById(`d_${g}`).value = db[id].div;
+            calculate();
+        }
+
+        function calculate() {
+            const totalInput = document.getElementById('totalCapital');
+            if (!totalInput) return;
+            const total = parseFloat(totalInput.value) || 0;
+            
+            // --- Strategy A ---
+            let yearlyA = 0, listA = '', maxDiv = 0;
+            let keys = ['A', 'B', 'C'];
+            
+            for (let k of keys) {
+                const selectEl = document.getElementById(`sel_${k}`);
+                const priceEl = document.getElementById(`p_${k}`);
+                const divEl = document.getElementById(`d_${k}`);
+                
+                if (!selectEl || !priceEl || !divEl) continue;
+
+                const id = selectEl.value;
+                const name = db[id].name;
+                const p = parseFloat(priceEl.value) || 0;
+                const d = parseFloat(divEl.value) || 0;
+                
+                const budget = total * (weights[k] / 100);
+                const shares = p > 0 ? Math.floor(budget / p) : 0;
+                const onceDiv = Math.floor(shares * d);
+                yearlyA += onceDiv * 4;
+                if (onceDiv > maxDiv) maxDiv = onceDiv;
+
+                listA += `
+                    <div class="alloc-item">
+                        <div class="item-icon">${id}</div>
+                        <div class="item-content">
+                            <div class="item-header">
+                                <span class="item-name-group"><span class="item-name-code">${id}</span>${name}</span>
+                                <span class="item-main-val">${(shares/1000).toFixed(2)} 張</span>
+                            </div>
+                            <div class="item-details">
+                                <span>權重 ${Math.round(weights[k])}% | 投入 $${Math.round(budget).toLocaleString()}</span>
+                                <span>季配 $${onceDiv.toLocaleString()}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const valA = document.getElementById('val_a_monthly');
+            if (valA) valA.innerText = `NT$ ${Math.round(yearlyA/12).toLocaleString()}`;
+            const listAEl = document.getElementById('list_a');
+            if (listAEl) listAEl.innerHTML = listA;
+            
+            const footerA = document.getElementById('footer_a');
+            if (footerA) {
+                footerA.innerHTML = maxDiv >= 20000 ? 
+                    `<span class="nhi-status nhi-warn">⚠️ 二代健保風險：單次高達 $${maxDiv.toLocaleString()}</span>` : 
+                    `<span class="nhi-status nhi-safe">✅ 安全配置：最高單次 $${maxDiv.toLocaleString()} (免扣費)</span>`;
+            }
+
+            // --- Strategy B ---
+            const targetSelect = document.getElementById('sel_Target');
+            const targetPrice = document.getElementById('p_Target');
+            const targetDiv = document.getElementById('d_Target');
+            
+            if (targetSelect && targetPrice && targetDiv) {
+                const sid = targetSelect.value;
+                const sname = db[sid].name;
+                const sp = parseFloat(targetPrice.value) || 0;
+                const sd = parseFloat(targetDiv.value) || 0;
+                
+                const sShares = sp > 0 ? Math.floor(total / sp) : 0;
+                const sOnceDiv = Math.floor(sShares * sd);
+                
+                const valB = document.getElementById('val_b_monthly');
+                if (valB) valB.innerText = `NT$ ${sOnceDiv.toLocaleString()}`;
+                const listBEl = document.getElementById('list_b');
+                if (listBEl) {
+                    listBEl.innerHTML = `
+                        <div class="alloc-item">
+                            <div class="item-icon" style="background:#fff3e0; color:var(--warning);">${sid}</div>
+                            <div class="item-content">
+                                <div class="item-header">
+                                    <span class="item-name-group"><span class="item-name-code">${sid}</span>${sname}</span>
+                                    <span class="item-main-val">${(sShares/1000).toFixed(2)} 張</span>
+                                </div>
+                                <div class="item-details">
+                                    <span>權重 100% | 投入 $${Math.round(total).toLocaleString()}</span>
+                                    <span>月配 $${sOnceDiv.toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                const footerB = document.getElementById('footer_b');
+                if (footerB) {
+                    footerB.innerHTML = sOnceDiv >= 20000 ? 
+                        `<span class="nhi-status nhi-warn">⚠️ 需扣繳補充保費約 NT$ ${Math.round(sOnceDiv*0.0211).toLocaleString()}</span>` : 
+                        `<span class="nhi-status nhi-safe">✅ 單次 $${sOnceDiv.toLocaleString()} 未達扣費門檻</span>`;
+                }
+            }
+        }
+
+        function openModal(g) {
+            const selectEl = document.getElementById(`sel_${g}`);
+            if (!selectEl) return;
+            const id = selectEl.value;
+            const item = db[id];
+            
+            document.getElementById('m_title').innerText = `${item.name} (${id})`;
+            const list = document.getElementById('m_list');
+            list.innerHTML = item.holdings.map(h => `
+                <li class="stock-item">
+                    <span class="stock-name">${h[0]}</span>
+                    <span class="stock-pct">${h[1]}</span>
+                </li>
+            `).join('');
+            
+            document.getElementById('holdingsModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('holdingsModal').style.display = 'none';
+        }
+
+        function autoOptimize() {
+            const total = parseFloat(document.getElementById('totalCapital').value) || 0;
+            const keys = ['A', 'B', 'C'];
+            let safeCosts = {};
+            let totalSafe = 0;
+
+            keys.forEach(k => {
+                const d = parseFloat(document.getElementById(`d_${k}`).value) || 0;
+                const p = parseFloat(document.getElementById(`p_${k}`).value) || 0;
+                if (d > 0) {
+                    const safeShares = Math.floor(19999 / d); 
+                    safeCosts[k] = safeShares * p;
+                    totalSafe += safeCosts[k];
+                } else {
+                    safeCosts[k] = 0;
+                }
+            });
+
+            if (total > totalSafe && totalSafe > 0) {
+                keys.forEach(k => weights[k] = (safeCosts[k] / total) * 100);
+            } else {
+                keys.forEach(k => weights[k] = 33.33);
+            }
+            calculate();
+        }
+
+        return { init, updateInputs, calculate, autoOptimize, openModal, closeModal };
+    }();
+
+    window.onload = App.init;
+    // 將 app 物件掛載到全域，方便 onclick 調用
+    window.app = App;
+</script>
+
+</body>
+</html>
