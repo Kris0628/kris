@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>季配息 ETF 資產配置試算</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap');
+
+:root{
+  --bg:#12171c;
+  --panel:#1a2129;
+  --panel2:#212a33;
+  --line:#2c3742;
+  --gold:#c9a961;
+  --gold-dim:#8a7644;
+  --text:#e9e6df;
+  --sub:#8b98a4;
+  --green:#5fae82;
+  --amber:#e0a458;
+  --red:#d9756b;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Noto Sans TC','Segoe UI',sans-serif;
+  line-height:1.5;
+  padding-bottom:60px;
+}
+.wrap{max-width:1120px;margin:0 auto;padding:36px 20px 0;}
+header{margin-bottom:28px;border-bottom:1px solid var(--line);padding-bottom:22px;}
+h1{
+  font-family:'Newsreader',serif;
+  font-weight:500;
+  font-size:2.05rem;
+  margin:0 0 6px;
+  letter-spacing:.3px;
+}
+h1 span{color:var(--gold);font-style:italic;}
+.sub{color:var(--sub);font-size:.92rem;max-width:680px;}
+.tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--gold);border:1px solid var(--gold-dim);padding:2px 8px;border-radius:20px;margin-bottom:10px;letter-spacing:.5px;}
+
+.section-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.72rem;
+  color:var(--gold);
+  text-transform:uppercase;
+  letter-spacing:1.5px;
+  margin:34px 0 12px;
+  display:flex;align-items:center;gap:10px;
+}
+.section-label::after{content:'';flex:1;height:1px;background:var(--line);}
+
+.invest-box{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:20px 22px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  flex-wrap:wrap;
+}
+.invest-box label{font-size:.95rem;color:var(--sub);}
+.invest-box input[type=number]{
+  background:var(--panel2);
+  border:1px solid var(--line);
+  color:var(--gold);
+  font-family:'JetBrains Mono',monospace;
+  font-size:1.3rem;
+  padding:8px 12px;
+  border-radius:6px;
+  width:200px;
+}
+.invest-box input[type=number]:focus{outline:1px solid var(--gold);}
+.autobtn{
+  margin-left:auto;
+  background:var(--gold);
+  color:#12171c;
+  border:none;
+  font-family:'Noto Sans TC',sans-serif;
+  font-weight:700;
+  font-size:.88rem;
+  padding:10px 18px;
+  border-radius:6px;
+  cursor:pointer;
+}
+.autobtn:hover{background:#dcb975;}
+.autobtn:focus-visible{outline:2px solid #fff;}
+
+.etf-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+@media(max-width:860px){.etf-grid{grid-template-columns:1fr;}}
+
+.etf-card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:18px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  position:relative;
+}
+.group-badge{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.68rem;
+  color:#12171c;
+  background:var(--gold);
+  padding:3px 9px;
+  border-radius:20px;
+  align-self:flex-start;
+  letter-spacing:.4px;
+}
+.etf-card select{
+  width:100%;
+  background:var(--panel2);
+  color:var(--text);
+  border:1px solid var(--line);
+  padding:8px 10px;
+  border-radius:6px;
+  font-size:.92rem;
+}
+.etf-name{font-family:'Newsreader',serif;font-size:1.15rem;color:var(--gold);}
+.etf-code{font-family:'JetBrains Mono',monospace;color:var(--sub);font-size:.78rem;}
+.etf-meta{font-size:.8rem;color:var(--sub);border-top:1px solid var(--line);padding-top:8px;margin-top:2px;}
+.etf-meta div{display:flex;justify-content:space-between;margin-bottom:4px;}
+.etf-meta b{color:var(--text);font-family:'JetBrains Mono',monospace;font-weight:500;}
+.etf-desc{font-size:.78rem;color:var(--sub);line-height:1.5;}
+.shares-row{display:flex;align-items:center;gap:8px;margin-top:4px;}
+.shares-row label{font-size:.8rem;color:var(--sub);white-space:nowrap;}
+.shares-row input{
+  width:100%;
+  background:var(--panel2);
+  border:1px solid var(--line);
+  color:var(--gold);
+  font-family:'JetBrains Mono',monospace;
+  padding:7px 8px;
+  border-radius:6px;
+  font-size:.95rem;
+}
+.lot-note{font-size:.72rem;color:var(--sub);font-family:'JetBrains Mono',monospace;}
+.cost-line{font-size:.85rem;display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;}
+
+.budget-bar{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:18px 22px;
+  display:flex;
+  gap:30px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+.budget-item{font-family:'JetBrains Mono',monospace;}
+.budget-item .lab{color:var(--sub);font-size:.72rem;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:3px;font-family:'Noto Sans TC',sans-serif;}
+.budget-item .val{font-size:1.25rem;color:var(--text);}
+.budget-item .val.over{color:var(--red);}
+.budget-item .val.ok{color:var(--green);}
+
+table{width:100%;border-collapse:collapse;font-size:.85rem;}
+th,td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--line);}
+th:first-child,td:first-child{text-align:left;}
+th{color:var(--sub);font-weight:500;font-size:.72rem;text-transform:uppercase;letter-spacing:.6px;}
+td{font-family:'JetBrains Mono',monospace;}
+tr.total td{border-top:1px solid var(--gold-dim);border-bottom:none;color:var(--gold);font-weight:700;padding-top:12px;}
+.tag-tax{color:var(--amber);font-size:.7rem;border:1px solid var(--amber);padding:1px 6px;border-radius:10px;margin-left:6px;font-family:'Noto Sans TC',sans-serif;}
+.tag-safe{color:var(--green);font-size:.7rem;border:1px solid var(--green);padding:1px 6px;border-radius:10px;margin-left:6px;font-family:'Noto Sans TC',sans-serif;}
+
+.calendar{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:10px;
+}
+@media(max-width:760px){.calendar{grid-template-columns:repeat(3,1fr);}}
+.month{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:12px 10px;
+  min-height:88px;
+}
+.month.has-pay{border-color:var(--gold-dim);background:linear-gradient(160deg,var(--panel),#242c22);}
+.month .m-label{font-family:'Newsreader',serif;font-style:italic;color:var(--gold);font-size:.95rem;}
+.month .m-amt{font-family:'JetBrains Mono',monospace;font-size:1.05rem;margin-top:6px;}
+.month .m-tax{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--amber);margin-top:2px;}
+.month .m-empty{color:var(--sub);font-size:.75rem;margin-top:6px;}
+
+.notes{
+  margin-top:38px;
+  font-size:.78rem;
+  color:var(--sub);
+  border-top:1px solid var(--line);
+  padding-top:16px;
+  line-height:1.7;
+}
+.notes b{color:var(--text);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="tag">季配息 ETF 規劃工具</div>
+  <h1>三個月份輪流入帳，湊成 <span>全年月月</span> 領息</h1>
+  <div class="sub">三個欄位已固定對應台股季配息ETF的三種除息週期──「1、4、7、10月」「2、5、8、11月」「3、6、9、12月」──三檔各選一檔，就能讓配息分散到一年最多8～12個月份。輸入投資金額、調整任一檔股數，其餘兩檔會自動重新配平，盡量把每一檔的單季配息壓在2萬元的二代健保門檻之下。</div>
+</header>
+
+<div class="section-label">STEP 1 · 投入金額</div>
+<div class="invest-box">
+  <label for="investAmount">總投資金額 (新台幣)</label>
+  <input type="number" id="investAmount" value="1000000" min="0" step="1000">
+  <button class="autobtn" onclick="autoAllocate()">依門檻重新配平三檔</button>
+</div>
+
+<div class="section-label">STEP 2 · 三檔ETF（固定三種除息月份，調整股數會自動配平其餘兩檔）</div>
+<div class="etf-grid" id="etfGrid"></div>
+
+<div class="section-label">STEP 3 · 配置總覽</div>
+<div class="budget-bar" id="budgetBar"></div>
+
+<div class="section-label">每季配息與二代健保補充保費試算</div>
+<table id="quarterTable">
+  <thead><tr><th>ETF</th><th>股數</th><th>單季配息</th><th>健保門檻</th><th>補充保費(2.11%)</th><th>季實領</th></tr></thead>
+  <tbody id="quarterBody"></tbody>
+  <tfoot id="quarterFoot"></tfoot>
+</table>
+
+<div class="section-label">全年配息月曆（三種除息週期交錯排列）</div>
+<div class="calendar" id="calendar"></div>
+
+<div class="notes" id="notes"></div>
+
+</div>
+
+<script>
+// 三組固定的除息／發放週期，每組收錄可選的ETF
+const GROUPS = [
+  {
+    label: "配息月：1／4／7／10月",
+    payMonths: [1,4,7,10],
+    options: {
+      "00713": {
+        name: "元大台灣高息低波",
+        tracker: "臺灣指數公司特選高股息低波動指數",
+        price: 59.95, qDiv: 1.00, yieldPct: 7.7,
+        issuer: "元大投信", inception: "2017/09/19", aum: "1056.71億元", holders: "27.53萬人",
+        desc: "以低波動因子加權，50檔成分股，前十大持股含遠傳、台灣大等電信股與第一金、玉山金等金控股，Beta低於大盤、股價相對抗震，配息平穩、成長性較慢，一年6月與12月調整成分股2次。"
+      },
+      "00919": {
+        name: "群益台灣精選高息",
+        tracker: "臺灣指數公司特選臺灣上市上櫃精選高息指數",
+        price: 29.7, qDiv: 1.00, yieldPct: 11.1,
+        issuer: "群益投信", inception: "2022/10/13", aum: "5408.18億元", holders: "135.67萬人",
+        desc: "用「宣告股利」取代歷史殖利率選股，反應快、近四季殖利率約11%為所有候選中最高，前十大持股以國泰金、中信金、富邦金等金融股為主，搭配聯電、長榮，一年5月、12月調整成分股，波動也相對較大。"
+      },
+      "00915": {
+        name: "凱基優選高股息30",
+        tracker: "臺灣指數公司特選臺灣上市上櫃多因子優選高股息30指數",
+        price: 29.72, qDiv: 0.38, yieldPct: 5.8,
+        issuer: "凱基投信", inception: "2022/11/29", aum: "171.63億元", holders: "7.51萬人",
+        desc: "結合品質、低波與股利多因子選股，以市值前300大股票為母體篩選30檔，配息相對溫和（近五年平均殖利率約5.4%），規模與受益人數是三檔中最小的，單季配息最容易留在健保門檻之下。"
+      }
+    },
+    default: "00919"
+  },
+  {
+    label: "配息月：2／5／8／11月",
+    payMonths: [2,5,8,11],
+    options: {
+      "0056": {
+        name: "元大高股息",
+        tracker: "臺灣高股息指數",
+        price: 52.80, qDiv: 1.35, yieldPct: 11.0,
+        issuer: "元大投信", inception: "2007/12（台股掛牌最久的高股息ETF）", aum: "5835.74億元", holders: "156.89萬人",
+        desc: "台股規模最大、受益人數最多的高股息ETF之一，2022年成分股由30檔擴增為50檔，2023年5月起由年配改為季配。2026年配息呈上升趨勢（Q2一口氣調升至1.35元），前五大持股為華碩、中信金、廣達、聯電、聯詠，選股偏景氣循環股，波動需留意。"
+      }
+    },
+    default: "0056"
+  },
+  {
+    label: "配息月：3／6／9／12月",
+    payMonths: [3,6,9,12],
+    options: {
+      "00878": {
+        name: "國泰永續高股息",
+        tracker: "MSCI台灣ESG永續高股息精選30指數",
+        price: 33.2, qDiv: 0.66, yieldPct: 7.9,
+        issuer: "國泰投信", inception: "2020/07", aum: "6124.54億元", holders: "160.37萬人",
+        desc: "金融股權重最高（最大持股為中信金），規模與受益人數全市場數一數二，防禦性佳、填息速度快，股價成長性相對緩慢。2026Q1單季配息0.66元創新高，目前揭露約34檔持股。"
+      },
+      "00850": {
+        name: "元大臺灣ESG永續",
+        tracker: "臺灣永續指數(FTSE4Good TIP Taiwan ESG Index)",
+        price: 65.3, qDiv: 0.85, yieldPct: 5.2,
+        issuer: "元大投信", inception: "2019/08/15（2023/08/16起由年配改季配）", aum: "385.46億元", holders: "8.11萬人",
+        desc: "兼具市值型與季配息屬性，排除ROE為負或未編ESG報告之公司，前十大持股為台積電、聯發科等權值股（台積電權重近三成），近四季殖利率約5.2%為所有候選中最溫和，波動相對較小、更貼近大盤走勢，適合想兼顧資本利得的存股族。"
+      },
+      "00891": {
+        name: "中信關鍵半導體",
+        tracker: "NYSE FactSet臺灣ESG永續關鍵半導體指數",
+        price: 37.98, qDiv: 1.25, yieldPct: 7.9,
+        issuer: "中信投信", inception: "2021/05/28", aum: "622.54億元", holders: "17.24萬人",
+        desc: "持股集中於台積電、聯發科等半導體上中下游30檔龍頭股（台積電、聯發科合計權重約兩成），受惠AI熱潮2026Q1配息大增至1.25元創掛牌新高，近四季殖利率約7.9%，屬產業主題型ETF，配息與股價波動度明顯高於一般高股息ETF。"
+      },
+      "00894": {
+        name: "中信小資高價30",
+        tracker: "臺灣指數公司特選小資高價30指數",
+        price: 50.20, qDiv: 0.60, yieldPct: 4.6,
+        issuer: "中信投信", inception: "2021/08/13", aum: "76.33億元", holders: "資料較少（規模相對最小）",
+        desc: "讓小資族也能參與台積電、聯發科、日月光投控等高價龍頭股（前十大合計占比逾7成），近五年平均殖利率約4.6%為所有候選中最低，換取的是相對更高的資本利得潛力，適合更看重成長性、對配息金額要求較低的投資人。"
+      }
+    },
+    default: "00878"
+  }
+];
+
+const NHI_THRESHOLD = 20000;
+const NHI_RATE = 0.0211;
+const MONTH_NAMES = ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"];
+
+let suppressLink = false; // 避免程式設值觸發連鎖重算造成迴圈
+
+function fmt(n, d=0){
+  return Number(n).toLocaleString('zh-TW', {minimumFractionDigits:d, maximumFractionDigits:d});
+}
+
+function getEtf(groupIdx, id){
+  return GROUPS[groupIdx].options[id];
+}
+
+function buildCard(idx){
+  const g = GROUPS[idx];
+  const ids = Object.keys(g.options);
+  const card = document.createElement('div');
+  card.className = 'etf-card';
+  card.innerHTML = `
+    <div class="group-badge">${g.label}</div>
+    <select id="sel${idx}" onchange="onSelectChange(${idx})">
+      ${ids.map(id=>`<option value="${id}" ${id===g.default?'selected':''}>${id} ${g.options[id].name}</option>`).join('')}
+    </select>
+    <div class="etf-name" id="name${idx}"></div>
+    <div class="etf-code" id="code${idx}"></div>
+    <div class="etf-desc" id="desc${idx}"></div>
+    <div class="etf-meta">
+      <div><span>投信公司</span><b id="issuer${idx}"></b></div>
+      <div><span>成立日期</span><b id="incep${idx}"></b></div>
+      <div><span>資產規模</span><b id="aum${idx}"></b></div>
+      <div><span>受益人數</span><b id="holders${idx}"></b></div>
+      <div><span>目前股價</span><b id="price${idx}"></b></div>
+      <div><span>單季配息(估)</span><b id="qdiv${idx}"></b></div>
+      <div><span>近期殖利率</span><b id="yld${idx}"></b></div>
+    </div>
+    <div class="shares-row">
+      <label>股數</label>
+      <input type="number" id="shares${idx}" value="0" min="0" step="1" oninput="onSharesInput(${idx})">
+    </div>
+    <div class="lot-note" id="lot${idx}"></div>
+    <div class="cost-line"><span>投入金額</span><span id="cost${idx}">NT$ 0</span></div>
+  `;
+  return card;
+}
+
+function refreshCardInfo(idx){
+  const id = document.getElementById(`sel${idx}`).value;
+  const e = getEtf(idx, id);
+  document.getElementById(`name${idx}`).textContent = e.name;
+  document.getElementById(`code${idx}`).textContent = id + " · " + e.tracker;
+  document.getElementById(`desc${idx}`).textContent = e.desc;
+  document.getElementById(`issuer${idx}`).textContent = e.issuer;
+  document.getElementById(`incep${idx}`).textContent = e.inception;
+  document.getElementById(`aum${idx}`).textContent = e.aum;
+  document.getElementById(`holders${idx}`).textContent = e.holders;
+  document.getElementById(`price${idx}`).textContent = "NT$ " + e.price.toFixed(2);
+  document.getElementById(`qdiv${idx}`).textContent = e.qDiv.toFixed(2) + " 元/股";
+  document.getElementById(`yld${idx}`).textContent = e.yieldPct.toFixed(1) + "%";
+}
+
+function onSelectChange(idx){
+  refreshCardInfo(idx);
+  autoAllocate(); // 換ETF後，用門檻邏輯重新配平三檔，確保仍用滿預算
+}
+
+function currentSelection(){
+  return [0,1,2].map(i=>{
+    const id = document.getElementById(`sel${i}`).value;
+    const shares = parseFloat(document.getElementById(`shares${i}`).value) || 0;
+    return {idx:i, id, shares, ...getEtf(i,id), payMonths: GROUPS[i].payMonths};
+  });
+}
+
+// 三檔一起做「等額配息」水位法配平，讓三檔單季配息盡量拉平（在門檻之下）
+function waterFillAllocate(total, ks){
+  const sumK = ks.reduce((a,b)=>a+b,0);
+  const D = total / sumK;
+  return ks.map(k => D*k);
+}
+
+function autoAllocate(){
+  const total = parseFloat(document.getElementById('investAmount').value) || 0;
+  const sel = currentSelection();
+  const ks = sel.map(e => e.price / e.qDiv);
+  const moneys = waterFillAllocate(total, ks);
+  sel.forEach((e,i)=>{
+    const shares = Math.max(0, Math.round(moneys[i] / e.price));
+    document.getElementById(`shares${e.idx}`).value = shares;
+  });
+  recalc();
+}
+
+// 使用者手動調整某一檔股數時，剩餘預算在「另外兩檔」之間用同樣的等額配息邏輯重新配平
+function onSharesInput(changedIdx){
+  if(suppressLink){ recalc(); return; }
+  const total = parseFloat(document.getElementById('investAmount').value) || 0;
+  const sel = currentSelection();
+
+  const changed = sel[changedIdx];
+  const cost = changed.shares * changed.price;
+  const others = sel.filter(e=>e.idx!==changedIdx);
+  const remaining = total - cost;
+
+  suppressLink = true;
+  if(remaining <= 0){
+    others.forEach(e=>{ document.getElementById(`shares${e.idx}`).value = 0; });
+  } else {
+    const ks = others.map(e => e.price / e.qDiv);
+    const moneys = waterFillAllocate(remaining, ks);
+    others.forEach((e,i)=>{
+      const shares = Math.max(0, Math.round(moneys[i] / e.price));
+      document.getElementById(`shares${e.idx}`).value = shares;
+    });
+  }
+  suppressLink = false;
+  recalc();
+}
+
+function recalc(){
+  const total = parseFloat(document.getElementById('investAmount').value) || 0;
+  const sel = currentSelection();
+
+  let totalCost = 0, totalQDiv = 0, totalTax = 0, totalNet = 0;
+  const qBody = document.getElementById('quarterBody');
+  qBody.innerHTML = '';
+
+  sel.forEach(e=>{
+    const cost = e.shares * e.price;
+    const qdiv = e.shares * e.qDiv;
+    const taxed = qdiv >= NHI_THRESHOLD;
+    const tax = taxed ? qdiv * NHI_RATE : 0;
+    const net = qdiv - tax;
+
+    totalCost += cost; totalQDiv += qdiv; totalTax += tax; totalNet += net;
+
+    document.getElementById(`cost${e.idx}`).textContent = "NT$ " + fmt(cost);
+    document.getElementById(`lot${e.idx}`).textContent = `約 ${(e.shares/1000).toFixed(2)} 張`;
+
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${e.id} ${e.name}</td>
+      <td>${fmt(e.shares)}</td>
+      <td>NT$ ${fmt(qdiv)}</td>
+      <td>${taxed ? '<span class="tag-tax">達2萬門檻</span>' : '<span class="tag-safe">低於門檻</span>'}</td>
+      <td>${taxed ? '– NT$ ' + fmt(tax) : '—'}</td>
+      <td>NT$ ${fmt(net)}</td>
+    `;
+    qBody.appendChild(row);
+  });
+
+  document.getElementById('quarterFoot').innerHTML = `
+    <tr class="total">
+      <td>合計（單季）</td><td></td>
+      <td>NT$ ${fmt(totalQDiv)}</td><td></td>
+      <td>${totalTax>0 ? '– NT$ '+fmt(totalTax) : '—'}</td>
+      <td>NT$ ${fmt(totalNet)}</td>
+    </tr>`;
+
+  const remaining = total - totalCost;
+  const budgetBar = document.getElementById('budgetBar');
+  budgetBar.innerHTML = `
+    <div class="budget-item"><span class="lab">總投入金額</span><span class="val">NT$ ${fmt(total)}</span></div>
+    <div class="budget-item"><span class="lab">目前已配置</span><span class="val">NT$ ${fmt(totalCost)}</span></div>
+    <div class="budget-item"><span class="lab">${remaining>=0?'剩餘可配置':'超出預算'}</span><span class="val ${remaining>=0?'ok':'over'}">NT$ ${fmt(Math.abs(remaining))}</span></div>
+    <div class="budget-item"><span class="lab">年化配息(稅前估)</span><span class="val">NT$ ${fmt(totalQDiv*4)}</span></div>
+    <div class="budget-item"><span class="lab">年化補充保費(估)</span><span class="val" style="color:var(--amber)">NT$ ${fmt(totalTax*4)}</span></div>
+    <div class="budget-item"><span class="lab">年化實領(估)</span><span class="val" style="color:var(--green)">NT$ ${fmt(totalNet*4)}</span></div>
+  `;
+
+  buildCalendar(sel);
+  buildNotes();
+}
+
+function buildCalendar(sel){
+  const cal = document.getElementById('calendar');
+  cal.innerHTML = '';
+  for(let m=1;m<=12;m++){
+    let amt = 0, tax = 0;
+    sel.forEach(e=>{
+      if(e.payMonths.includes(m)){
+        const qdiv = e.shares * e.qDiv;
+        const taxed = qdiv >= NHI_THRESHOLD;
+        const t = taxed ? qdiv*NHI_RATE : 0;
+        amt += (qdiv - t);
+        tax += t;
+      }
+    });
+    const div = document.createElement('div');
+    div.className = 'month' + (amt>0 ? ' has-pay' : '');
+    div.innerHTML = amt>0
+      ? `<div class="m-label">${MONTH_NAMES[m-1]}</div><div class="m-amt">NT$ ${fmt(amt)}</div>${tax>0?`<div class="m-tax">已扣補充保費 NT$ ${fmt(tax)}</div>`:''}`
+      : `<div class="m-label">${MONTH_NAMES[m-1]}</div><div class="m-empty">無配息</div>`;
+    cal.appendChild(div);
+  }
+}
+
+function buildNotes(){
+  document.getElementById('notes').innerHTML = `
+    <b>資料與試算說明</b><br>
+    · ETF股價、單季配息金額與殖利率為 2026/07/08～07/09 期間彙整之公開市場資訊（Yahoo股市、Goodinfo、各投信官網等），僅供規劃參考，實際配息金額、除息與發放日期一律以各投信正式公告為準，過去配息不代表未來配息保證。<br>
+    · 資產規模與受益人數取自臺灣證券交易所ETF e添富平台（資料日期約2026/07/09，來源集保結算所），成立日期取自各投信公開說明書與公開報導；規模與人數每日都在變動，僅反映查詢當下的快照，實際數字請以投信官網或集保結算所最新公告為準。<br>
+    · 三個欄位已依「現金股利實際入帳月份」固定分組（並非除息交易日月份，兩者常相差約1個月，證交所配息行事曆本身也是以除息日月份分類，須留意）：第一欄（00713／00919／00915）在1、4、7、10月入帳；第二欄（0056）在2、5、8、11月入帳；第三欄（00878／00850／00891／00894）在3、6、9、12月入帳，三檔搭配可讓全年多達8～12個月份都有配息落袋。<br>
+    · 市面上常被歸類為「2、5、8、11月配息」的00878、00850、00731、00894、00891等ETF，其實指的是除息交易日月份；實際現金股利發放日多半落後1個月，落在3、6、9、12月（因此本工具將它們歸入第三欄）。目前查證到的主流高股息ETF中，只有0056是真正在2、5、8、11月將現金存入戶頭，若日後找到其他同組標的會再補充。<br>
+    · 調整任一檔股數時，其餘兩檔會自動依「等額配息水位法」重新配平剩餘預算，讓總投入金額盡量貼齊你輸入的投資金額，同時盡量把三檔的單季配息拉到同一水準，降低任一檔獨自衝上2萬元門檻的機率。<br>
+    · 二代健保補充保費現行規定（2026年）：股利所得單筆給付達新台幣2萬元（含）即按 2.11% 扣繳「全額」，非僅扣超過部分；單筆給付上限1,000萬元。「年度累計制」修法討論已暫緩，若日後上路，試算邏輯需再調整，請留意衛福部最新公告。<br>
+    · 本工具僅為教育與資產配置參考，不構成投資建議，投資有風險，請依自身風險承受度審慎評估。
+  `;
+}
+
+function init(){
+  const grid = document.getElementById('etfGrid');
+  for(let i=0;i<3;i++) grid.appendChild(buildCard(i));
+  for(let i=0;i<3;i++) refreshCardInfo(i);
+  autoAllocate();
+  document.getElementById('investAmount').addEventListener('input', autoAllocate);
+}
+
+init();
+</script>
+</body>
+</html>
